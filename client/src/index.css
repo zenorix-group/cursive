@@ -1,0 +1,45 @@
+:root {
+  --paper: #dcdad5;
+  --paper-light: #e6e4df;
+  --ink: #141414;
+  --ink-soft: #3d3b38;
+  /* Lectio Imprint: Display for main headings, Text for subheadings and body.
+     Falls back to Newsreader until the font files are added (see @font-face below). */
+  --display: 'Lectio Imprint Display', 'Newsreader', Georgia, serif;
+  --text: 'Lectio Imprint Text', 'Newsreader', Georgia, serif;
+  --sans: 'Inter', system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body, #root { min-height: 100%; }
+
+body {
+  font-family: var(--sans);
+  color: var(--ink);
+  background-color: var(--paper);
+  /* newsprint grain */
+  background-image:
+    radial-gradient(rgba(0,0,0,.05) 1px, transparent 1px),
+    radial-gradient(rgba(255,255,255,.35) 1px, transparent 1px);
+  background-size: 3px 3px, 5px 5px;
+  background-position: 0 0, 1px 2px;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; text-decoration: none; }
+
+/* Uncomment once the files are in src/assets/fonts/
+@font-face {
+  font-family: 'Lectio Imprint Display';
+  src: url('./assets/fonts/LectioImprintDisplay.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Lectio Imprint Text';
+  src: url('./assets/fonts/LectioImprintText.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+*/

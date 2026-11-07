@@ -1,0 +1,13 @@
+{
+  "name": "cursive",
+  "private": true,
+  "scripts": {
+    "install:all": "npm i --prefix server && npm i --prefix client",
+    "server": "npm run dev --prefix server",
+    "client": "npm run dev --prefix client",
+    "dev": "concurrently -n server,client \"npm:server\" \"npm:client\""
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.7"
+  }
+}

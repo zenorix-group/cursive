@@ -1,0 +1,167 @@
+.read { --u: 1px; min-height: 100svh; }
+
+.read__bar {
+  height: calc(var(--u) * 68);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid var(--ink);
+  background: #ecebe6;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+.read__brand { font-weight: 600; font-size: calc(var(--u) * 24); letter-spacing: -0.01em; }
+
+/* full-width picture, cropped to a tall frame */
+.hero { position: relative; aspect-ratio: 402 / 720; overflow: hidden; background: #1a1714; }
+.hero__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 30%;
+  transform: scale(1.14); /* push the plate's own torn border out of frame */
+  user-select: none;
+}
+.hero__shade {
+  position: absolute;
+  inset: auto 0 0;
+  height: 30%;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.55));
+}
+.hero__meta {
+  position: absolute;
+  left: calc(var(--u) * 25);
+  bottom: calc(var(--u) * 22);
+  font-size: calc(var(--u) * 11);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.hero__game {
+  position: absolute;
+  right: calc(var(--u) * 20);
+  bottom: calc(var(--u) * 16);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: calc(var(--u) * 8);
+}
+.hero__tip {
+  position: relative;
+  max-width: calc(var(--u) * 92);
+  padding: calc(var(--u) * 7) calc(var(--u) * 10);
+  border-radius: calc(var(--u) * 12);
+  background: #fff;
+  font: 600 calc(var(--u) * 9.5) var(--sans);
+  line-height: 1.25;
+  text-align: center;
+  color: var(--ink);
+  animation: tip-bob 2.4s ease-in-out infinite;
+}
+.hero__tip::after {
+  content: '';
+  position: absolute;
+  right: calc(var(--u) * 16);
+  bottom: calc(var(--u) * -5);
+  width: calc(var(--u) * 10);
+  height: calc(var(--u) * 10);
+  background: #fff;
+  transform: rotate(45deg);
+}
+
+.toggle {
+  position: relative;
+  width: calc(var(--u) * 54);
+  height: calc(var(--u) * 26);
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.25s ease;
+}
+.toggle.is-on { background: #2f7a3e; }
+.toggle__knob {
+  position: absolute;
+  top: calc(var(--u) * 3);
+  left: calc(var(--u) * 3);
+  width: calc(var(--u) * 26);
+  height: calc(var(--u) * 20);
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.4);
+  transition: transform 0.25s ease;
+}
+.toggle.is-on .toggle__knob { transform: translateX(calc(var(--u) * 19)); background: rgba(255, 255, 255, 0.85); color: #2f7a3e; }
+.toggle__tap { position: absolute; right: calc(var(--u) * 9); top: calc(var(--u) * 7); opacity: 0.9; }
+.toggle:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+/* article text */
+.read__body {
+  width: min(100%, calc(var(--u) * 402));
+  margin: 0 auto;
+  padding: calc(var(--u) * 24) calc(var(--u) * 25) calc(var(--u) * 48);
+}
+.read__title {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: calc(var(--u) * 32);
+  line-height: 1.1;
+  color: #2b2926;
+  filter: url(#wet-ink);
+}
+.read__author {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 10);
+  margin: calc(var(--u) * 18) 0 calc(var(--u) * 22);
+  font-size: calc(var(--u) * 14);
+}
+.read__avatar {
+  width: calc(var(--u) * 34);
+  height: calc(var(--u) * 34);
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #8a8780;
+  color: #e9e7e1;
+}
+.read__body p {
+  margin-bottom: calc(var(--u) * 22);
+  font-family: var(--text);
+  font-size: calc(var(--u) * 16);
+  line-height: calc(var(--u) * 25);
+  color: #2b2926;
+}
+.read__next {
+  display: block;
+  width: 100%;
+  height: calc(var(--u) * 47);
+  margin-top: calc(var(--u) * 30);
+  border: 0;
+  background: #000;
+  color: #fff;
+  font: 600 calc(var(--u) * 11) var(--sans);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.read__next:hover { background: #2a2a2a; }
+
+@keyframes tip-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+
+@media (min-width: 900px) {
+  .read { --u: 1.2px; }
+  .hero { aspect-ratio: 16 / 9; max-height: 70svh; }
+  .read__body { width: min(100%, 720px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero__tip { animation: none; }
+  .toggle, .toggle__knob { transition: none; }
+}

@@ -1,0 +1,117 @@
+.article { --u: 1px; min-height: 100svh; }
+
+.article__bar {
+  height: calc(var(--u) * 68);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid var(--ink);
+  background: rgba(236, 235, 230, 0.92);
+}
+.article__brand { font-weight: 600; font-size: calc(var(--u) * 24); letter-spacing: -0.01em; }
+
+.article__body {
+  width: min(100%, calc(var(--u) * 402));
+  margin: 0 auto;
+  padding: calc(var(--u) * 4) calc(var(--u) * 22) calc(var(--u) * 17);
+}
+
+/* the poster card: white torn frame, picture, dark caption */
+.card { position: relative; padding: calc(var(--u) * 13) calc(var(--u) * 11) calc(var(--u) * 15); }
+.card__frame {
+  position: absolute;
+  inset: 0;
+  background: #f8f7f3;
+  filter: url(#deckle);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.card__pic {
+  position: relative;
+  aspect-ratio: 349 / 462;
+  overflow: hidden;
+  background: #222;
+}
+/* crop away the plate's own dark torn border so the picture sits clean in the frame */
+.card__crop { position: relative; width: 111%; margin: -4% 0 0 -5.5%; line-height: 0; }
+.card__crop img { display: block; width: 100%; user-select: none; }
+.card__crop svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.card__dim { fill: rgba(0, 0, 0, 0.4); }
+.card__lit { filter: saturate(1.1) brightness(1.04); }
+.card__edge {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 1.8;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 1.5px rgba(255, 255, 255, 0.9));
+}
+
+.card__cap { position: relative; margin-top: calc(var(--u) * 10); }
+.card__capbg { position: absolute; inset: 0; background: #3a2f2a; filter: url(#deckle); }
+.card__capin { position: relative; padding: calc(var(--u) * 15) calc(var(--u) * 16) calc(var(--u) * 18); }
+.card__row { display: flex; align-items: center; justify-content: space-between; }
+.card__cap h2 {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: calc(var(--u) * 23);
+  line-height: 1.1;
+  color: #fff;
+}
+.card__cap p {
+  margin-top: calc(var(--u) * 9);
+  font-family: var(--text);
+  font-size: calc(var(--u) * 15);
+  line-height: 1.25;
+  color: #cdb68c;
+}
+.card__pill {
+  display: inline-flex;
+  gap: calc(var(--u) * 4);
+  padding: calc(var(--u) * 4) calc(var(--u) * 9);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+
+.article__eyebrow {
+  margin-top: calc(var(--u) * 13);
+  font-size: calc(var(--u) * 10.5);
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.article__title {
+  margin: calc(var(--u) * 6) 0 calc(var(--u) * 10);
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: calc(var(--u) * 28);
+  line-height: 1.17;
+  color: #2b2926;
+  filter: url(#wet-ink);
+}
+.article__title span { display: block; }
+.article__blurb {
+  font-family: var(--text);
+  font-size: calc(var(--u) * 14.5);
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+
+.article__begin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: calc(var(--u) * 18);
+  height: calc(var(--u) * 42);
+  background: #000;
+  color: #fff;
+  font-size: calc(var(--u) * 17);
+  transition: background 0.15s ease;
+}
+.article__begin:hover { background: #2a2a2a; }
+.article__begin:focus-visible { outline: 3px solid #2f7a3e; outline-offset: 3px; }
+
+@media (min-width: 900px) {
+  .article { --u: min(1.25px, calc(100svh / 900)); }
+}

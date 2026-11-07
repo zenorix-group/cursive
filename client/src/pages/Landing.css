@@ -1,0 +1,149 @@
+/* --u scales the whole composition; --sx spreads the fan sideways on wide screens */
+.landing {
+  --u: 1px;
+  --iu: 1px;
+  --sx: 1;
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.landing__bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  height: calc(var(--u) * 68);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid var(--ink);
+  background: rgba(222, 220, 215, 0.82);
+  backdrop-filter: blur(3px);
+}
+
+.landing__brand {
+  font-weight: 600;
+  font-size: calc(var(--u) * 24);
+  letter-spacing: -0.01em;
+}
+
+/* ---------- fan ---------- */
+.fan {
+  position: relative;
+  height: calc(var(--u) * 588);
+  flex: none;
+}
+
+.poster,
+.flyer {
+  position: absolute;
+  top: calc(var(--u) * var(--y));
+  left: 50%;
+  width: calc(var(--u) * var(--w));
+  height: auto;
+  transform: translateX(calc(-50% + var(--u) * var(--x) * var(--sx)));
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.flyer { z-index: 0; pointer-events: none; }
+.poster { z-index: 2; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3)); }
+.poster--next { z-index: 4; }
+
+/* ---------- intro ---------- */
+.intro {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: calc(var(--iu) * 402);
+  margin: 0 auto;
+  padding: 0 calc(var(--iu) * 34) calc(var(--iu) * 57);
+}
+
+.intro__eyebrow {
+  margin-top: calc(var(--iu) * 12);
+  font-size: calc(var(--iu) * 10.5);
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.intro__title {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: calc(var(--iu) * 29);
+  line-height: 1.15;
+  margin: calc(var(--iu) * 6) 0 calc(var(--iu) * 14);
+  color: #3a3835;
+}
+
+.intro__lines {
+  font-family: var(--text);
+  font-size: calc(var(--iu) * 19);
+  line-height: calc(var(--iu) * 28);
+  color: #4a4845;
+}
+
+.intro__cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: calc(var(--iu) * 25);
+  height: calc(var(--iu) * 42);
+  background: #000;
+  color: #fff;
+  font-size: calc(var(--iu) * 17);
+  transition: background 0.15s ease;
+}
+.intro__cta:hover { background: #2a2a2a; }
+.intro__cta:focus-visible { outline: 3px solid #2f7a3e; outline-offset: 3px; }
+
+/* ---------- desktop: text left, poster stage right ---------- */
+@media (min-width: 900px) {
+  .landing { --iu: 1.7px; }
+
+  .landing__bar {
+    position: relative;
+    height: 72px;
+    justify-content: flex-start;
+    padding: 0 48px;
+    background: transparent;
+    backdrop-filter: none;
+  }
+  .landing__brand { font-size: 28px; }
+
+  .landing__body {
+    flex: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 560px) auto;
+    justify-content: center;
+    align-items: center;
+    gap: 96px;
+    padding: 32px 48px 48px;
+  }
+
+  .fan {
+    --u: 1.15px;
+    order: 2;
+    width: calc(var(--u) * 402);
+    overflow: hidden;
+    border: 1px solid var(--ink);
+  }
+
+  .intro {
+    order: 1;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+  .intro__cta { max-width: 360px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro__cta { transition: none; }
+}
