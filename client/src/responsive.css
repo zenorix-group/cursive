@@ -1,0 +1,194 @@
+/* Shared app sizing. Pages scroll naturally; type never shrinks to fit window height. */
+:root {
+  --app-bar-height: 64px;
+  --page-gutter: clamp(20px, 5vw, 32px);
+}
+
+html { width: 100%; -webkit-text-size-adjust: 100%; scroll-padding-top: calc(var(--app-bar-height) + 20px); }
+body { min-width: 280px; }
+#root { width: 100%; min-height: 100svh; margin-inline: auto; }
+main { min-width: 0; }
+button, input { -webkit-tap-highlight-color: transparent; }
+button, a, input { touch-action: manipulation; }
+button:focus-visible, a:focus-visible { outline-offset: 4px; }
+p, h1, h2, blockquote { overflow-wrap: break-word; }
+
+.landing, .plate, .article, .read { --u: 1px; }
+.plate > svg { position: absolute; }
+.landing__bar, .plate__bar, .article__bar, .read__bar, .call__bar, .receipt__bar {
+  height: calc(var(--app-bar-height) + env(safe-area-inset-top, 0px));
+  min-height: var(--app-bar-height);
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.plate__bar, .article__bar, .call__bar, .receipt__bar { position: sticky; top: 0; z-index: 10; }
+.read__bar { z-index: 10; }
+.plate__brand, .article__brand, .read__brand { font-size: 24px; }
+
+/* Keep the original poster composition proportional on narrow phones. */
+.landing { --u: min(1.1px, calc(100vw / 402)); }
+.intro { padding-inline: var(--page-gutter); padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px)); }
+.intro__eyebrow { font-size: 11px; line-height: 1.5; }
+.intro__cta { min-height: 48px; height: auto; padding: 12px 16px; }
+
+.plate__body { width: min(100%, 440px); padding: 28px var(--page-gutter) calc(32px + env(safe-area-inset-bottom, 0px)); }
+.plate__title { font-size: clamp(28px, 8vw, 36px); }
+.plate__begin { min-height: 48px; height: auto; padding: 12px; }
+.plate__skip { display: flex; justify-content: center; align-items: center; min-height: 44px; margin-top: 0; font-size: 14px; }
+.sheet__prompt { font-size: 16px; line-height: 1.35; }
+.sheet__hint { width: 44px; height: 44px; }
+.plate__veil { z-index: 20; }
+.sheet__image.is-lit { z-index: 21; }
+.ask {
+  z-index: 22;
+  width: min(340px, calc(100vw - 32px));
+  max-width: none;
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  padding: 16px 18px 18px;
+}
+.ask__head { font-size: 15px; }
+.ask__x { min-width: 36px; min-height: 36px; font-size: 14px; }
+.ask__q { margin-block: 12px; font-size: 16px; }
+.ask__input { height: 46px; font-size: 16px; }
+.ask__error { font-size: 14px; line-height: 1.4; }
+.ask__go { width: auto; min-width: 112px; min-height: 44px; height: auto; font-size: 15px; padding: 10px 18px; }
+
+.article__body { width: min(100%, 440px); padding: 12px var(--page-gutter) calc(28px + env(safe-area-inset-bottom, 0px)); }
+.article__copy { min-width: 0; }
+.article__title { font-size: clamp(26px, 7vw, 32px); }
+.article__blurb { font-size: 16px; line-height: 1.5; }
+.article__eyebrow { font-size: 11px; line-height: 1.5; }
+.article__begin { min-height: 48px; height: auto; padding: 12px; }
+.card__row { gap: 12px; }
+.card__pill { flex-shrink: 0; }
+.card__cap h2 { font-size: clamp(20px, 5.7vw, 24px); }
+
+/* Reading layouts and interactive answers retain a comfortable line length. */
+.read .read__body { width: min(100%, 700px); padding: 28px var(--page-gutter) calc(40px + env(safe-area-inset-bottom, 0px)); }
+.read__title { font-size: clamp(30px, 7.5vw, 38px); }
+.read--banking .read__title { font-size: clamp(28px, 8.5vw, 38px); line-height: 1.02; }
+.read__body p { font-size: 17px; line-height: 1.65; }
+.read--banking .read__body > p { font-size: 17px; line-height: 1.7; }
+.read__author { gap: 16px; font-size: clamp(22px, 6.5vw, 30px); }
+.read__avatar { width: 64px; height: 64px; }
+.read__author-name { min-width: 0; }
+.read__section-label { min-height: 36px; font-size: 13px; padding: 6px 12px; }
+.read__inline-blank::after { inset: auto; width: 44px; height: 44px; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+.game-hint__button { width: 44px; height: 44px; }
+.game-hint__card { width: 310px; max-width: calc(100vw - 40px); }
+.game-hint__card h2 { font-size: 13px; }
+.game-hint__card p { font-size: 12px; line-height: 1.45; }
+.hero__game { gap: 10px; }
+.hero__tip { max-width: none; padding: 7px 10px; border-radius: 18px; background: #e1e1de; color: #080808; font: 700 11px/1.05 var(--text); text-align: left; white-space: nowrap; animation: none; }
+.hero__tip::after { right: 14px; bottom: -4px; width: 8px; height: 8px; background: #e1e1de; }
+.read .toggle { width: 76px; height: 30px; border: 1px solid #ffffffb3; background: #d3d3cf55; backdrop-filter: blur(3px); }
+.toggle::before { content: ''; position: absolute; inset: -7px 0; }
+.read .toggle__knob { top: 0; left: 0; width: 38px; height: 28px; background: #e8e8e75c; }
+.read .toggle.is-on .toggle__knob { transform: translateX(36px); background: #e8e8e75c; }
+.toggle__feather { width: 17px; height: 23px; }
+.toggle__tap { top: 10px; right: 10px; }
+.toggle__idle-feather { top: 3px; left: 9px; width: 17px; height: 23px; opacity: 1; }
+.toggle__idle-feather--right { left: auto; right: 9px; }
+.read__next, .read__submit { min-height: 48px; height: auto; padding: 12px; font-size: 12px; line-height: 1.4; }
+.question-panel__label { flex-wrap: wrap; gap: 6px 12px; }
+.question-panel__label label { font-size: 16px; }
+.question-panel__form input { min-height: 48px; font-size: 16px; }
+.question-panel__tools button { min-width: 36px; min-height: 36px; }
+.question-panel__actions { flex-wrap: wrap; gap: 8px 16px; }
+.question-panel__actions button { min-height: 44px; font-size: 12px; }
+.call-options { padding-inline: clamp(4px, 3vw, 24px); scroll-margin-top: calc(var(--app-bar-height) + 20px); }
+.call-options h2 { font-size: 10px; }
+.call-options > header > span { font-size: 9px; text-align: right; }
+.call-options li > button { min-height: 48px; font-size: 18px; }
+.call-options footer > button, .call-options__tools > button { min-height: 44px; font-size: 11px; }
+.call-options footer { align-items: center; font-size: 9px; }
+
+/* Transcript and receipts use the full phone width and a bounded reading column. */
+.call__body { width: 100%; max-width: 480px; min-height: calc(100svh - var(--app-bar-height)); padding: 26px var(--page-gutter) calc(22px + env(safe-area-inset-bottom, 0px)); }
+.call__title-row { flex-wrap: wrap; gap: 8px 16px; }
+.call__description { font-size: 16px; line-height: 1.4; }
+.call__transcript { font-size: 16px; line-height: 1.3; }
+.call__line input { width: 16px; height: 16px; vertical-align: -2px; }
+.call__continue { min-height: 48px; }
+.call__skip { min-height: 44px; display: flex; align-items: center; justify-content: center; margin-top: 0; font-size: 14px; }
+.call__footer--complete { padding-bottom: 44px; }
+.receipt { width: min(100%, 740px); padding: 36px var(--page-gutter) calc(32px + env(safe-area-inset-bottom, 0px)); }
+.receipt__section-heading, .receipt__card-heading { flex-wrap: wrap; }
+.receipt__section-heading { font-size: 10px; gap: 6px 12px; }
+.receipt__section-heading > span:last-child { font-size: 9px; }
+.receipt__card-heading { font-size: 10px; line-height: 1.5; }
+.receipt__description, .receipt__card > p:not(.receipt__small-label), .receipt__note p { font-size: 16px; line-height: 1.6; }
+.receipt__footer { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.receipt__footer button, .receipt__footer a, .receipt__loading button { min-height: 48px; font-size: 12px; line-height: 1.5; letter-spacing: 0.5px; }
+.receipt__back, .receipt__loading a { display: flex; align-items: center; justify-content: center; min-height: 44px; font-size: 14px; }
+.receipt__table { table-layout: auto; }
+.receipt__table th, .receipt__table td { padding: 12px 8px; }
+.receipt__note { flex-wrap: wrap; }
+.receipt__note > span { font-size: 10px; }
+
+@media (min-width: 600px) and (max-width: 1099px) {
+  .landing { --u: 1.1px; }
+  .intro { max-width: 480px; }
+  .plate__body, .article__body { width: min(100%, 500px); padding-top: 28px; }
+  .read .hero { aspect-ratio: 4 / 3; max-height: 640px; }
+  .read__title, .read--banking .read__title { font-size: 40px; }
+  .call__body { max-width: 680px; }
+  .call__transcript { font-size: 18px; line-height: 1.5; }
+  .receipt { padding-top: 48px; }
+}
+
+/* Desktop keeps the editorial styling while giving each task its own workspace. */
+@media (min-width: 900px) {
+  :root { --app-bar-height: 72px; }
+  #root { max-width: 1600px; box-shadow: 0 0 0 1px #0001; }
+  .landing { --iu: clamp(1.25px, calc(100vw / 900), 1.6px); }
+  .landing__bar { height: var(--app-bar-height); padding-inline: 40px; }
+  .landing__body { width: 100%; max-width: 1280px; margin-inline: auto; grid-template-columns: minmax(0, 1fr) auto; gap: clamp(28px, 4vw, 64px); padding: 40px 32px; }
+  .landing .fan { --u: clamp(0.85px, calc((100vw - 64px) / 1000), 1.15px); width: calc(var(--u) * 402); height: calc(var(--u) * 588); }
+  .landing .intro { min-width: 0; padding: 0; }
+  .intro__eyebrow { font-size: 13px; }
+  .intro__cta { max-width: 360px; }
+  .article, .plate, .read { --u: 1px; }
+  .receipt { width: min(100%, 740px); padding: 48px 40px; }
+  .receipt__intro h1 { font-size: 48px; }
+}
+
+@media (min-width: 1100px) {
+  .plate__body, .article__body { display: grid; grid-template-columns: minmax(300px, 420px) minmax(0, 1fr); align-items: center; gap: 64px; width: min(100%, 1100px); min-height: calc(100svh - var(--app-bar-height)); padding: 40px; }
+  .plate__copy, .article__copy { min-width: 0; }
+  .plate__title { margin: 0 0 32px; font-size: clamp(38px, 3.6vw, 52px); }
+  .plate__begin { margin: 0; }
+  .plate__skip { margin-top: 8px; }
+  .article__eyebrow { margin-top: 0; font-size: 12px; }
+  .article__title { margin-block: 16px 20px; font-size: clamp(34px, 3.4vw, 46px); }
+  .article__blurb { font-size: 19px; line-height: 1.6; }
+  .article__begin { margin-top: 32px; }
+  .read { display: grid; grid-template-columns: minmax(320px, 0.9fr) minmax(0, 1.1fr); column-gap: 40px; align-items: start; }
+  .read > .read__bar { grid-column: 1 / -1; }
+  .read > .hero { position: sticky; top: calc(var(--app-bar-height) + 32px); width: calc(100% - 40px); height: calc(100svh - var(--app-bar-height) - 64px); min-height: 360px; max-height: 960px; aspect-ratio: auto; margin: 32px 0 32px 40px; border: 1px solid #0002; }
+  .read .read__body { width: 100%; max-width: 740px; padding: 40px 40px 64px 0; }
+  .read__title, .read--banking .read__title { font-size: clamp(36px, 3.4vw, 48px); }
+  .read__body p, .read--banking .read__body > p { font-size: 19px; line-height: 1.7; }
+  .call__body { display: grid; grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.2fr); grid-template-rows: auto auto 1fr; align-content: center; align-items: start; gap: 20px 56px; max-width: 1120px; padding: 48px 40px 40px; }
+  .call__intro { grid-column: 1; grid-row: 1; }
+  .call__description { grid-column: 1; grid-row: 2; margin: 0; font-size: 19px; line-height: 1.5; }
+  .call__transcript { grid-column: 2; grid-row: 1 / 4; align-self: center; font-size: 20px; line-height: 1.4; padding: 24px; }
+  .call__footer { grid-column: 1; grid-row: 3; align-self: end; width: 100%; margin: 24px 0 0; padding: 0; }
+  .call__footer--complete { padding-bottom: 44px; }
+}
+
+@media (max-width: 359px) {
+  .read__actions--game, .receipt__footer { gap: 8px; }
+  .receipt__footer button, .receipt__footer a { font-size: 11px; }
+  .card__capin { padding-inline: 10px; }
+  .card__row { gap: 6px; }
+  .card__pill { padding-inline: 6px; }
+  .receipt__intro h1 { font-size: 32px; }
+  .receipt__table th, .receipt__table td { padding-inline: 5px; }
+}
+
+@media print {
+  #root { max-width: none; box-shadow: none; }
+  .receipt { width: 100%; max-width: 650px; padding: 24px; }
+  .receipt__bar { position: static; }
+}

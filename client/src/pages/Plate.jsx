@@ -114,6 +114,7 @@ function Plate() {
                     height={h}
                     clipPath="url(#lit-flag)"
                   />
+                  <polygon className={`sheet__outline${shown ? ' is-shown' : ''}`} points={open.points} />
                   <polygon className={`sheet__run${shown ? ' is-shown' : ''}`} points={open.points} pathLength="1" />
                 </>
               )}
@@ -182,6 +183,7 @@ function Plate() {
           </div>
         </section>
 
+        <div className="plate__copy">
         <h1 className="plate__title">{plate.title}</h1>
 
         {complete ? (
@@ -194,6 +196,7 @@ function Plate() {
           </span>
         )}
         <Link to="/article/1" className="plate__skip">Skip</Link>
+        </div>
       </div>
     </main>
   )

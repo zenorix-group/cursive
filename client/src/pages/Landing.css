@@ -51,8 +51,22 @@
 }
 
 .flyer { z-index: 0; pointer-events: none; }
-.poster { z-index: 2; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3)); }
-.poster--next { z-index: 4; }
+.poster {
+  --float-distance: -4px;
+  z-index: 2;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+  animation: poster-float var(--float-duration, 7s) ease-in-out var(--float-delay, 0s) infinite;
+}
+.poster--banking { --float-duration: 7.6s; --float-delay: -1.8s; }
+.poster--international { --float-duration: 8s; --float-delay: -4.2s; }
+.poster--quixote { --float-duration: 6.8s; --float-delay: -3.1s; }
+.poster--gentlemen { --float-duration: 7.4s; --float-delay: -5.3s; }
+.poster--next { --float-distance: -3px; --float-duration: 7.8s; --float-delay: -0.9s; z-index: 4; }
+
+@keyframes poster-float {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 var(--float-distance); }
+}
 
 /* ---------- intro ---------- */
 .intro {
@@ -145,5 +159,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .poster { animation: none; }
   .intro__cta { transition: none; }
 }

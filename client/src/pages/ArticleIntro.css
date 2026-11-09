@@ -1,4 +1,5 @@
 .article { --u: 1px; min-height: 100svh; }
+.article > svg { position: absolute; }
 
 .article__bar {
   height: calc(var(--u) * 68);
@@ -108,9 +109,21 @@
   color: #fff;
   font-size: calc(var(--u) * 17);
   transition: background 0.15s ease;
+  width: 100%;
+  border: 0;
+  font-family: var(--sans);
 }
 .article__begin:hover { background: #2a2a2a; }
 .article__begin:focus-visible { outline: 3px solid #2f7a3e; outline-offset: 3px; }
+
+.article--india { background: #f4f2ed url('../assets/reading/paper.png') repeat; background-size: 321px 600px; }
+.article--india .card { padding-inline: calc(var(--u) * 22); }
+.card__pic--india { aspect-ratio: 315 / 445; }
+.card__reference { display: block; width: 100%; height: 100%; object-fit: cover; }
+.article--india .card__cap { margin-inline: calc(var(--u) * -11); }
+.article--india .card__capbg { background-image: url('../assets/reading/paper.png'); background-blend-mode: multiply; background-size: 321px 600px; }
+.article__begin:disabled { cursor: default; }
+.article__begin:disabled:hover { background: #000; }
 
 @media (min-width: 900px) {
   .article { --u: min(1.25px, calc(100svh / 900)); }

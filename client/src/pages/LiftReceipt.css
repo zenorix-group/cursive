@@ -1,0 +1,15 @@
+.lift-receipt__prose > p { margin: 18px 0; font: 400 18px/1.65 var(--text); }
+.lift-receipt__reference { margin-top: 20px; padding-top: 14px; border-top: 1px solid #d0c5b2; }
+.lift-receipt__reference blockquote { font-size: 17px; font-weight: 500; }
+.lift-receipt__reference > p:last-child { font: 400 14px/1.6 var(--text); }
+.lift-receipt__observation { font: 400 17px/1.6 var(--text); }
+.lift-receipt__kept { list-style: none; margin-top: 18px; }
+.lift-receipt__kept li { display: flex; align-items: baseline; gap: 12px; margin-bottom: 14px; font: 400 15px/1.5 var(--text); }
+.lift-receipt__kept li > span { color: #756e5d; font: 500 9px var(--sans); flex-shrink: 0; }
+.lift-receipt__confidence { display: block; }
+.lift-receipt__confidence > span { display: block; padding: 0; margin-bottom: 10px; letter-spacing: 1px; }
+.lift-mark { margin: 16px 0 0; }
+.lift-mark svg { display: block; width: 100%; height: auto; overflow: visible; }
+.lift-mark text { fill: #45483c; font: 12px var(--text); }
+.lift-mark text.lift-mark__axis { fill: #7d7768; font: 8px var(--sans); text-transform: uppercase; letter-spacing: 0.5px; }
+.lift-mark figcaption { margin-top: 10px; color: #756e5d; font: italic 12px/1.5 var(--text); }

@@ -4,7 +4,9 @@ const connectDB = require('./config/db');
 
 const PORT = process.env.PORT || 5001;
 
-connectDB()
+const databaseReady = process.env.MONGO_URI ? connectDB() : Promise.resolve();
+
+databaseReady
   .then(() => app.listen(PORT, () => console.log(`Server running on port ${PORT}`)))
   .catch((err) => {
     console.error('Failed to start server:', err.message);

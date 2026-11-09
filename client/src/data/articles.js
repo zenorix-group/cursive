@@ -22,3 +22,31 @@ export const article1 = {
     'Until the aircraft enters sovereign airspace, the legal declaration remains an unfinished sentence. The courts have answered every objection India was asked to meet; what remains is whether administrative will can move faster than the quiet erosion of institutional attention.',
   ],
 }
+
+export const article2 = {
+  number: 2,
+  mechanic: 'The Call You Trust',
+  tagline: 'Highlights how easily a fraudulent call can appear genuine.',
+  title: ['Common Banking Frauds', 'Everyone Should Know'],
+  blurb: 'Where the answer lives: in what the piece argued,',
+  plate: plate1,
+  litFlag: 'in',
+  // lit area for this page: follows the hood edge down to the laptop and keeps India Gate inside, as in the design
+  litPoints: '334,6 290,22 264,38 241,54 231,64 221,90 211,107 234,136 250,171 254,199 246,222 231,253 249,281 262,304 269,329 276,346 290,350 320,351 334,353',
+  // plate region shown in the card (plate px ~18..331 x 8..452), as a % of the card width
+  crop: { width: '111.5%', left: '-5.75%', top: '-2.4%' },
+  readPath: '/read/2',
+  headline: 'Common Banking Frauds Everyone Should Know',
+  readingTitle: ['Common Banking', 'Frauds Everyone', 'Should Know'],
+  minutes: 8,
+  sectionLabel: 'The Call',
+  inlineBlankAfter: [1, 2, 3],
+  body: [
+    "Here's what nobody tells you: bank fraud victims are not careless people. They are retired professionals, young engineers, financially literate adults, and people exactly like you. The only difference between them and everyone else is that they encountered a fraudster at exactly the right moment of distraction, trust, or urgency. What happens to them isn't a trick. It's a procedure, and it has three parts.",
+    "Fraudsters today do not guess. They buy. Personal details leak in bulk from data breaches and get resold cheaply, so by the time your phone rings, the person on the line already has most of what a real bank employee would have in front of them. That's why the call opens by telling you things about yourself",
+    "Then there's the part you can't check. Don't rely on who a call says it is from. Scammers can make an incoming call show any name they like, including one you would recognise, and the software that does it costs them almost nothing. The thing you trust most is the easiest thing for them to fake",
+    "And they build the clock themselves. Nothing about a disputed transaction expires while you're on the phone. Fraudsters create a false sense of urgency so that you can't think clearly, and so that you don't do the one thing that would end the call, which is to hang up and ring the bank yourself on the number printed on your",
+    "So the tell is never how much they know, or how right the call looks, or how little time you think you have. All three of those can be bought, faked, or made up. Never share confidential banking information. If anyone asks for your OTP, PIN, CVV, or internet banking password, treat it as a red flag. Your bank sends you an OTP so that you can prove you're you. It never needs it back.",
+    "If you've already shared one, act fast and don't waste time on embarrassment. Call 1930, the National Cyber Crime Helpline, and tell your bank to block the card and freeze the account. Save the messages, the numbers, and the call details. Prompt reporting can help authorities trace and freeze the money before it moves again.",
+  ],
+}

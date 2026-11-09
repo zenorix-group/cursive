@@ -1,0 +1,49 @@
+{
+  "articleNumber": 1,
+  "generatedAt": "2026-11-09T12:33:03.845Z",
+  "model": "gemini-3.5-flash",
+  "inquiries": [
+    {
+      "id": 1,
+      "label": "dependence",
+      "outcome": "match",
+      "record": "The inquiry asks whether the appeal on mental health grounds was accepted or rejected by the court. The text notes five subsequent appeals and a refusal to certify questions, showing the outcome of legal challenges without explicitly providing a single-sentence summary of this specific mental health ruling at paragraph 2. This directly matches the editorial target's focus on appellate outcome.",
+      "path": "Asks for the judicial outcome of the mental health appeal challenge.",
+      "thread": false,
+      "text": "did the high court accept his appeal on mental health grounds or throw it out",
+      "visited": true
+    },
+    {
+      "id": 2,
+      "label": "source",
+      "outcome": "open",
+      "record": "The question asks whether anyone in London or Delhi has seen the formal ECHR refusal order mentioned in paragraph 4. The article states that the Strasbourg bench declined to grant an injunctive stay but does not cite or reference the document or verification source itself.",
+      "path": "Asks for direct documentary or observational evidence of the ECHR order.",
+      "thread": false,
+      "text": "Has anyone in London or Delhi actually seen the formal ECHR refusal order?",
+      "visited": true
+    },
+    {
+      "id": 3,
+      "label": "who",
+      "outcome": "answered",
+      "record": " this question asks which specific actors are responsible for physically placing the fugitive onto the aircraft. Paragraph 5 explicitly provides this by identifying logistical escorts from the Central Bureau of Investigation alongside British prison authorities executing custody transfer.",
+      "path": "Asks which authority or actor holds responsibility for physical boarding and transfer.",
+      "thread": false,
+      "text": "who is legally responsible for putting him on the chartered aircraft at Heathrow",
+      "visited": true
+    }
+  ],
+  "observations": [
+    "The reader's queries track the case sequentially from judicial rulings to documentary evidence and administrative custody transfer.",
+    "Question 2 identifies an unverified document source in the text, creating an open reporting file regarding formal access to the ECHR order.",
+    "Question 3's procedural inquiry is directly addressed by the text's detail on British prison authorities and CBI escorts."
+  ],
+  "openFiles": [
+    {
+      "inquiryId": 2,
+      "explanation": "The article reports that the Strasbourg bench declined an injunctive stay under Rule 39, but provides no source or confirmation of who has viewed the formal ECHR order."
+    }
+  ],
+  "cadenceNote": "The article shifts from judicial resolution via court rulings to custodial handover, where execution depends on countersigned surrender warrants, diplomatic overflight clearances, and physical transfer between British prison authorities and Indian escorts."
+}

@@ -57,11 +57,12 @@
 }
 .sheet__lit.is-shown { opacity: 1; animation: fade-in 0.24s ease; }
 
-/* a single dim strip travelling around the flag's border */
+/* A moving highlight above the continuous white outline. */
 .sheet__run {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.55);
-  stroke-width: 1.4;
+  stroke: #fff;
+  stroke-width: 2;
+  filter: drop-shadow(0 0 1.5px rgba(255, 255, 255, 0.8));
   stroke-linejoin: round;
   stroke-linecap: round;
   stroke-dasharray: 0.22 0.78;
@@ -70,6 +71,8 @@
   transition: opacity 0.24s ease;
 }
 .sheet__run.is-shown { opacity: 1; animation: run-border 5.5s linear infinite; }
+.sheet__outline { fill: none; stroke: rgba(255, 255, 255, 0.9); stroke-width: 1.5; stroke-linejoin: round; pointer-events: none; opacity: 0; transition: opacity 0.24s ease; }
+.sheet__outline.is-shown { opacity: 1; }
 
 .sheet__hint {
   position: absolute;
