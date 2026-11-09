@@ -1,4 +1,5 @@
-import { Fragment, useEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { AnimatePresence, animate, motion, useMotionValue } from 'framer-motion'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import plateImg from '../assets/landing/plate-1.png'
 import authorProfile from '../assets/author-profile.jpg'
@@ -9,6 +10,61 @@ import { loadReadingProgress, saveReadingProgress } from '../data/readingProgres
 import { callLines, getCallOptions, loadCallProgress, saveCallProgress } from '../data/callProgress.js'
 import './Reading.css'
 
+// split a paragraph into sentences, keeping the closing punctuation and spacing
+const sentences = (text) => text.match(/[^.!?]+(?:[.!?]+["”’')\]]*\s*|$)/g)?.filter((s) => s.trim()) ?? [text]
+
+// while a question is open, only the sentence right before / after it stays sharp.
+// A single paper-coloured shape (one outline, one shadow) is drawn behind that sentence's lines.
+function FocusText({ text, which }) {
+  const parts = sentences(text)
+  const keep = parts.length < 2 ? 0 : which === 'before' ? parts.length - 1 : 0
+  const spanRef = useRef(null)
+  const [shape, setShape] = useState(null)
+
+  useLayoutEffect(() => {
+    const span = spanRef.current
+    const host = span?.parentElement
+    if (!span || !host) return undefined
+    const measure = () => {
+      const base = host.getBoundingClientRect()
+      const lines = [...span.getClientRects()].filter((r) => r.width > 1).sort((p, q) => p.top - q.top)
+      if (!lines.length) return
+      const pad = 3
+      const vpad = 5
+      const rows = lines.map((r, i) => ({
+        // fixed width: every line but the last runs to the column's right edge; every line but the first starts at its left edge
+        l: (i === 0 ? r.left - base.left : 0) - pad,
+        r: (i === lines.length - 1 ? r.right - base.left : base.width) + pad,
+        t: i === 0 ? r.top - base.top - vpad : (lines[i - 1].bottom + r.top) / 2 - base.top,
+        b: i === lines.length - 1 ? r.bottom - base.top + vpad : (r.bottom + lines[i + 1].top) / 2 - base.top,
+      }))
+      // walk down the right-hand steps, then back up the left-hand steps
+      const pts = []
+      rows.forEach((row) => pts.push([row.r, row.t], [row.r, row.b]))
+      for (let i = rows.length - 1; i >= 0; i--) pts.push([rows[i].l, rows[i].b], [rows[i].l, rows[i].t])
+      setShape({ d: 'M' + pts.map((p) => p.map((n) => n.toFixed(1)).join(' ')).join(' L') + 'Z', w: base.width, h: base.height })
+    }
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(host)
+    document.fonts?.ready.then(measure)
+    return () => ro.disconnect()
+  }, [text, which])
+
+  return (
+    <>
+      {shape && (
+        <svg className="focus-shape" width={shape.w} height={shape.h} aria-hidden="true">
+          <path d={shape.d} />
+        </svg>
+      )}
+      {parts.map((s, k) =>
+        k === keep ? <span key={k} ref={spanRef} className="read__focus">{s}</span> : <span key={k} className="read__dim">{s}</span>,
+      )}
+    </>
+  )
+}
+
 function Reading({ article = article1 }) {
   const navigate = useNavigate()
   const location = useLocation()
@@ -17,8 +73,62 @@ function Reading({ article = article1 }) {
   const [activeBlank, setActiveBlank] = useState(null)
   const choiceRef = useRef(null)
   const [hintOpen, setHintOpen] = useState(false)
+
+  // draggable game switch: the knob follows the finger, then springs to the nearer end
+  const trackRef = useRef(null)
+  const knobRef = useRef(null)
+  const knobX = useMotionValue(0)
+  const [travel, setTravel] = useState(36)
+  const [touched, setTouched] = useState(false)
+  const [tipShown, setTipShown] = useState(false)
+  const dragged = useRef(false)
+  const spring = { type: 'spring', stiffness: 210, damping: 26, mass: 0.9 }
   const hintRef = useRef(null)
   const [activeGap, setActiveGap] = useState(null)
+
+  const resetOverlays = () => {
+    setHintOpen(false)
+    setActiveGap(null)
+    setActiveBlank(null)
+  }
+
+  useLayoutEffect(() => {
+    const measure = () => {
+      if (trackRef.current && knobRef.current) setTravel(trackRef.current.clientWidth - knobRef.current.offsetWidth)
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [])
+
+  useEffect(() => {
+    const controls = animate(knobX, game ? travel : 0, spring)
+    return () => controls.stop()
+  }, [game, travel])
+
+  // until the reader touches the switch, pop the tip up every few seconds and nudge the knob to show it slides
+  useEffect(() => {
+    if (touched) {
+      setTipShown(false)
+      return
+    }
+    let hide
+    const show = () => {
+      setTipShown(true)
+      const from = game ? travel : 0
+      const toward = game ? from - travel * 0.45 : from + travel * 0.45
+      animate(knobX, [from, toward, from], { duration: 1.4, ease: 'easeInOut', delay: 0.5 })
+      clearTimeout(hide)
+      hide = setTimeout(() => setTipShown(false), 3200)
+    }
+    const first = setTimeout(show, 2200)
+    const id = setInterval(show, 7500)
+    return () => {
+      clearTimeout(first)
+      clearTimeout(hide)
+      clearInterval(id)
+    }
+  }, [touched, game, travel])
   const [storedProgress] = useState(() => loadReadingProgress(article.number))
   const [visitedGaps, setVisitedGaps] = useState(storedProgress.visitedGaps)
   const [answers, setAnswers] = useState(storedProgress.answers)
@@ -155,23 +265,61 @@ function Reading({ article = article1 }) {
         </figcaption>
 
         <div className="hero__game">
-          <p className="hero__tip">Click Here To<br />{game ? 'Disable' : 'Enable'} The Game.</p>
+          <AnimatePresence>
+            {tipShown && !touched && (
+              <motion.p
+                key="tip"
+                className="hero__tip"
+                initial={{ opacity: 0, y: 10, scale: 0.85 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 6, scale: 0.9 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+              >
+                Slide To<br />{game ? 'Disable' : 'Enable'} The Game.
+              </motion.p>
+            )}
+          </AnimatePresence>
           <button
             type="button"
+            ref={trackRef}
             className={`toggle${game ? ' is-on' : ''}`}
             role="switch"
             aria-checked={game}
             aria-label="Game mode"
+            onPointerDown={() => setTouched(true)}
             onClick={() => {
+              if (dragged.current) return
               setGame((g) => !g)
-              setHintOpen(false)
-              setActiveGap(null)
-              setActiveBlank(null)
+              resetOverlays()
             }}
           >
-            <span className="toggle__knob">
-              <img className="toggle__feather" src={feather} alt="" />
-            </span>
+            <motion.span
+              ref={knobRef}
+              className="toggle__knob"
+              style={{ x: knobX }}
+              drag="x"
+              dragConstraints={{ left: 0, right: travel }}
+              dragElastic={0.06}
+              dragMomentum={false}
+              whileTap={{ scale: 0.94 }}
+              onDragStart={() => {
+                dragged.current = true
+                setTouched(true)
+              }}
+              onDragEnd={(_, info) => {
+                const pos = knobX.get()
+                const next = Math.abs(info.velocity.x) > 350 ? info.velocity.x > 0 : pos > travel / 2
+                setTimeout(() => (dragged.current = false), 60)
+                if (next !== game) {
+                  setGame(next)
+                  resetOverlays()
+                } else {
+                  animate(knobX, game ? travel : 0, spring)
+                }
+              }}
+            >
+              <img className="toggle__feather" src={feather} alt="" draggable="false" />
+            </motion.span>
             <img className={`toggle__idle-feather${game ? '' : ' toggle__idle-feather--right'}`} src={feather} alt="" />
           </button>
         </div>
@@ -187,7 +335,7 @@ function Reading({ article = article1 }) {
 
         {article.body.map((para, i) => (
           <Fragment key={i}>
-            <p className={activeGap !== null && [activeGap, activeGap + 1].includes(i) ? 'read__context' : undefined}>{para}{article.inlineBlankAfter?.includes(i) && <button
+            <p className={activeGap !== null && [activeGap, activeGap + 1].includes(i) ? 'read__context' : undefined}>{activeGap !== null && i === activeGap ? <FocusText text={para} which="before" /> : activeGap !== null && i === activeGap + 1 ? <FocusText text={para} which="after" /> : para}{article.inlineBlankAfter?.includes(i) && <button
               type="button"
               id={`call-blank-${i}`}
               className={`read__inline-blank${callProgress.answers[i] ? ' read__inline-blank--filled' : ''}`}
@@ -214,8 +362,21 @@ function Reading({ article = article1 }) {
               <div className="call-options__tools"><button type="button" onClick={openCall}>Review The Call</button>{callProgress.answers[i] && <button type="button" onClick={() => { setCallProgress((previous) => { const nextAnswers = { ...previous.answers }; delete nextAnswers[i]; return { ...previous, answers: nextAnswers } }); requestAnimationFrame(() => choiceRef.current?.querySelector('button')?.focus({ preventScroll: true })) }}>Clear answer</button>}</div>
             </section>}
             {game && article.number !== 2 && [1, 3, 5].includes(i) && (
-              activeGap === i ? (
-                <section className="question-panel" ref={questionRef} role="dialog" aria-labelledby={`question-title-${i}`}>
+              <AnimatePresence mode="wait" initial={false}>
+              {activeGap === i ? (
+                <motion.div
+                  key="panel"
+                  className="question-wrap"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1, transition: { height: { duration: 0.45, ease: [0.22, 1, 0.36, 1] }, opacity: { duration: 0.35, delay: 0.1 } } }}
+                  exit={{ height: 0, opacity: 0, transition: { height: { duration: 0.35, ease: [0.5, 0, 0.75, 0] }, opacity: { duration: 0.2 } } }}
+                >
+                <motion.section
+                  className="question-panel"
+                  initial={{ y: -18, scale: 0.96 }}
+                  animate={{ y: 0, scale: 1 }}
+                  exit={{ y: -12, scale: 0.97 }}
+                  transition={{ type: 'spring', stiffness: 260, damping: 24 }} ref={questionRef} role="dialog" aria-labelledby={`question-title-${i}`}>
                   <div className="question-panel__header">
                     <span>Q{(i + 1) / 2} / LABEL</span>
                     <div className="question-panel__tools">
@@ -243,9 +404,17 @@ function Reading({ article = article1 }) {
                       }}>Clear</button>
                     </div>
                   </form>
-                </section>
+                </motion.section>
+                </motion.div>
               ) : (
-                <button
+                <motion.button
+                  key="gap"
+                  initial={{ opacity: 0, scale: 0.85 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.85, transition: { duration: 0.15 } }}
+                  whileHover={{ scale: 1.06 }}
+                  whileTap={{ scale: 0.94 }}
+                  transition={{ type: 'spring', stiffness: 380, damping: 22 }}
                   type="button"
                   ref={(node) => { gapRefs.current[i] = node }}
                   className={`game-gap game-gap--${answers[i] ? 'answered' : visitedGaps[i] ? 'visited' : 'unopened'}`}
@@ -254,8 +423,9 @@ function Reading({ article = article1 }) {
                   onClick={() => openQuestion(i)}
                 >
                   <span aria-hidden="true" /><span aria-hidden="true" /><span aria-hidden="true" />
-                </button>
-              )
+                </motion.button>
+              )}
+              </AnimatePresence>
             )}
           </Fragment>
         ))}

@@ -60,18 +60,18 @@
 /* A moving highlight above the continuous white outline. */
 .sheet__run {
   fill: none;
-  stroke: #fff;
-  stroke-width: 2;
-  filter: drop-shadow(0 0 1.5px rgba(255, 255, 255, 0.8));
+  stroke: rgba(255, 255, 255, 0.6);
+  stroke-width: 1.6;
   stroke-linejoin: round;
   stroke-linecap: round;
-  stroke-dasharray: 0.22 0.78;
+  stroke-dasharray: 0.16 1;
+  filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.45));
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.24s ease;
 }
-.sheet__run.is-shown { opacity: 1; animation: run-border 5.5s linear infinite; }
-.sheet__outline { fill: none; stroke: rgba(255, 255, 255, 0.9); stroke-width: 1.5; stroke-linejoin: round; pointer-events: none; opacity: 0; transition: opacity 0.24s ease; }
+.sheet__run.is-shown { opacity: 1; animation: run-border 3.2s linear infinite; }
+.sheet__outline { fill: none; stroke: rgba(255, 255, 255, 0.3); stroke-width: 1; stroke-linejoin: round; pointer-events: none; opacity: 0; transition: opacity 0.24s ease; }
 .sheet__outline.is-shown { opacity: 1; }
 
 .sheet__hint {
@@ -223,7 +223,7 @@
   .plate { --u: min(1.25px, calc(100svh / 880)); }
 }
 
-@keyframes run-border { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes run-border { from { stroke-dashoffset: 1.16; } to { stroke-dashoffset: 0; } }
 @keyframes nudge { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes pop-in {
@@ -235,3 +235,22 @@
 @media (prefers-reduced-motion: reduce) {
   .plate * { animation: none !important; transition: none !important; }
 }
+
+.sheet__glow {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.6);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 0.16 1;
+  pointer-events: none;
+  filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.45));
+  animation: glow-flow 2.2s ease-in-out both;
+}
+@keyframes glow-flow {
+  0%   { stroke-dashoffset: 0.16; opacity: 0; }
+  15%  { opacity: .7; }
+  85%  { opacity: .7; }
+  100% { stroke-dashoffset: -1; opacity: 0; }
+}
+.sheet__flag { transition: fill .35s ease, stroke .35s ease, opacity .35s ease; }

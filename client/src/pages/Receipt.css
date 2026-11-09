@@ -1,4 +1,4 @@
-.receipt-page { min-height: 100svh; background: #f4f2ed url('../assets/reading/paper.png') repeat; background-size: 321px 600px; color: #25231f; }
+.receipt-page { min-height: 100svh; background-color: #ebebe9; background-image: var(--paper-grain), var(--paper-texture); background-size: 300px 300px, 700px 700px; background-blend-mode: multiply, multiply; color: #25231f; }
 .receipt__bar { display: flex; align-items: center; justify-content: center; height: 68px; border-bottom: 1px solid #25231f; background: #eeede9; font: 600 24px var(--sans); }
 .receipt { width: min(100%, 460px); margin: 0 auto; padding: 40px 24px 32px; }
 .receipt__intro { text-align: center; margin-bottom: 34px; }

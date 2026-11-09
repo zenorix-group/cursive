@@ -37,15 +37,26 @@
 .card__crop { position: relative; width: 111%; margin: -4% 0 0 -5.5%; line-height: 0; }
 .card__crop img { display: block; width: 100%; user-select: none; }
 .card__crop svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-.card__dim { fill: rgba(0, 0, 0, 0.4); }
+.card__dim { fill: rgba(0, 0, 0, 0.32); filter: blur(1.5px); }
 .card__lit { filter: saturate(1.1) brightness(1.04); }
 .card__edge {
   fill: none;
-  stroke: #fff;
-  stroke-width: 1.8;
+  stroke: rgba(255, 255, 255, 0.3);
+  stroke-width: 1;
   stroke-linejoin: round;
-  filter: drop-shadow(0 0 1.5px rgba(255, 255, 255, 0.9));
 }
+/* a soft streak that keeps flowing around the found flag */
+.card__run {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.6);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 0.16 1;
+  filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.45));
+  animation: card-run 3.2s linear 2.2s infinite both;
+}
+@keyframes card-run { from { stroke-dashoffset: 1.16; } to { stroke-dashoffset: 0; } }
 
 .card__cap { position: relative; margin-top: calc(var(--u) * 10); }
 .card__capbg { position: absolute; inset: 0; background: #3a2f2a; filter: url(#deckle); }
@@ -111,20 +122,30 @@
   transition: background 0.15s ease;
   width: 100%;
   border: 0;
-  font-family: var(--sans);
+  font-family: var(--text);
 }
 .article__begin:hover { background: #2a2a2a; }
 .article__begin:focus-visible { outline: 3px solid #2f7a3e; outline-offset: 3px; }
 
-.article--india { background: #f4f2ed url('../assets/reading/paper.png') repeat; background-size: 321px 600px; }
+.article--india { background-color: #e9e9e7; background-image: var(--paper-grain), var(--paper-texture); background-size: 300px 300px, 700px 700px; background-blend-mode: multiply, multiply; }
 .article--india .card { padding-inline: calc(var(--u) * 22); }
 .card__pic--india { aspect-ratio: 315 / 445; }
 .card__reference { display: block; width: 100%; height: 100%; object-fit: cover; }
 .article--india .card__cap { margin-inline: calc(var(--u) * -11); }
-.article--india .card__capbg { background-image: url('../assets/reading/paper.png'); background-blend-mode: multiply; background-size: 321px 600px; }
+.article--india .card__capbg { background-image: var(--paper-texture); background-blend-mode: multiply; background-size: 700px 700px; }
 .article__begin:disabled { cursor: default; }
 .article__begin:disabled:hover { background: #000; }
 
 @media (min-width: 900px) {
   .article { --u: min(1.25px, calc(100svh / 900)); }
+}
+
+/* single-column layouts: size the card by the viewport height so the whole page fits without scrolling */
+@media (max-width: 1099px) {
+  .card { width: min(100%, max(240px, calc((100svh - 470px) * 0.7 + 22px))); margin-inline: auto; }
+  .article__copy { width: min(100%, 440px); margin-inline: auto; }
+}
+@media (max-width: 1099px) {
+  .article .article__body { padding-bottom: 14px; }
+  .article .card__cap h2 { font-size: 20px; white-space: nowrap; }
 }

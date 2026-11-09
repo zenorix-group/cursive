@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import plateImg from '../assets/landing/plate-1.png'
 import { outsidePath, plate1 as plate } from '../data/plates.js'
 import './Plate.css'
@@ -7,6 +8,13 @@ import './Plate.css'
 // "U.K.", " the  UK " and "United Kingdom" all compare equal
 const normalise = (v) =>
   v.toLowerCase().replace(/\./g, '').replace(/^the\s+/, '').replace(/\s+/g, ' ').trim()
+
+const ease = [0.22, 1, 0.36, 1]
+const rise = (delay = 0) => ({
+  initial: { opacity: 0, y: 28 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.75, ease, delay },
+})
 
 function Plate() {
   const navigate = useNavigate()
@@ -17,7 +25,7 @@ function Plate() {
   const [answers, setAnswers] = useState({})
   const [draft, setDraft] = useState('')
   const [error, setError] = useState('')
-  const [hint, setHint] = useState(false)
+  const [nudge, setNudge] = useState(false)
 
   const { w, h } = plate.size
   const open = plate.flags.find((f) => f.id === openId)
@@ -64,6 +72,24 @@ function Plate() {
     }
   }
 
+  // every 5 seconds, run a soft glow around the unanswered flags to hint where to tap
+  useEffect(() => {
+    if (openId || complete) {
+      setNudge(false)
+      return
+    }
+    let off
+    const id = setInterval(() => {
+      setNudge(true)
+      clearTimeout(off)
+      off = setTimeout(() => setNudge(false), 2300)
+    }, 5000)
+    return () => {
+      clearInterval(id)
+      clearTimeout(off)
+    }
+  }, [openId, complete])
+
   useEffect(() => {
     if (!openId) return
     const onKey = (e) => e.key === 'Escape' && closeFlag()
@@ -88,11 +114,11 @@ function Plate() {
       {open && <div className={`plate__veil${shown ? ' is-shown' : ''}`} onClick={closeFlag} />}
 
       <div className="plate__body">
-        <section className="sheet">
+        <motion.section className="sheet" {...rise(0.1)}>
           <p className="sheet__prompt">{plate.prompt}</p>
 
           <div className={`sheet__image${open ? ' is-lit' : ''}`}>
-            <img src={plateImg} alt="A hooded figure with a laptop and card before the UK and Indian flags" draggable="false" />
+            <motion.img initial={{ scale: 1.08, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 1.2, ease, delay: 0.2 }} src={plateImg} alt="A hooded figure with a laptop and card before the UK and Indian flags" draggable="false" />
 
             <svg className="sheet__hot" viewBox={`0 0 ${w} ${h}`} aria-label="Flags you can point to">
               {open && (
@@ -118,11 +144,14 @@ function Plate() {
                   <polygon className={`sheet__run${shown ? ' is-shown' : ''}`} points={open.points} pathLength="1" />
                 </>
               )}
+              {nudge && plate.flags.filter((f) => !answers[f.id]).map((f) => (
+                <polygon key={`glow-${f.id}`} className="sheet__glow" points={f.points} pathLength="1" />
+              ))}
               {plate.flags.map((f) => (
                 <polygon
                   key={f.id}
                   points={f.points}
-                  className={`sheet__flag${hint ? ' is-hint' : ''}${answers[f.id] ? ' is-done' : ''}`}
+                  className={`sheet__flag${answers[f.id] ? ' is-done' : ''}`}
                   role="button"
                   tabIndex={0}
                   aria-label={`${f.country} flag`}
@@ -132,17 +161,6 @@ function Plate() {
               ))}
             </svg>
 
-            <button
-              type="button"
-              className={`sheet__hint${hint ? ' is-on' : ''}`}
-              aria-pressed={hint}
-              aria-label="Show where to point"
-              onClick={() => setHint((v) => !v)}
-            >
-              <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
-                <path d="M5 3l14 8-6 2-3 6z" fill="currentColor" />
-              </svg>
-            </button>
 
             {open && (
               <form className={`ask${shown ? ' is-shown' : ''}`} onSubmit={submit}>
@@ -181,21 +199,23 @@ function Plate() {
             <span className="sheet__no">Plate {plate.numeral}</span>
             <span key={done} className="sheet__count">{done}/{plate.flags.length}</span>
           </div>
-        </section>
+        </motion.section>
 
         <div className="plate__copy">
-        <h1 className="plate__title">{plate.title}</h1>
+        <motion.h1 className="plate__title" {...rise(0.35)}>{plate.title}</motion.h1>
 
         {complete ? (
-          <Link to="/article/1" className="plate__begin is-ready">
-            Begin Reading <span aria-hidden="true">→</span>
-          </Link>
+          <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 220, damping: 14 }}>
+            <Link to="/article/1" className="plate__begin is-ready">
+              Begin Reading <span aria-hidden="true">→</span>
+            </Link>
+          </motion.div>
         ) : (
-          <span className="plate__begin" aria-disabled="true">
+          <motion.span className="plate__begin" aria-disabled="true" {...rise(0.5)}>
             Begin Reading <span aria-hidden="true">→</span>
-          </span>
+          </motion.span>
         )}
-        <Link to="/article/1" className="plate__skip">Skip</Link>
+        <motion.div {...rise(0.65)}><Link to="/article/1" className="plate__skip">Skip</Link></motion.div>
         </div>
       </div>
     </main>

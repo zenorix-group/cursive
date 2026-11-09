@@ -38,22 +38,20 @@
   flex: none;
 }
 
-.poster,
-.flyer {
+.slot {
   position: absolute;
   top: calc(var(--u) * var(--y));
   left: 50%;
   width: calc(var(--u) * var(--w));
-  height: auto;
   transform: translateX(calc(-50% + var(--u) * var(--x) * var(--sx)));
-  user-select: none;
-  -webkit-user-drag: none;
 }
-
-.flyer { z-index: 0; pointer-events: none; }
+.slot img { display: block; width: 100%; height: auto; user-select: none; -webkit-user-drag: none; }
+.slot--flyer { z-index: 0; pointer-events: none; }
+.slot--banking, .slot--international, .slot--quixote, .slot--gentlemen { z-index: 2; }
+.slot--next { z-index: 4; }
 .poster {
   --float-distance: -4px;
-  z-index: 2;
+  cursor: pointer;
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
   animation: poster-float var(--float-duration, 7s) ease-in-out var(--float-delay, 0s) infinite;
 }
@@ -61,7 +59,7 @@
 .poster--international { --float-duration: 8s; --float-delay: -4.2s; }
 .poster--quixote { --float-duration: 6.8s; --float-delay: -3.1s; }
 .poster--gentlemen { --float-duration: 7.4s; --float-delay: -5.3s; }
-.poster--next { --float-distance: -3px; --float-duration: 7.8s; --float-delay: -0.9s; z-index: 4; }
+.poster--next { --float-distance: -3px; --float-duration: 7.8s; --float-delay: -0.9s; }
 
 @keyframes poster-float {
   0%, 100% { translate: 0 0; }
@@ -111,6 +109,7 @@
   height: calc(var(--iu) * 42);
   background: #000;
   color: #fff;
+  font-family: var(--text);
   font-size: calc(var(--iu) * 17);
   transition: background 0.15s ease;
 }

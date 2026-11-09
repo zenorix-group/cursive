@@ -1,4 +1,6 @@
-import { Route, Routes } from 'react-router-dom'
+import { Route, Routes, useLocation } from 'react-router-dom'
+import { AnimatePresence, MotionConfig } from 'framer-motion'
+import PageTransition from './components/PageTransition.jsx'
 import Landing from './pages/Landing.jsx'
 import Plate from './pages/Plate.jsx'
 import ArticleIntro from './pages/ArticleIntro.jsx'
@@ -9,8 +11,12 @@ import LiftReceipt from './pages/LiftReceipt.jsx'
 import { article2 } from './data/articles.js'
 
 function App() {
+  const location = useLocation()
   return (
-    <Routes>
+    <MotionConfig reducedMotion="user">
+    <AnimatePresence mode="wait">
+    <PageTransition key={location.pathname}>
+    <Routes location={location}>
       <Route path="/" element={<Landing />} />
       <Route path="/enter" element={<Plate />} />
       <Route path="/article/1" element={<ArticleIntro />} />
@@ -22,6 +28,9 @@ function App() {
       <Route path="/receipt/2" element={<LiftReceipt />} />
       <Route path="/receipt/example" element={<Receipt key="example" example />} />
     </Routes>
+    </PageTransition>
+    </AnimatePresence>
+    </MotionConfig>
   )
 }
 

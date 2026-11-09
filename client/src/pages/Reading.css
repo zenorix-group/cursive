@@ -117,7 +117,7 @@
   filter: url(#wet-ink);
 }
 .read__title > span { display: block; }
-.read--banking { background: #f4f2ed url('../assets/reading/paper.png') repeat; background-size: 321px 600px; }
+.read--banking { background-color: #ebebe9; background-image: var(--paper-grain), var(--paper-texture); background-size: 300px 300px, 700px 700px; background-blend-mode: multiply, multiply; }
 .read--banking .hero__img { transform: none; object-position: center; }
 .read--banking .read__body { padding: calc(var(--u) * 32) calc(var(--u) * 30) calc(var(--u) * 32); }
 .read--banking .read__title { font-size: calc(var(--u) * 36); line-height: 0.95; margin-bottom: calc(var(--u) * 22); }
@@ -198,8 +198,10 @@
 .read__next:hover { background: #2a2a2a; }
 
 .read--game {
-  background: #f4f2ed url('../assets/reading/paper.png') repeat;
-  background-size: 321px 600px;
+  background-color: #e9e9e7;
+  background-image: var(--paper-grain), var(--paper-texture);
+  background-size: 300px 300px, 700px 700px;
+  background-blend-mode: multiply, multiply;
 }
 .read--game .hero__img {
   transform: none;
@@ -320,13 +322,12 @@
 .question-panel__actions .question-panel__clear { padding: 5px 0; border: 0; text-decoration: underline; text-transform: none; letter-spacing: 0; }
 .read--question-open > .read__bar,
 .read--question-open > .hero,
-.read--question-open .read__body > :not(.question-panel):not(.read__context) { filter: blur(5px); }
+.read--question-open .read__body > :not(.question-wrap):not(.question-panel):not(.read__context) { filter: blur(5px); }
 .read--question-open .read__context {
   position: relative;
   z-index: 6;
-  border-radius: 6px;
-  background: rgba(245, 243, 237, 0.6);
-  box-shadow: 0 3px 5px #0003;
+  background: none;
+  box-shadow: none;
 }
 .read__actions--game {
   display: grid;
@@ -367,3 +368,57 @@
   .hero__tip { animation: none; }
   .toggle, .toggle__knob { transition: none; }
 }
+
+/* the knob is driven by framer-motion drag; no CSS transform or transition */
+.toggle__knob { transition: none; cursor: grab; touch-action: pan-y; z-index: 2; }
+.toggle__knob:active { cursor: grabbing; }
+.read .toggle.is-on .toggle__knob { transform: none; }
+.toggle { touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+
+/* ---------- glassy switch (clear, colourless) ---------- */
+.read .hero__game .toggle {
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.12) 60%, rgba(0, 0, 0, 0.1));
+  backdrop-filter: blur(12px) saturate(1.4);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.65), inset 0 -2px 6px rgba(0, 0, 0, 0.18), 0 6px 16px rgba(0, 0, 0, 0.25);
+  transition: background 0.6s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+/* on: only a touch brighter, the knob position does the talking */
+.read .hero__game .toggle.is-on {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.36), rgba(255, 255, 255, 0.16) 60%, rgba(0, 0, 0, 0.08));
+}
+.read .hero__game .toggle__knob {
+  border: 0;
+  background: radial-gradient(100% 120% at 30% 10%, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.3) 70%, rgba(255, 255, 255, 0.24));
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.85), inset 0 -2px 4px rgba(0, 0, 0, 0.1), 0 3px 10px rgba(0, 0, 0, 0.28);
+}
+.read .hero__game .toggle.is-on .toggle__knob { background: radial-gradient(100% 120% at 30% 10%, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.34) 70%, rgba(255, 255, 255, 0.28)); }
+.read .hero__game .toggle::after { content: none; }
+.read .hero__game .toggle__idle-feather { opacity: 0.85; }
+
+/* only one sentence either side of the open question stays sharp */
+.read__dim { filter: blur(5px); transition: filter 0.35s ease; opacity: 0.8; }
+.read__focus { filter: none; }
+.focus-shape {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: -1;
+  overflow: visible;
+  pointer-events: none;
+  filter: drop-shadow(1px 2px 3px rgba(0, 0, 0, 0.32));
+}
+.focus-shape path { fill: #e6e4df; stroke: #e6e4df; stroke-width: 8; stroke-linejoin: round; }
+
+/* ---------- question open / close motion ---------- */
+.question-wrap { overflow: hidden; padding: 14px 12px; margin: -14px -12px; }
+/* everything else eases into / out of the blur */
+.read > .read__bar, .read > .hero, .read__body > * { transition: filter 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
+.read__dim { animation: dim-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes dim-in { from { filter: blur(0); opacity: 1; } }
+.focus-shape { animation: shape-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both; }
+@keyframes shape-in { from { opacity: 0; transform: scale(0.985); } }
+@media (prefers-reduced-motion: reduce) { .read__dim, .focus-shape { animation: none; } }

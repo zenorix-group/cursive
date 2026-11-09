@@ -1,8 +1,16 @@
 import { Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import plateImg from '../assets/landing/plate-1.png'
 import { article1 } from '../data/articles.js'
 import { outsidePath } from '../data/plates.js'
 import './ArticleIntro.css'
+
+const ease = [0.22, 1, 0.36, 1]
+const rise = (delay = 0, y = 24) => ({
+  initial: { opacity: 0, y },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.7, ease, delay },
+})
 
 function ArticleIntro({ article = article1 }) {
   const { w, h } = article.plate.size
@@ -29,54 +37,73 @@ function ArticleIntro({ article = article1 }) {
       </header>
 
       <div className="article__body">
-        <section className="card">
+        <motion.section className="card" initial={{ opacity: 0, y: 40, rotate: -1.5 }} animate={{ opacity: 1, y: 0, rotate: 0 }} transition={{ duration: 0.9, ease }}>
           <div className="card__frame" />
 
           <div className={`card__pic${article.number === 2 ? ' card__pic--india' : ''}`}>
             <div className="card__crop" style={crop}>
-              <img src={plateImg} alt="" draggable="false" />
+              <motion.img src={plateImg} alt="" draggable="false" initial={{ scale: 1.12 }} animate={{ scale: 1 }} transition={{ duration: 1.6, ease }} />
               <svg viewBox={`0 0 ${w} ${h}`} aria-hidden="true">
                 <defs>
                   <clipPath id="found-flag">
                     <polygon points={litPoints} />
                   </clipPath>
                 </defs>
-                <path className="card__dim" fillRule="evenodd" d={outsidePath(litPoints, w, h)} />
-                <image href={plateImg} width={w} height={h} clipPath="url(#found-flag)" className="card__lit" />
-                <polygon className="card__edge" points={litPoints} />
+                <motion.path
+                  className="card__dim"
+                  fillRule="evenodd"
+                  d={outsidePath(litPoints, w, h)}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 1.1, ease: 'easeOut', delay: 0.7 }}
+                />
+                <motion.image
+                  href={plateImg}
+                  width={w}
+                  height={h}
+                  clipPath="url(#found-flag)"
+                  className="card__lit"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 1.1, delay: 0.7 }}
+                />
+                <motion.polygon
+                  className="card__edge"
+                  points={litPoints}
+                  initial={{ pathLength: 0, opacity: 0 }}
+                  animate={{ pathLength: 1, opacity: 1 }}
+                  transition={{ duration: 1.4, ease: 'easeInOut', delay: 0.8 }}
+                />
+                <polygon className="card__run" points={litPoints} pathLength="1" />
               </svg>
             </div>
           </div>
 
-          <div className="card__cap">
+          <motion.div className="card__cap" {...rise(0.55, 30)}>
             <div className="card__capbg" />
             <div className="card__capin">
               <div className="card__row">
                 <h2>{article.mechanic}</h2>
-                <span className="card__pill" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" width="12" height="12"><path d="M3 5l8 7-8 7zM12 5l8 7-8 7z" fill="currentColor" /></svg>
-                  <svg viewBox="0 0 24 24" width="12" height="12"><path d="M5 3l14 8-6 2-3 6z" fill="currentColor" /></svg>
-                </span>
               </div>
               <p>{article.tagline}</p>
             </div>
-          </div>
-        </section>
+          </motion.div>
+        </motion.section>
 
         <div className="article__copy">
-        <p className="article__eyebrow">Article {String(article.number).padStart(2, '0')}</p>
-        <h1 className="article__title">
+        <motion.p className="article__eyebrow" {...rise(0.8, 16)}>Article {String(article.number).padStart(2, '0')}</motion.p>
+        <motion.h1 className="article__title" {...rise(0.9)}>
           {article.title.map((line) => (
             <span key={line}>{line}</span>
           ))}
-        </h1>
-        <p className="article__blurb">{article.blurb}</p>
+        </motion.h1>
+        <motion.p className="article__blurb" {...rise(1.05)}>{article.blurb}</motion.p>
 
-        {article.number === 2 && !article.readPath ? <button type="button" className="article__begin" disabled>
+        {article.number === 2 && !article.readPath ? <motion.button type="button" className="article__begin" disabled {...rise(1.2)}>
           Begin <span aria-hidden="true">→</span>
-        </button> : <Link to={article.readPath || '/read'} className="article__begin">
+        </motion.button> : <motion.div {...rise(1.2)}><Link to={article.readPath || '/read'} className="article__begin">
           Begin <span aria-hidden="true">→</span>
-        </Link>}
+        </Link></motion.div>}
         </div>
       </div>
     </main>
