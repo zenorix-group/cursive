@@ -1,3 +1,4 @@
+import { kvGet, kvSet } from './cursiveStore.js'
 export const callLines = [
   { id: 1, text: 'It is Tuesday afternoon. Your phone buzzes with a message from your bank about a transaction you did not make.' },
   { id: 2, text: 'You begin to fret.' },
@@ -24,7 +25,7 @@ export function normalizeCallProgress(value) {
 
 export function loadCallProgress() {
   try {
-    return normalizeCallProgress(JSON.parse(localStorage.getItem(storageKey)))
+    return normalizeCallProgress(JSON.parse(kvGet(storageKey)))
   } catch {
     return { selectedIds: [], answers: {} }
   }
@@ -32,7 +33,7 @@ export function loadCallProgress() {
 
 export function saveCallProgress(progress) {
   try {
-    localStorage.setItem(storageKey, JSON.stringify(normalizeCallProgress(progress)))
+    kvSet(storageKey, JSON.stringify(normalizeCallProgress(progress)))
     return true
   } catch {
     return false

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useAuth } from '../auth/AuthContext.jsx'
 import { article2 } from '../data/articles.js'
 import { loadCallProgress } from '../data/callProgress.js'
 import { liftLineDetails } from '../data/liftReferences.js'
@@ -26,6 +27,9 @@ function ReadingMark({ receipt }) {
 }
 
 function LiftReceipt() {
+  // finishing an article sends a guest to sign in (their reading moves into the account); a signed-in reader goes on to the reading room
+  const { user } = useAuth()
+  const nextArticlePath = user ? '/reading-room' : '/login'
   const [progress] = useState(loadCallProgress)
   const [receipt, setReceipt] = useState(() => getCachedLiftReceipt(progress))
   const [error, setError] = useState('')
@@ -79,7 +83,7 @@ function LiftReceipt() {
           <aside className="receipt__note lift-receipt__confidence"><span>On the call</span><p>{receipt.confidence}</p></aside>
         </section>
         <section className="receipt__section"><h2 className="receipt__section-heading"><span>04 / The mark</span><span>[Scene → argument]</span></h2><ReadingMark receipt={receipt} /></section>
-        <footer className="receipt__footer"><button type="button" onClick={share}>Share receipt</button><Link to="/enter">Next article <span aria-hidden="true">→</span></Link></footer>
+        <footer className="receipt__footer"><button type="button" onClick={share}>Share receipt</button><Link to={nextArticlePath}>Next article <span aria-hidden="true">→</span></Link></footer>
         {shareStatus && <p className="receipt__share-status" role="status">{shareStatus}</p>}
         <Link className="receipt__back" to="/read/2">Back to your placements</Link>
       </>}

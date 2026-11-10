@@ -1,10 +1,11 @@
+import { kvGet, kvSet } from './cursiveStore.js'
 const gapIds = [1, 3, 5]
 const storageKey = (articleNumber) => `cursive:article:${articleNumber}:questions:v1`
 
 export function loadReadingProgress(articleNumber) {
   const progress = { answers: {}, visitedGaps: {} }
   try {
-    const stored = JSON.parse(localStorage.getItem(storageKey(articleNumber)))
+    const stored = JSON.parse(kvGet(storageKey(articleNumber)))
     for (const id of gapIds) {
       if (stored?.visitedGaps?.[id] === true) progress.visitedGaps[id] = true
       if (typeof stored?.answers?.[id] === 'string' && stored.answers[id].trim()) {
@@ -20,7 +21,7 @@ export function loadReadingProgress(articleNumber) {
 
 export function saveReadingProgress(articleNumber, progress) {
   try {
-    localStorage.setItem(storageKey(articleNumber), JSON.stringify(progress))
+    kvSet(storageKey(articleNumber), JSON.stringify(progress))
     return true
   } catch {
     return false

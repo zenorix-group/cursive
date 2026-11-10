@@ -39,6 +39,7 @@ export const article2 = {
   headline: 'Common Banking Frauds Everyone Should Know',
   readingTitle: ['Common Banking', 'Frauds Everyone', 'Should Know'],
   minutes: 8,
+  author: 'Author name',
   sectionLabel: 'The Call',
   inlineBlankAfter: [1, 2, 3],
   body: [

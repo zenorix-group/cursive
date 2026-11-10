@@ -1,3 +1,4 @@
+import { kvGet, kvSet } from './cursiveStore.js'
 import { loadReadingProgress } from './readingProgress.js'
 import { receiptTargets } from './receiptReferences.js'
 
@@ -11,7 +12,7 @@ const pending = new Map()
 
 export function getCachedReceipt(articleNumber, questions) {
   try {
-    const stored = JSON.parse(localStorage.getItem(key(articleNumber)))
+    const stored = JSON.parse(kvGet(key(articleNumber)))
     if (stored?.fingerprint === JSON.stringify(questions) && Array.isArray(stored.receipt?.inquiries) &&
         stored.receipt.inquiries.length === 3 && Array.isArray(stored.receipt.observations) && Array.isArray(stored.receipt.openFiles)) {
       return stored.receipt
@@ -35,7 +36,7 @@ export function generateReceipt(articleNumber, questions) {
       throw new Error('The receipt was incomplete. Please retry.')
     }
     try {
-      localStorage.setItem(key(articleNumber), JSON.stringify({ fingerprint: JSON.stringify(questions), receipt: data }))
+      kvSet(key(articleNumber), JSON.stringify({ fingerprint: JSON.stringify(questions), receipt: data }))
     } catch { /* A receipt can still be read without browser storage. */ }
     return data
   })().finally(() => pending.delete(fingerprint))

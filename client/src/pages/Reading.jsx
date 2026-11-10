@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { AnimatePresence, animate, motion, useMotionValue } from 'framer-motion'
+import { AnimatePresence, animate, motion, useAnimationControls, useMotionValue } from 'framer-motion'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import plateImg from '../assets/landing/plate-1.png'
 import authorProfile from '../assets/author-profile.jpg'
@@ -73,6 +73,12 @@ function Reading({ article = article1 }) {
   const [activeBlank, setActiveBlank] = useState(null)
   const choiceRef = useRef(null)
   const [hintOpen, setHintOpen] = useState(false)
+  // idle cue for the hint button, like the one on the game switch: until the reader has used it,
+  // wiggle the feather, pulse a ring and pop a small tip every few seconds
+  const hintControls = useAnimationControls()
+  const [hintTouched, setHintTouched] = useState(false)
+  const [hintTip, setHintTip] = useState(false)
+  const [hintRing, setHintRing] = useState(0)
 
   // draggable game switch: the knob follows the finger, then springs to the nearer end
   const trackRef = useRef(null)
@@ -91,6 +97,28 @@ function Reading({ article = article1 }) {
     setActiveGap(null)
     setActiveBlank(null)
   }
+
+  useEffect(() => {
+    if (!game || hintTouched || hintOpen || activeBlank !== null || activeGap !== null) {
+      setHintTip(false)
+      return undefined
+    }
+    let hide
+    const nudge = () => {
+      setHintTip(true)
+      setHintRing((n) => n + 1)
+      hintControls.start({ rotate: [0, -16, 14, -10, 6, 0], scale: [1, 1.12, 1.12, 1.06, 1, 1], transition: { duration: 1.3, ease: 'easeInOut' } })
+      clearTimeout(hide)
+      hide = setTimeout(() => setHintTip(false), 3200)
+    }
+    const first = setTimeout(nudge, 4500)
+    const id = setInterval(nudge, 9000)
+    return () => {
+      clearTimeout(first)
+      clearTimeout(hide)
+      clearInterval(id)
+    }
+  }, [game, hintTouched, hintOpen, activeBlank, activeGap, hintControls])
 
   useLayoutEffect(() => {
     const measure = () => {
@@ -239,18 +267,47 @@ function Reading({ article = article1 }) {
       <figure className="hero">
         <img className="hero__img" src={game || article.number === 2 ? gameHero : plateImg} alt="" draggable="false" />
         <div className="hero__shade" />
-        {(game || article.number === 2) && (
+        {game && (
           <div className="game-hint" ref={hintRef}>
-            <button
+            <AnimatePresence>
+              {hintTip && !hintOpen && (
+                <motion.p
+                  key="hint-tip"
+                  className="game-hint__tip"
+                  initial={{ opacity: 0, x: 10, scale: 0.85 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  exit={{ opacity: 0, x: 6, scale: 0.9 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                >
+                  Need a hint?
+                </motion.p>
+              )}
+            </AnimatePresence>
+            <motion.button
               type="button"
               className="game-hint__button"
               aria-label="Game hints"
               aria-expanded={hintOpen}
               aria-controls="game-instructions"
-              onClick={() => setHintOpen((open) => !open)}
+              animate={hintControls}
+              onPointerDown={() => setHintTouched(true)}
+              onClick={() => {
+                setHintTouched(true)
+                setHintOpen((open) => !open)
+              }}
             >
+              {hintRing > 0 && (
+                <motion.span
+                  key={hintRing}
+                  className="game-hint__ring"
+                  aria-hidden="true"
+                  initial={{ scale: 1, opacity: 0.8 }}
+                  animate={{ scale: 1.8, opacity: 0 }}
+                  transition={{ duration: 1.3, ease: 'easeOut' }}
+                />
+              )}
               <img src={feather} alt="" />
-            </button>
+            </motion.button>
             {hintOpen && (
               <aside id="game-instructions" className="game-hint__card" aria-labelledby="game-instructions-title">
                 <h2 id="game-instructions-title">Three sections of the article are missing.</h2>
@@ -328,14 +385,15 @@ function Reading({ article = article1 }) {
       <article className="read__body">
         <h1 className="read__title">{article.readingTitle ? article.readingTitle.map((line) => <span key={line}>{line}</span>) : article.headline}</h1>
 
-        {article.sectionLabel ? <button type="button" className="read__section-label" onClick={openCall}><span aria-hidden="true">☎</span> {article.sectionLabel}</button> : <div className="read__author">
+        <div className="read__author">
           <img className="read__avatar" src={authorProfile} alt={`${article.author} profile`} />
           <span className="read__author-name">{article.author}</span>
-        </div>}
+        </div>
+        {article.sectionLabel && game && <button type="button" className="read__section-label" onClick={openCall}><span aria-hidden="true">☎</span> {article.sectionLabel}</button>}
 
         {article.body.map((para, i) => (
           <Fragment key={i}>
-            <p className={activeGap !== null && [activeGap, activeGap + 1].includes(i) ? 'read__context' : undefined}>{activeGap !== null && i === activeGap ? <FocusText text={para} which="before" /> : activeGap !== null && i === activeGap + 1 ? <FocusText text={para} which="after" /> : para}{article.inlineBlankAfter?.includes(i) && <button
+            <p className={activeGap !== null && [activeGap, activeGap + 1].includes(i) ? 'read__context' : undefined}>{activeGap !== null && i === activeGap ? <FocusText text={para} which="before" /> : activeGap !== null && i === activeGap + 1 ? <FocusText text={para} which="after" /> : para}{game && article.inlineBlankAfter?.includes(i) && <button
               type="button"
               id={`call-blank-${i}`}
               className={`read__inline-blank${callProgress.answers[i] ? ' read__inline-blank--filled' : ''}`}
@@ -345,7 +403,7 @@ function Reading({ article = article1 }) {
               aria-controls={`call-options-${i}`}
               onClick={() => { setActiveBlank((previous) => previous === i ? null : i); setGame(true); setHintOpen(false) }}
             >{callProgress.answers[i] ? null : <span aria-hidden="true">…</span>}</button>}</p>
-            {article.number === 2 && activeBlank === i && <section className="call-options" ref={choiceRef} id={`call-options-${i}`} aria-labelledby={`call-options-title-${i}`}>
+            {game && article.number === 2 && activeBlank === i && <section className="call-options" ref={choiceRef} id={`call-options-${i}`} aria-labelledby={`call-options-title-${i}`}>
               <header><h2 id={`call-options-title-${i}`}><span aria-hidden="true">▪</span> Place a line</h2><span>Target paragraph</span></header>
               <p className="call-options__description">Choose a line from the transcript to re-anchor the sequence.</p>
               {callProgress.selectedIds.length ? <ul>{callOptions.map((line, index) => <li key={line.id} className={line.used ? 'call-options__used' : undefined} data-used={line.used}><button
@@ -430,8 +488,8 @@ function Reading({ article = article1 }) {
           </Fragment>
         ))}
 
-        <div className={game || article.number === 2 ? 'read__actions read__actions--game' : 'read__actions'}>
-          {(game || article.number === 2) && <button type="button" className="read__submit" onClick={() => {
+        <div className={game ? 'read__actions read__actions--game' : 'read__actions'}>
+          {game && <button type="button" className="read__submit" onClick={() => {
             saveReadingProgress(article.number, { answers, visitedGaps })
             if (article.number === 2) saveCallProgress(callProgress)
           }}>Submit Answers</button>}
@@ -439,7 +497,7 @@ function Reading({ article = article1 }) {
             saveReadingProgress(article.number, { answers, visitedGaps })
             if (article.number === 2) saveCallProgress(callProgress)
             navigate(article.number === 2 ? '/receipt/2' : '/receipt')
-          }}>Next Article {(game || article.number === 2) && <span aria-hidden="true">→</span>}</button>
+          }}>Next Article {game && <span aria-hidden="true">→</span>}</button>
         </div>
       </article>
     </main>

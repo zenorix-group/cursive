@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useAuth } from '../auth/AuthContext.jsx'
 import { article1 as article } from '../data/articles.js'
 import { receiptTargets, receiptPhases } from '../data/receiptReferences.js'
 import { generateReceipt, getCachedReceipt, getReceiptQuestions } from '../data/receiptStorage.js'
@@ -11,6 +12,9 @@ function SectionHeading({ number, title, note }) {
 }
 
 function Receipt({ example = false }) {
+  // finishing an article sends a guest to sign in (their reading moves into the account); a signed-in reader goes on to the reading room
+  const { user } = useAuth()
+  const nextArticlePath = user ? '/reading-room' : '/login'
   const [questions] = useState(() => getReceiptQuestions(article.number))
   const [receipt, setReceipt] = useState(() => example ? receiptExample : getCachedReceipt(article.number, questions))
   const [error, setError] = useState('')
@@ -136,7 +140,7 @@ function Receipt({ example = false }) {
           </section>
           <footer className="receipt__footer">
             <button type="button" onClick={shareReceipt}>Share receipt</button>
-            <Link to="/enter">Next article <span aria-hidden="true">→</span></Link>
+            <Link to={nextArticlePath}>Next article <span aria-hidden="true">→</span></Link>
           </footer>
           {shareStatus && <p className="receipt__share-status" role="status">{shareStatus}</p>}
           <Link className="receipt__back" to="/read">Back to your questions</Link>

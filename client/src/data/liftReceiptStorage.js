@@ -1,3 +1,4 @@
+import { kvGet, kvSet } from './cursiveStore.js'
 import { normalizeCallProgress } from './callProgress.js'
 
 const key = 'cursive:article:2:lift-receipt:v1'
@@ -9,7 +10,7 @@ const fingerprint = (progress) => {
 
 export function getCachedLiftReceipt(progress) {
   try {
-    const stored = JSON.parse(localStorage.getItem(key))
+    const stored = JSON.parse(kvGet(key))
     if (stored?.fingerprint === fingerprint(progress) && stored.receipt?.kind === 'lift' &&
         Array.isArray(stored.receipt.prose) && Array.isArray(stored.receipt.placements) && stored.receipt.placements.length === 3 &&
         Array.isArray(stored.receipt.kept) && typeof stored.receipt.confidence === 'string') return stored.receipt
@@ -32,7 +33,7 @@ export function generateLiftReceipt(progress) {
     if (data.kind !== 'lift' || !Array.isArray(data.prose) || !Array.isArray(data.placements) || data.placements.length !== 3 || !Array.isArray(data.kept)) {
       throw new Error('The receipt was incomplete. Please retry.')
     }
-    try { localStorage.setItem(key, JSON.stringify({ fingerprint: signature, receipt: data })) } catch { /* Keep displaying the generated receipt. */ }
+    try { kvSet(key, JSON.stringify({ fingerprint: signature, receipt: data })) } catch { /* Keep displaying the generated receipt. */ }
     return data
   })().finally(() => pending.delete(signature))
   pending.set(signature, request)

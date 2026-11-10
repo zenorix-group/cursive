@@ -169,10 +169,6 @@
 }
 .read__author-name {
   line-height: 1.2;
-  text-decoration: underline;
-  text-decoration-color: #299bd3;
-  text-decoration-thickness: calc(var(--u) * 4);
-  text-underline-offset: calc(var(--u) * 3);
 }
 .read__body p {
   margin-bottom: calc(var(--u) * 22);
@@ -227,6 +223,7 @@
   z-index: 2;
 }
 .game-hint__button {
+  position: relative;
   display: grid;
   place-items: center;
   width: calc(var(--u) * 44);
@@ -235,6 +232,36 @@
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.08);
   cursor: pointer;
+}
+.game-hint__ring {
+  position: absolute;
+  inset: -1px;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.game-hint__tip {
+  position: absolute;
+  top: 50%;
+  right: calc(100% + 12px);
+  transform: translateY(-50%);
+  padding: 7px 12px;
+  border-radius: 12px;
+  background: #fff;
+  font: 600 11px/1.2 var(--sans);
+  white-space: nowrap;
+  color: var(--ink);
+  pointer-events: none;
+}
+.game-hint__tip::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -4px;
+  width: 9px;
+  height: 9px;
+  background: #fff;
+  transform: translateY(-50%) rotate(45deg);
 }
 .game-hint__button img { width: 25px; height: 33px; object-fit: contain; }
 .game-hint__button:hover, .game-hint__button[aria-expanded='true'] { background: rgba(255, 255, 255, 0.22); }
