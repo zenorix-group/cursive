@@ -29,7 +29,7 @@ function ReadingMark({ receipt }) {
 function LiftReceipt() {
   // finishing an article sends a guest to sign in (their reading moves into the account); a signed-in reader goes on to the reading room
   const { user } = useAuth()
-  const nextArticlePath = user ? '/reading-room' : '/login'
+  const nextArticlePath = user ? '/reading-room' : '/login#create'
   const [progress] = useState(loadCallProgress)
   const [receipt, setReceipt] = useState(() => getCachedLiftReceipt(progress))
   const [error, setError] = useState('')
@@ -64,12 +64,19 @@ function LiftReceipt() {
   return <main className="receipt-page lift-receipt-page">
     <header className="receipt__bar"><Link to="/">cursive</Link></header>
     <article className="receipt lift-receipt">
+      <div className="receipt__rail">
       <header className="receipt__intro"><p className="receipt__eyebrow">Your Cursive receipt</p><h1>The Lines You<br />Carried.</h1></header>
       <div className="receipt__metadata"><div><span>Article 02</span><span>{article2.minutes} min read</span></div><p>{article2.headline}</p><div className="receipt__interaction"><span>Interaction</span><strong>{article2.mechanic}</strong></div></div>
+        {receipt && <>
+      <footer className="receipt__footer"><button type="button" onClick={share}>Share receipt</button><Link to={nextArticlePath}>Next article <span aria-hidden="true">→</span></Link></footer>
+      {shareStatus && <p className="receipt__share-status" role="status">{shareStatus}</p>}
+      <Link className="receipt__back" to="/read/2">Back to your placements</Link>
+        </>}
+      </div>
       {!receipt ? <section className="receipt__loading" aria-live="polite">
         {error ? <><h2>Receipt generation failed.</h2><p role="alert">{error}</p><p>Your selections and filled dots are saved on this device.</p><button type="button" onClick={() => { setError(''); setAttempt((value) => value + 1) }}>Try again</button></> : <><h2><span className="receipt__spinner" aria-hidden="true" />Generating your receipt…</h2><p>Reading your saved selections and placements. This can take up to a minute.</p></>}
         <Link to="/read/2">Return to the article</Link>
-      </section> : <>
+      </section> : <div className="receipt__sections">
         <section className="receipt__section lift-receipt__prose"><h2 className="receipt__section-heading"><span>01 / Your reading</span><span>[The receipt]</span></h2>{receipt.prose.map((paragraph, index) => <p key={index}>{paragraph}</p>)}</section>
         <section className="receipt__section"><h2 className="receipt__section-heading"><span>02 / Where the lines landed</span><span>[The argument]</span></h2>
           {receipt.placements.map((placement) => <div className="receipt__card" key={placement.id}>
@@ -83,10 +90,7 @@ function LiftReceipt() {
           <aside className="receipt__note lift-receipt__confidence"><span>On the call</span><p>{receipt.confidence}</p></aside>
         </section>
         <section className="receipt__section"><h2 className="receipt__section-heading"><span>04 / The mark</span><span>[Scene → argument]</span></h2><ReadingMark receipt={receipt} /></section>
-        <footer className="receipt__footer"><button type="button" onClick={share}>Share receipt</button><Link to={nextArticlePath}>Next article <span aria-hidden="true">→</span></Link></footer>
-        {shareStatus && <p className="receipt__share-status" role="status">{shareStatus}</p>}
-        <Link className="receipt__back" to="/read/2">Back to your placements</Link>
-      </>}
+      </div>}
     </article>
   </main>
 }
