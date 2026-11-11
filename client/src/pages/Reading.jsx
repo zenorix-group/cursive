@@ -8,6 +8,7 @@ import { article1 } from '../data/articles.js'
 import { loadReadingProgress, saveReadingProgress } from '../data/readingProgress.js'
 import { callLines, getCallOptions, loadCallProgress, saveCallProgress } from '../data/callProgress.js'
 import { haptic } from '../lib/haptics.js'
+import { absorb } from '../lib/overture.js'
 import './Reading.css'
 
 const iconProps = { width: 16, height: 16, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' }
@@ -439,7 +440,7 @@ function Reading({ article = article1 }) {
               aria-expanded={activeBlank === i}
               aria-controls={`call-options-${i}`}
               onClick={() => { setActiveBlank((previous) => previous === i ? null : i); setGame(true); setHintOpen(false) }}
-            >{callProgress.answers[i] ? null : <span aria-hidden="true">…</span>}</button>}{game && callProgress.answers[i] && <span className="read__placed"> {callLines.find((line) => line.id === callProgress.answers[i])?.text}</span>}</p>
+            >{callProgress.answers[i] ? null : <span aria-hidden="true">…</span>}</button>}{game && article.inlineBlankAfter?.includes(i) && callProgress.answers[i] && <span className="read__placed"> {callLines.find((line) => line.id === callProgress.answers[i])?.text}</span>}</p>
             {game && article.number === 2 && activeBlank === i && <section className="call-options" ref={choiceRef} id={`call-options-${i}`} aria-labelledby={`call-options-title-${i}`}>
               <header><h2 id={`call-options-title-${i}`}><span aria-hidden="true">▪</span> Place a line</h2><span>Target paragraph</span></header>
               <p className="call-options__description">Choose a line from the transcript to re-anchor the sequence.</p>
@@ -529,13 +530,14 @@ function Reading({ article = article1 }) {
         ))}
 
         <div className={game ? 'read__actions read__actions--game' : 'read__actions'}>
-          {game && <button type="button" className="read__submit" onClick={() => {
+          {game && <button type="button" className="read__submit" onClick={(event) => {
             // include an answer that is typed in an open question but not yet saved
             const pending = activeGap !== null && draft.trim() ? { ...answers, [activeGap]: draft } : answers
             if (pending !== answers) setAnswers(pending)
             saveReadingProgress(article.number, { answers: pending, visitedGaps })
             if (article.number === 2) saveCallProgress(callProgress)
             setSaved(true)
+            absorb('answers', event.currentTarget)
             clearTimeout(savedTimer.current)
             savedTimer.current = setTimeout(() => setSaved(false), 1600)
           }}>{saved ? "Saved ✓" : "Submit Answers"}</button>}

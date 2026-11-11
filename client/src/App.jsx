@@ -1,6 +1,8 @@
 import { Route, Routes, useLocation } from 'react-router-dom'
 import { AnimatePresence, MotionConfig } from 'framer-motion'
 import PageTransition from './components/PageTransition.jsx'
+import RouteMenu from './components/RouteMenu.jsx'
+import { isHandoff } from './lib/overture.js'
 import Landing from './pages/Landing.jsx'
 import Plate from './pages/Plate.jsx'
 import ArticleIntro from './pages/ArticleIntro.jsx'
@@ -18,12 +20,13 @@ function App() {
   const location = useLocation()
   const { status, error, retry } = useAuth()
   // wait until we know who is signed in and their saved reading is loaded, so no page starts from an empty copy
+  const handoff = isHandoff()
   if (status === 'loading') return null
   if (status === 'error') return <LoadError message={error} onRetry={retry} />
   return (
     <MotionConfig reducedMotion="user">
-    <AnimatePresence mode="wait">
-    <PageTransition key={location.pathname}>
+    <AnimatePresence mode="wait" custom={handoff}>
+    <PageTransition key={location.pathname} handoff={handoff}>
     <Routes location={location}>
       <Route path="/" element={<Landing />} />
       <Route path="/enter" element={<Plate />} />
@@ -40,6 +43,7 @@ function App() {
     </Routes>
     </PageTransition>
     </AnimatePresence>
+    <RouteMenu />
     </MotionConfig>
   )
 }

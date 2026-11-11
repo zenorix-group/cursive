@@ -2,6 +2,9 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext.jsx'
 import SiteMasthead from '../components/SiteMasthead.jsx'
+import SortSelect from '../components/SortSelect.jsx'
+import { useMenuOverride } from '../components/menuContext.jsx'
+import { makeReceiptsItem } from '../components/RouteMenu.jsx'
 import { articleStatus } from '../data/articleStatus.js'
 import { CATS, CTA, IMG, STATUSES, catalog } from '../data/catalog.js'
 import '../styles/site.css'
@@ -204,6 +207,17 @@ function ReadingRoom() {
   }
   const { logout } = useAuth()
 
+  const svg = (children) => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">{children}</svg>
+  const goTabRef = useRef(goTab)
+  goTabRef.current = goTab
+  const navItems = [
+    { key: 'reading', label: 'Reading', current: tab === 'reading', onClick: () => goTabRef.current('reading'), icon: svg(<path d="M4 5.5C4 4.7 4.7 4 5.5 4H11v15H5.5C4.7 19 4 18.3 4 17.5v-12zM13 4h5.5c.8 0 1.5.7 1.5 1.5v12c0 .8-.7 1.5-1.5 1.5H13V4z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />) },
+    { key: 'archive', label: 'Archive', current: tab === 'archive', onClick: () => goTabRef.current('archive'), icon: svg(<><rect x="3.5" y="4.5" width="17" height="4" stroke="currentColor" strokeWidth="1.5" /><path d="M5 8.5V19h14V8.5M10 12.5h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></>) },
+    { key: 'search', label: 'Search', current: tab === 'search', onClick: () => goTabRef.current('search'), icon: svg(<><circle cx="11" cy="11" r="6.5" stroke="currentColor" strokeWidth="1.5" /><path d="M16 16l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></>) },
+    { key: 'account', label: user ? 'Sign out' : 'Sign in', onClick: user ? async () => { await logout(); navigate('/login') } : () => goTabRef.current('you'), icon: svg(<><circle cx="12" cy="8.5" r="3.5" stroke="currentColor" strokeWidth="1.5" /><path d="M5 20c.6-3.6 3.4-5.5 7-5.5s6.4 1.9 7 5.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></>) },
+  ]
+  useMenuOverride(() => ({ title: 'Reading room', items: [...navItems, makeReceiptsItem(navigate)] }), [tab, user])
+
   return (
     <div className="cs in-room">
       <div className="screen">
@@ -263,15 +277,17 @@ function ReadingRoom() {
                     <span className="lbl r-count" id="r-count" role="status" aria-live="polite">
                       {filtered ? `${pad(items.length)} of ${pad(articles.length)} articles shown` : `${pad(articles.length)} articles registered`}
                     </span>
-                    <div className="r-sort">
-                      <select id="r-sort" aria-label="Sort articles" value={filters.sort} onChange={(e) => set({ sort: e.target.value })}>
-                        <option value="recent">Sort: Recently added</option>
-                        <option value="short">Sort: Shortest read</option>
-                        <option value="long">Sort: Longest read</option>
-                        <option value="az">Sort: Title A–Z</option>
-                      </select>
-                      <svg width="10" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true"><path d="M1 1l4 4 4-4" stroke="#0E1118" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                    </div>
+                    <SortSelect
+                      value={filters.sort}
+                      onChange={(sort) => set({ sort })}
+                      label="Sort articles"
+                      options={[
+                        { value: 'recent', label: 'Sort: Recently added' },
+                        { value: 'short', label: 'Sort: Shortest read' },
+                        { value: 'long', label: 'Sort: Longest read' },
+                        { value: 'az', label: 'Sort: Title A–Z' },
+                      ]}
+                    />
                     <div className="r-views" role="group" aria-label="Layout">
                       <button type="button" aria-pressed={filters.view === 'grid'} aria-label="Three-column catalog grid" title="Catalog grid" onClick={() => set({ view: 'grid' })}>
                         <svg width="15" height="12" viewBox="0 0 15 12" fill="currentColor" aria-hidden="true"><rect width="4" height="12" /><rect x="5.5" width="4" height="12" /><rect x="11" width="4" height="12" /></svg>
@@ -329,20 +345,6 @@ function ReadingRoom() {
             </div>
           </footer>
 
-          <div className="tabbar" role="navigation" aria-label="Main">
-            <button type="button" aria-current={tab === 'reading' ? 'page' : undefined} onClick={() => goTab('reading')}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 5.5C4 4.7 4.7 4 5.5 4H11v15H5.5C4.7 19 4 18.3 4 17.5v-12zM13 4h5.5c.8 0 1.5.7 1.5 1.5v12c0 .8-.7 1.5-1.5 1.5H13V4z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" /></svg>Reading
-            </button>
-            <button type="button" aria-current={tab === 'archive' ? 'page' : undefined} onClick={() => goTab('archive')}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="4" stroke="currentColor" strokeWidth="1.5" /><path d="M5 8.5V19h14V8.5M10 12.5h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>Archive
-            </button>
-            <button type="button" aria-current={tab === 'search' ? 'page' : undefined} onClick={() => goTab('search')}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="6.5" stroke="currentColor" strokeWidth="1.5" /><path d="M16 16l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>Search
-            </button>
-            <button type="button" onClick={user ? async () => { await logout(); navigate('/login') } : () => goTab('you')}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5" stroke="currentColor" strokeWidth="1.5" /><path d="M5 20c.6-3.6 3.4-5.5 7-5.5s6.4 1.9 7 5.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>{user ? 'Sign out' : 'Sign in'}
-            </button>
-          </div>
         </div>
       </div>
       <div id="rprog" ref={barRef} aria-hidden="true" />

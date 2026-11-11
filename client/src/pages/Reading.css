@@ -7,7 +7,7 @@
   align-items: center;
   justify-content: center;
   border-bottom: 1px solid var(--ink);
-  background: #ecebe6;
+  background: #fbfbfa;
   position: sticky;
   top: 0;
   z-index: 5;
@@ -117,7 +117,7 @@
   filter: url(#wet-ink);
 }
 .read__title > span { display: block; }
-.read--banking { background-color: #ebebe9; background-image: var(--paper-grain), var(--paper-texture); background-size: 300px 300px, 700px 700px; background-blend-mode: multiply, multiply; }
+.read--banking { background-color: #f7f7f5; background-image: var(--paper-grain), var(--paper-texture); background-size: 300px 300px, 700px 700px; background-blend-mode: multiply, multiply; }
 .read--banking .hero__img { transform: none; object-position: center; }
 .read--banking .read__body { padding: calc(var(--u) * 32) calc(var(--u) * 30) calc(var(--u) * 32); }
 .read--banking .read__title { font-size: calc(var(--u) * 36); line-height: 0.95; margin-bottom: calc(var(--u) * 22); }
@@ -195,7 +195,7 @@
 .read__next:hover { background: #2a2a2a; }
 
 .read--game {
-  background-color: #e9e9e7;
+  background-color: #f7f7f5;
   background-image: var(--paper-grain), var(--paper-texture);
   background-size: 300px 300px, 700px 700px;
   background-blend-mode: multiply, multiply;
@@ -474,7 +474,7 @@
   pointer-events: none;
   filter: drop-shadow(1px 2px 3px rgba(0, 0, 0, 0.32));
 }
-.focus-shape path { fill: #e6e4df; stroke: #e6e4df; stroke-width: 8; stroke-linejoin: round; }
+.focus-shape path { fill: #fcfcfb; stroke: #fcfcfb; stroke-width: 8; stroke-linejoin: round; }
 
 /* ---------- question open / close motion ---------- */
 .question-wrap { overflow: hidden; padding: 14px 12px; margin: -14px -12px; }

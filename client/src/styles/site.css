@@ -442,3 +442,249 @@
 .cs .go{color:inherit;text-decoration:none;display:block}
 .cs h2 .go,.cs h3 .go{display:inline}
 .cs h2 .go:hover,.cs h3 .go:hover{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px}
+
+/* ---------- assistive-touch style floating menu (replaces the bottom tab bar on phones) ---------- */
+.at { position: fixed; inset: 0; z-index: 50; pointer-events: none; font-family: Inter, system-ui, sans-serif; }
+.at__scrim { position: fixed; inset: 0; pointer-events: auto; background: rgba(41, 28, 19, 0.16); -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
+.at__button {
+  position: fixed; left: 0; top: 0; width: 47px; height: 47px; padding: 0; border: 0; border-radius: 9.4px; overflow: hidden;
+  pointer-events: auto; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
+  background: transparent;
+  -webkit-backdrop-filter: blur(14px) saturate(1.4) brightness(0.5); backdrop-filter: blur(14px) saturate(1.4) brightness(0.5);
+  box-shadow: 0 8px 22px rgba(41, 28, 19, 0.3);
+  opacity: 0.96; will-change: transform;
+  transition: opacity 0.2s ease;
+}
+.at__button img { display: block; width: 100%; height: 100%; pointer-events: none; transition: transform 0.2s cubic-bezier(0.32, 0.72, 0, 1); }
+.at__button.is-snapping { transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.2s ease; }
+.at__button:active { cursor: grabbing; opacity: 1; }
+.at__button:active img { transform: scale(0.94); }
+.at__button.is-open { opacity: 1; }
+.at__button:focus-visible { outline: 2px solid #eee6d6; outline-offset: 2px; }
+.at__panel {
+  position: fixed; pointer-events: auto; width: 214px; padding: 10px; border-radius: 22px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  background: rgba(134, 127, 114, 0.5);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6); backdrop-filter: blur(24px) saturate(1.6);
+  box-shadow: inset 0 0 0 0.5px rgba(238, 230, 214, 0.45), 0 16px 40px rgba(41, 28, 19, 0.35);
+}
+.at__item {
+  appearance: none; border: 0; cursor: pointer; display: grid; justify-items: center; align-content: center; gap: 6px;
+  height: 84px; border-radius: 16px; background: rgba(41, 28, 19, 0.55); color: #eee6d6;
+  font: 600 12px/14px Inter, system-ui, sans-serif; letter-spacing: 0.02em; -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.at__item:active { background: rgba(41, 28, 19, 0.8); transform: scale(0.95); }
+.at__item[aria-current="page"] { background: rgba(41, 28, 19, 0.8); box-shadow: inset 0 0 0 1px rgba(238, 230, 214, 0.45); }
+@media (prefers-reduced-motion: reduce) { .at__button, .at__button.is-snapping, .at__item { transition: none; } }
+/* light screens: opaque grey tile, no darkening layer */
+@media (min-width: 900px) {
+  .at__panel { width: 250px; padding: 12px; gap: 10px; border-radius: 26px; }
+  .at__item { height: 96px; font-size: 13px; }
+}
+/* while dragging the button must follow the pointer exactly, with no easing */
+.at__button[data-dragging] { transition: none !important; }
+
+/* ---------- clear glass (iOS style) panel ---------- */
+.at .at__panel {
+  position: fixed;
+  width: 236px;
+  padding: 12px;
+  gap: 8px;
+  border-radius: 30px;
+  border: 0;
+  overflow: hidden;
+  isolation: isolate;
+  background: rgba(255, 255, 255, 0.16);
+  -webkit-backdrop-filter: blur(30px) saturate(1.9) brightness(1.04);
+  backdrop-filter: blur(30px) saturate(1.9) brightness(1.04);
+  box-shadow:
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.7),
+    inset 1.5px 2px 3px -1px rgba(255, 255, 255, 0.95),
+    inset -1px -1.5px 3px -1px rgba(255, 255, 255, 0.5),
+    0 0 0 0.5px rgba(20, 22, 26, 0.1),
+    0 20px 50px rgba(20, 22, 26, 0.22),
+    0 3px 8px rgba(20, 22, 26, 0.08);
+}
+/* specular sheen across the top-left, like light catching the glass edge */
+.at .at__panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background:
+    radial-gradient(120% 70% at 15% 0%, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0) 55%),
+    linear-gradient(160deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0) 45%);
+  pointer-events: none;
+}
+.at .at__title {
+  grid-column: 1 / -1;
+  margin: 2px 6px 2px;
+  font: 600 11px/14px Inter, system-ui, sans-serif;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(20, 22, 26, 0.62);
+}
+.at .at__item {
+  height: 88px;
+  border-radius: 20px;
+  color: #14161a;
+  background: rgba(255, 255, 255, 0.26);
+  box-shadow:
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.75),
+    inset 1px 1.5px 2px -0.5px rgba(255, 255, 255, 0.95),
+    inset -0.5px -1px 2px -0.5px rgba(255, 255, 255, 0.4),
+    0 1px 2px rgba(20, 22, 26, 0.06);
+  transition: background 0.18s ease, box-shadow 0.18s ease;
+}
+.at .at__item svg { width: 24px; height: 24px; }
+.at .at__item:hover { background: rgba(255, 255, 255, 0.4); }
+.at .at__item:active, .at .at__item[aria-current="page"] { background: rgba(255, 255, 255, 0.55); }
+.at .at__item[aria-current="page"] { box-shadow: inset 0 0 0 1px rgba(20, 22, 26, 0.35), inset 1px 1.5px 2px -0.5px rgba(255, 255, 255, 0.95); }
+.at .at__item:focus-visible { outline: 2px solid rgba(20, 22, 26, 0.6); outline-offset: 2px; }
+.at .at__scrim { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.at[data-tone="dark"] .at__panel { background: rgba(255, 255, 255, 0.1); }
+.at[data-tone="dark"] .at__title { color: rgba(255, 255, 255, 0.7); }
+.at[data-tone="dark"] .at__item { color: #fff; background: rgba(255, 255, 255, 0.14); }
+@media (min-width: 900px) {
+  .at .at__panel { width: 268px; padding: 14px; gap: 10px; border-radius: 34px; }
+  .at .at__item { height: 100px; border-radius: 22px; }
+}
+@media (prefers-reduced-motion: reduce) { .at .at__item { transition: none; } }
+
+/* ---------- clear glass button (same material as the panel) ---------- */
+.at .at__button {
+  overflow: hidden;
+  isolation: isolate;
+  background: rgba(255, 255, 255, 0.16);
+  -webkit-backdrop-filter: blur(30px) saturate(1.9) brightness(1.04);
+  backdrop-filter: blur(30px) saturate(1.9) brightness(1.04);
+  box-shadow:
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.7),
+    inset 1.5px 2px 3px -1px rgba(255, 255, 255, 0.95),
+    inset -1px -1.5px 3px -1px rgba(255, 255, 255, 0.5),
+    0 0 0 0.5px rgba(20, 22, 26, 0.1),
+    0 12px 30px rgba(20, 22, 26, 0.22),
+    0 2px 6px rgba(20, 22, 26, 0.08);
+  opacity: 1;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+.at .at__button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background:
+    radial-gradient(120% 70% at 15% 0%, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0) 55%),
+    linear-gradient(160deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0) 45%);
+  pointer-events: none;
+}
+.at .at__button img { position: relative; }
+.at .at__button:hover, .at .at__button.is-open { background: rgba(255, 255, 255, 0.28); }
+.at .at__button.is-snapping { transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1), background 0.2s ease, box-shadow 0.2s ease; }
+.at .at__button[data-dragging] { transition: none !important; }
+.at[data-tone="dark"] .at__button { background: rgba(255, 255, 255, 0.1); }
+@media (prefers-reduced-motion: reduce) { .at .at__button, .at .at__button.is-snapping { transition: none; } }
+
+/* the mark inside the button; its levels carry the reading progress */
+.at__glyph { position: relative; z-index: 1; display: block; width: 100%; height: 100%; color: #000; pointer-events: none; overflow: visible; transition: color 0.4s ease; }
+.at__glyph path { transition: opacity 0.25s linear; }
+.at__glyph.is-done { color: #2f7a3e; }
+.at[data-tone="dark"] .at__glyph { color: #eee6d6; }
+@media (prefers-reduced-motion: reduce) { .at__glyph path { transition: none; } }
+
+/* ---------- overture: sub-menu, wide tile, and the reaction when something is stored ---------- */
+.at .at__panel { display: block; }
+.at .at__content { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+@media (min-width: 900px) { .at .at__content { gap: 10px; } }
+.at .at__item--wide { grid-column: 1 / -1; height: 58px; grid-auto-flow: column; justify-content: start; justify-items: start; align-content: center; align-items: center; gap: 12px; padding: 0 16px; }
+.at .at__item--wide span { font-weight: 600; }
+.at .at__note { margin-left: auto; font: 500 11px/14px Inter, system-ui, sans-serif; font-style: normal; color: rgba(20, 22, 26, 0.55); }
+.at .at__chev { color: rgba(20, 22, 26, 0.5); margin-left: 2px; }
+.at .at__item--wide .at__note + .at__chev { margin-left: 0; }
+.at .at__item--wide:not(:has(.at__note)) .at__chev { margin-left: auto; }
+
+.at .at__head { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; margin: 0 2px; }
+.at .at__head .at__title { margin: 0; }
+.at .at__back {
+  appearance: none; border: 0; cursor: pointer; width: 28px; height: 28px; border-radius: 50%;
+  display: grid; place-items: center; color: #14161a; background: rgba(255, 255, 255, 0.45);
+  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.8), inset 1px 1.5px 2px -0.5px rgba(255, 255, 255, 0.95);
+  -webkit-tap-highlight-color: transparent;
+}
+.at .at__back:active { background: rgba(255, 255, 255, 0.7); }
+.at .at__row {
+  grid-column: 1 / -1; appearance: none; border: 0; cursor: pointer; width: 100%; min-height: 64px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 16px; text-align: left;
+  border-radius: 20px; color: #14161a; background: rgba(255, 255, 255, 0.26);
+  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.75), inset 1px 1.5px 2px -0.5px rgba(255, 255, 255, 0.95), inset -0.5px -1px 2px -0.5px rgba(255, 255, 255, 0.4), 0 1px 2px rgba(20, 22, 26, 0.06);
+  -webkit-tap-highlight-color: transparent; transition: background 0.18s ease;
+}
+.at .at__row:hover { background: rgba(255, 255, 255, 0.4); }
+.at .at__row:active { background: rgba(255, 255, 255, 0.55); }
+.at .at__row-main { display: grid; gap: 2px; }
+.at .at__row-main strong { font: 600 14px/18px Inter, system-ui, sans-serif; }
+.at .at__row-main small { font: 400 12px/16px Inter, system-ui, sans-serif; color: rgba(20, 22, 26, 0.6); }
+.at .at__row-state { font: 600 10px/12px Inter, system-ui, sans-serif; letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 8px; border-radius: 999px; background: rgba(20, 22, 26, 0.08); color: rgba(20, 22, 26, 0.7); }
+.at .at__row[data-state="stored"] .at__row-state { background: rgba(47, 122, 62, 0.16); color: #2a6a37; }
+.at .at__row[data-state="ready"] .at__row-state { background: rgba(163, 69, 37, 0.14); color: #8f3c20; }
+
+/* paper chip that flies into the overture when answers are saved */
+.at__chip {
+  position: fixed; z-index: 60; width: 44px; height: 30px; padding: 7px 8px; border-radius: 8px; pointer-events: none;
+  display: grid; align-content: space-between; gap: 3px; opacity: 0;
+  background: rgba(255, 255, 255, 0.82);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.9), 0 6px 16px rgba(20, 22, 26, 0.3);
+}
+.at__chip i { display: block; height: 2px; border-radius: 2px; background: #14161a; }
+.at__chip i:nth-child(2) { width: 70%; }
+.at__chip i:nth-child(3) { width: 45%; }
+
+/* the overture takes it in: the glyph swells, its levels ripple down, and a soft green glow rings the button */
+.at__button.is-absorbing .at__glyph { animation: at-swell 0.7s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.at__button.is-absorbing .at__glyph path { animation: at-level 0.8s cubic-bezier(0.3, 0, 0.2, 1) backwards; animation-delay: calc(var(--i) * 80ms); }
+.at__button.is-absorbing { animation: at-glow 0.95s ease-out; }
+.at__button.is-absorbing--receipt .at__glyph { color: #2f7a3e; }
+@keyframes at-swell { 0% { transform: scale(1); } 35% { transform: scale(1.28); } 100% { transform: scale(1); } }
+@keyframes at-level { 0% { opacity: 0.12; transform: translateY(-3px); } 45% { opacity: 1; transform: translateY(1px); } }
+@keyframes at-glow {
+  0% { box-shadow: inset 0 0 0 0.5px rgba(255,255,255,0.7), inset 1.5px 2px 3px -1px rgba(255,255,255,0.95), 0 12px 30px rgba(20,22,26,0.22), 0 0 0 0 rgba(47,122,62,0.55); }
+  100% { box-shadow: inset 0 0 0 0.5px rgba(255,255,255,0.7), inset 1.5px 2px 3px -1px rgba(255,255,255,0.95), 0 12px 30px rgba(20,22,26,0.22), 0 0 0 18px rgba(47,122,62,0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .at__button.is-absorbing, .at__button.is-absorbing .at__glyph, .at__button.is-absorbing .at__glyph path { animation: none; }
+}
+
+/* custom sort dropdown (replaces the native select so the list matches the app, not the OS) */
+.cs .r-sort { position: relative; }
+.cs .r-sort__btn {
+  appearance: none; -webkit-appearance: none; display: flex; align-items: center; gap: 14px; width: 100%;
+  background: none; border: 0; border-radius: 0; padding: 10px 14px; cursor: pointer; text-align: left;
+  font: 600 12px/16.5px var(--label); letter-spacing: .1em; text-transform: uppercase; color: var(--r-ink); white-space: nowrap;
+}
+/* the chevron keeps the existing absolute spot; it flips when open */
+.cs .r-sort__btn { padding-right: 38px; }
+.cs .r-sort__btn svg { transition: transform .22s cubic-bezier(.32,.72,0,1); }
+.cs .r-sort.is-open .r-sort__btn svg { transform: translateY(-50%) rotate(180deg); }
+.cs .r-sort__tick svg { position: static; transform: none; right: auto; top: auto; pointer-events: none; }
+/* the open list must sit above the catalog cards below it */
+.cs .r-toolbar { position: relative; z-index: 20; }
+.cs .r-sort.is-open { z-index: 40; }
+.cs .r-sort.is-open { border-color: var(--r-ink); }
+.cs .r-sort__btn:focus-visible { outline: 2px solid var(--r-ink); outline-offset: 2px; }
+.cs .r-sort__list {
+  position: absolute; z-index: 30; top: calc(100% + 6px); right: 0; min-width: 100%; width: max-content; margin: 0; padding: 6px; list-style: none;
+  background: #fff; border: 1px solid var(--r-ink); box-shadow: 0 14px 34px rgba(20, 22, 26, .16), 0 2px 6px rgba(20, 22, 26, .08);
+  transform-origin: top right;
+}
+.cs .r-sort__opt {
+  display: flex; align-items: center; gap: 10px; padding: 11px 12px; cursor: pointer; white-space: nowrap;
+  font: 600 12px/16px var(--label); letter-spacing: .1em; text-transform: uppercase; color: var(--r-body);
+  transition: background .12s ease, color .12s ease;
+}
+.cs .r-sort__opt.is-active { background: #f1eee7; color: var(--r-ink); }
+.cs .r-sort__opt.is-selected { color: var(--r-ink); }
+.cs .r-sort__tick { width: 12px; display: inline-grid; place-items: center; color: var(--r-ink); }

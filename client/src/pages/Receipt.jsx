@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext.jsx'
+import { storeIntoOverture } from '../lib/overture.js'
+import { useReveal } from '../lib/useReveal.js'
 import { article1 as article } from '../data/articles.js'
 import { receiptTargets, receiptPhases } from '../data/receiptReferences.js'
 import { generateReceipt, getCachedReceipt, getReceiptQuestions } from '../data/receiptStorage.js'
@@ -15,8 +17,14 @@ function Receipt({ example = false }) {
   // finishing an article sends a guest to sign in (their reading moves into the account); a signed-in reader goes on to the reading room
   const { user } = useAuth()
   const nextArticlePath = user ? '/reading-room' : '/login#create'
+  const navigate = useNavigate()
+  const storeAndGo = (event) => {
+    event.preventDefault()
+    storeIntoOverture(document.querySelector('.receipt'), example ? null : 1).then(() => navigate(nextArticlePath))
+  }
   const [questions] = useState(() => getReceiptQuestions(article.number))
   const [receipt, setReceipt] = useState(() => example ? receiptExample : getCachedReceipt(article.number, questions))
+  useReveal(!!receipt)
   const [error, setError] = useState('')
   const [attempt, setAttempt] = useState(0)
   const [shareStatus, setShareStatus] = useState('')
@@ -82,7 +90,7 @@ function Receipt({ example = false }) {
           {receipt && <>
             <footer className="receipt__footer">
               <button type="button" onClick={shareReceipt}>Share receipt</button>
-              <Link to={nextArticlePath}>Next article <span aria-hidden="true">→</span></Link>
+              <Link to={nextArticlePath} onClick={storeAndGo}>Next article <span aria-hidden="true">→</span></Link>
             </footer>
             {shareStatus && <p className="receipt__share-status" role="status">{shareStatus}</p>}
             <Link className="receipt__back" to="/read">Back to your questions</Link>

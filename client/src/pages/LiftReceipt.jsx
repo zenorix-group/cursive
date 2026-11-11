@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext.jsx'
+import { storeIntoOverture } from '../lib/overture.js'
+import { useReveal } from '../lib/useReveal.js'
 import { article2 } from '../data/articles.js'
 import { loadCallProgress } from '../data/callProgress.js'
 import { liftLineDetails } from '../data/liftReferences.js'
@@ -16,9 +18,9 @@ function ReadingMark({ receipt }) {
     <svg viewBox="0 0 500 200" role="img" aria-labelledby="lift-mark-title lift-mark-description">
       <title id="lift-mark-title">Your selected transcript lines connected to the article’s arguments</title>
       <desc id="lift-mark-description">{receipt.placements.map((placement) => `${placement.letter}: ${placement.placedLineId ? `line ${placement.placedLineId}` : 'no line placed'}`).join('. ')}</desc>
-      {receipt.placements.filter((placement) => placement.placedLineId !== null).map((placement) => <line key={placement.id} x1="202" y1={sourceY(placement.placedLineId)} x2="340" y2={targetY(placement.id)} stroke="#bd8b21" strokeWidth="1.5" />)}
-      {selected.map((id) => <g key={id}><text x="0" y={sourceY(id) + 4}>L{id} · {liftLineDetails[id].summary}</text><circle cx="202" cy={sourceY(id)} r="2.5" fill="#38382d" /></g>)}
-      {receipt.placements.map((placement) => <g key={placement.id}><circle cx="340" cy={targetY(placement.id)} r="3" fill={placement.placedLineId ? '#38382d' : 'none'} stroke="#38382d" /><text x="352" y={targetY(placement.id) - 3}>{placement.letter} · {placement.title.split(' ').slice(0, 3).join(' ')}</text><text x="352" y={targetY(placement.id) + 12}>{placement.title.split(' ').slice(3).join(' ')}</text></g>)}
+      {receipt.placements.filter((placement) => placement.placedLineId !== null).map((placement, i) => <line className="mk-link" style={{ '--i': i }} pathLength="1" key={placement.id} x1="202" y1={sourceY(placement.placedLineId)} x2="340" y2={targetY(placement.id)} stroke="#bd8b21" strokeWidth="1.5" />)}
+      {selected.map((id, i) => <g className="mk-src" style={{ '--i': i }} key={id}><text x="0" y={sourceY(id) + 4}>L{id} · {liftLineDetails[id].summary}</text><circle cx="202" cy={sourceY(id)} r="2.5" fill="#38382d" /></g>)}
+      {receipt.placements.map((placement, i) => <g className="mk-tgt" style={{ '--i': i }} key={placement.id}><circle cx="340" cy={targetY(placement.id)} r="3" fill={placement.placedLineId ? '#38382d' : 'none'} stroke="#38382d" /><text x="352" y={targetY(placement.id) - 3}>{placement.letter} · {placement.title.split(' ').slice(0, 3).join(' ')}</text><text x="352" y={targetY(placement.id) + 12}>{placement.title.split(' ').slice(3).join(' ')}</text></g>)}
       {!selected.length && <text x="0" y="45">No lines selected.</text>}
       <text className="lift-mark__axis" x="0" y="190">Marked, in scene order</text><text className="lift-mark__axis" x="340" y="190">The argument, in order</text>
     </svg>
@@ -30,8 +32,14 @@ function LiftReceipt() {
   // finishing an article sends a guest to sign in (their reading moves into the account); a signed-in reader goes on to the reading room
   const { user } = useAuth()
   const nextArticlePath = user ? '/reading-room' : '/login#create'
+  const navigate = useNavigate()
+  const storeAndGo = (event) => {
+    event.preventDefault()
+    storeIntoOverture(document.querySelector('.receipt'), 2).then(() => navigate(nextArticlePath))
+  }
   const [progress] = useState(loadCallProgress)
   const [receipt, setReceipt] = useState(() => getCachedLiftReceipt(progress))
+  useReveal(!!receipt)
   const [error, setError] = useState('')
   const [attempt, setAttempt] = useState(0)
   const [shareStatus, setShareStatus] = useState('')
@@ -68,7 +76,7 @@ function LiftReceipt() {
       <header className="receipt__intro"><p className="receipt__eyebrow">Your Cursive receipt</p><h1>The Lines You<br />Carried.</h1></header>
       <div className="receipt__metadata"><div><span>Article 02</span><span>{article2.minutes} min read</span></div><p>{article2.headline}</p><div className="receipt__interaction"><span>Interaction</span><strong>{article2.mechanic}</strong></div></div>
         {receipt && <>
-      <footer className="receipt__footer"><button type="button" onClick={share}>Share receipt</button><Link to={nextArticlePath}>Next article <span aria-hidden="true">→</span></Link></footer>
+      <footer className="receipt__footer"><button type="button" onClick={share}>Share receipt</button><Link to={nextArticlePath} onClick={storeAndGo}>Next article <span aria-hidden="true">→</span></Link></footer>
       {shareStatus && <p className="receipt__share-status" role="status">{shareStatus}</p>}
       <Link className="receipt__back" to="/read/2">Back to your placements</Link>
         </>}
