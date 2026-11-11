@@ -2,8 +2,13 @@ import lead from '../assets/site/lead.jpg'
 import book from '../assets/site/book.jpg'
 import building from '../assets/site/building.jpg'
 import wet from '../assets/site/wet.jpg'
+import equities from '../assets/site/equities.jpg'
+import earth from '../assets/site/earth.jpg'
+import quixote from '../assets/site/quixote.jpg'
+import gentleman from '../assets/site/gentleman.jpg'
+import room912 from '../assets/site/room912.jpg'
 
-export const IMG = { lead, book, building, wet }
+export const IMG = { lead, book, building, wet, equities, earth, quixote, gentleman, room912 }
 
 export const CATS = [
   ['all', 'All articles'],
@@ -30,16 +35,16 @@ export const catalog = [
     paths: { ns: '/article/1', ip: '/read', done: '/receipt' },
   },
   {
-    id: 2, img: 'book', cat: 'finance', kick: '¶ Finance & Law', read: 29,
-    title: 'The Sovereign Arbitrage of Sovereign Debt',
-    dek: 'Examining how opaque vulture syndicates weaponize distressed debt litigation in secondary municipal markets across South…',
-    by: 'Marcus Holloway',
+    id: 2, img: 'equities', cat: 'finance', kick: '¶ Finance & Law', read: 5,
+    title: 'Should You Invest In Foreign Or International Equities?',
+    dek: 'The financial equivalent of putting all your nest eggs in one basket is keeping every rupee inside one country. Funds that buy foreign shares have been climbing the ladder since they first arrived in India…',
+    by: 'Cursive Desk',
   },
   {
-    id: 3, img: 'wet', cat: 'environment', kick: '¶ Environment', read: 16,
-    title: 'Subterranean Aquifers and the Legal Commons',
-    dek: 'Ground rights, hydraulic capture, and the contested judicial boundaries of deep water tables under private agrarian titles in the arid…',
-    by: 'Dr. Aris Thorne',
+    id: 3, img: 'earth', cat: 'essays', kick: '¶ Essays & Culture', read: 6,
+    title: 'Write for the Earth',
+    dek: 'A writing competition that asks for sentences about writing and the earth in the same breath. Mark the lines that carry both themes, then write to us with what is running through them…',
+    by: 'Cursive Desk',
   },
   {
     id: 4, article: 2, img: 'lead', cat: 'finance', kick: '¶ Finance & Law', read: 8,
@@ -49,22 +54,22 @@ export const catalog = [
     paths: { ns: '/article/2', ip: '/read/2', done: '/receipt/2' },
   },
   {
-    id: 5, img: 'wet', cat: 'environment', kick: '§ Environment', read: 18,
-    title: 'The Quiet Erasure of Coastal Wetlands',
-    dek: 'Tracing fifty years of estuarine transformation and the unseen costs of rapid infrastructure expansion along the western shore.',
-    by: 'Elena Rostov',
+    id: 5, img: 'quixote', cat: 'essays', kick: '§ Essays & Culture', read: 6,
+    title: 'Behind Don Quixote',
+    dek: 'Before he created one of literature’s most famous adventurers, Miguel de Cervantes had already lived an extraordinary adventure of his own: from Renaissance Italy to the battle of Lepanto…',
+    by: 'Cursive Desk',
   },
   {
-    id: 6, img: 'wet', cat: 'environment', kick: '§ Environment', read: 18,
-    title: 'The Quiet Erasure of Coastal Wetlands',
-    dek: 'Tracing fifty years of estuarine transformation and the unseen costs of rapid infrastructure expansion along the western shore.',
-    by: 'Elena Rostov',
+    id: 6, img: 'gentleman', cat: 'essays', kick: '§ Essays & Culture', read: 7,
+    title: 'The Retired Gentleman',
+    dek: 'Mr. Murari Lal retired from his state bus driving duty some 15 years ago. He put his two kids through college, and just as he settled into retired life, his wife passed away…',
+    by: 'Saumya Dikshit',
   },
   {
-    id: 7, img: 'wet', cat: 'environment', kick: '§ Environment', read: 18,
-    title: 'The Quiet Erasure of Coastal Wetlands',
-    dek: 'Tracing fifty years of estuarine transformation and the unseen costs of rapid infrastructure expansion along the western shore.',
-    by: 'Elena Rostov',
+    id: 7, img: 'room912', cat: 'investigations', kick: '§ Investigations', read: 3,
+    title: 'Room 912',
+    dek: 'At 23:18, housekeeping received a request for fresh towels from Room 912, a room blocked from guest allocation since the start of the season. Reception confirmed: Room Status: Vacant…',
+    by: 'Bureau of Unfiled Incidents',
   },
 ]
 
