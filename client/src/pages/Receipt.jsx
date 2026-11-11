@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext.jsx'
+import { storeIntoOverture } from '../lib/overture.js'
+import { useReveal } from '../lib/useReveal.js'
 import { article1 as article } from '../data/articles.js'
 import { receiptTargets, receiptPhases } from '../data/receiptReferences.js'
 import { generateReceipt, getCachedReceipt, getReceiptQuestions } from '../data/receiptStorage.js'
@@ -14,9 +16,15 @@ function SectionHeading({ number, title, note }) {
 function Receipt({ example = false }) {
   // finishing an article sends a guest to sign in (their reading moves into the account); a signed-in reader goes on to the reading room
   const { user } = useAuth()
-  const nextArticlePath = user ? '/reading-room' : '/login'
+  const nextArticlePath = user ? '/reading-room' : '/login#create'
+  const navigate = useNavigate()
+  const storeAndGo = (event) => {
+    event.preventDefault()
+    storeIntoOverture(document.querySelector('.receipt'), example ? null : 1).then(() => navigate(nextArticlePath))
+  }
   const [questions] = useState(() => getReceiptQuestions(article.number))
   const [receipt, setReceipt] = useState(() => example ? receiptExample : getCachedReceipt(article.number, questions))
+  useReveal(!!receipt)
   const [error, setError] = useState('')
   const [attempt, setAttempt] = useState(0)
   const [shareStatus, setShareStatus] = useState('')
@@ -67,6 +75,7 @@ function Receipt({ example = false }) {
     <main className="receipt-page">
       <header className="receipt__bar"><Link to="/">cursive</Link></header>
       <article className="receipt">
+        <div className="receipt__rail">
         <header className="receipt__intro">
           {example && <p className="receipt__example-label">Example · questions from the design reference</p>}
           <p className="receipt__eyebrow">Your Cursive receipt</p>
@@ -78,6 +87,15 @@ function Receipt({ example = false }) {
           <div className="receipt__interaction"><span>Interaction</span><strong>{article.mechanic}</strong></div>
         </div>
 
+          {receipt && <>
+            <footer className="receipt__footer">
+              <button type="button" onClick={shareReceipt}>Share receipt</button>
+              <Link to={nextArticlePath} onClick={storeAndGo}>Next article <span aria-hidden="true">→</span></Link>
+            </footer>
+            {shareStatus && <p className="receipt__share-status" role="status">{shareStatus}</p>}
+            <Link className="receipt__back" to="/read">Back to your questions</Link>
+          </>}
+        </div>
         {!receipt && (
           <section className="receipt__loading" aria-live="polite">
             {error ? <><h2>Your questions are saved.</h2><p role="alert">{error}</p><button type="button" onClick={() => { setError(''); setAttempt((value) => value + 1) }}>Try again</button></> : <><h2>Reading the questions you left.</h2><p>Preparing your receipt from the article and your saved questions.</p></>}
@@ -86,6 +104,7 @@ function Receipt({ example = false }) {
         )}
 
         {receipt && <>
+          <div className="receipt__sections">
           <section className="receipt__section">
             <SectionHeading number="01" title="What you asked" note="Transcripts preserved" />
             <p className="receipt__description">A record of questions filed during the reading, preserving your original wording and punctuation without correction.</p>
@@ -138,12 +157,7 @@ function Receipt({ example = false }) {
             <table className="receipt__table"><thead><tr><th>Phase</th><th>Jurisdiction</th><th>Focal tension</th></tr></thead><tbody>{receiptPhases.map((phase) => <tr key={phase.phase}><th scope="row">{phase.phase}</th><td>{phase.jurisdiction}</td><td>{phase.tension}</td></tr>)}</tbody></table>
             <div className="receipt__note"><span>Note</span><p>{receipt.cadenceNote}</p></div>
           </section>
-          <footer className="receipt__footer">
-            <button type="button" onClick={shareReceipt}>Share receipt</button>
-            <Link to={nextArticlePath}>Next article <span aria-hidden="true">→</span></Link>
-          </footer>
-          {shareStatus && <p className="receipt__share-status" role="status">{shareStatus}</p>}
-          <Link className="receipt__back" to="/read">Back to your questions</Link>
+          </div>
         </>}
       </article>
     </main>

@@ -1,21 +1,30 @@
-import { Fragment, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useLayoutEffect, useRef, startTransition, useState } from 'react'
 import { AnimatePresence, animate, motion, useAnimationControls, useMotionValue } from 'framer-motion'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import plateImg from '../assets/landing/plate-1.png'
 import authorProfile from '../assets/author-profile.jpg'
 import gameHero from '../assets/reading/game-hero.png'
 import feather from '../assets/reading/feather.png'
 import { article1 } from '../data/articles.js'
 import { loadReadingProgress, saveReadingProgress } from '../data/readingProgress.js'
 import { callLines, getCallOptions, loadCallProgress, saveCallProgress } from '../data/callProgress.js'
+import { haptic } from '../lib/haptics.js'
+import { absorb } from '../lib/overture.js'
 import './Reading.css'
+
+const iconProps = { width: 16, height: 16, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' }
+const FeatherIcon = () => (
+  <svg {...iconProps}><path d="M20 4a7 7 0 0 0-10 0L5 9v6l-2 6 6-2h6l5-5a7 7 0 0 0 0-10z" /><path d="M16 8 2 22M17.5 15H9" /></svg>
+)
+const PowerIcon = () => (
+  <svg {...iconProps}><path d="M12 3v8" /><path d="M7.5 6.6a7 7 0 1 0 9 0" /></svg>
+)
 
 // split a paragraph into sentences, keeping the closing punctuation and spacing
 const sentences = (text) => text.match(/[^.!?]+(?:[.!?]+["”’')\]]*\s*|$)/g)?.filter((s) => s.trim()) ?? [text]
 
 // while a question is open, only the sentence right before / after it stays sharp.
 // A single paper-coloured shape (one outline, one shadow) is drawn behind that sentence's lines.
-function FocusText({ text, which }) {
+function FocusText({ text, which, leaving }) {
   const parts = sentences(text)
   const keep = parts.length < 2 ? 0 : which === 'before' ? parts.length - 1 : 0
   const spanRef = useRef(null)
@@ -54,12 +63,12 @@ function FocusText({ text, which }) {
   return (
     <>
       {shape && (
-        <svg className="focus-shape" width={shape.w} height={shape.h} aria-hidden="true">
+        <svg className={`focus-shape${leaving ? " is-leaving" : ""}`} width={shape.w} height={shape.h} aria-hidden="true">
           <path d={shape.d} />
         </svg>
       )}
       {parts.map((s, k) =>
-        k === keep ? <span key={k} ref={spanRef} className="read__focus">{s}</span> : <span key={k} className="read__dim">{s}</span>,
+        k === keep ? <span key={k} ref={spanRef} className="read__focus">{s}</span> : <span key={k} className={`read__dim${leaving ? " is-leaving" : ""}`}>{s}</span>,
       )}
     </>
   )
@@ -88,9 +97,25 @@ function Reading({ article = article1 }) {
   const [touched, setTouched] = useState(false)
   const [tipShown, setTipShown] = useState(false)
   const dragged = useRef(false)
+  const dragSide = useRef(false)
+  const [saved, setSaved] = useState(false)
+  const savedTimer = useRef(null)
   const spring = { type: 'spring', stiffness: 210, damping: 26, mass: 0.9 }
   const hintRef = useRef(null)
   const [activeGap, setActiveGap] = useState(null)
+  // the focus/blur lags behind the panel on close so it can fade out instead of snapping
+  const [focusGap, setFocusGap] = useState(null)
+  const [leaving, setLeaving] = useState(false)
+  useEffect(() => {
+    if (activeGap !== null) {
+      setFocusGap(activeGap)
+      setLeaving(false)
+      return undefined
+    }
+    setLeaving(true)
+    const id = setTimeout(() => { setFocusGap(null); setLeaving(false) }, 450)
+    return () => clearTimeout(id)
+  }, [activeGap])
 
   const resetOverlays = () => {
     setHintOpen(false)
@@ -204,6 +229,7 @@ function Reading({ article = article1 }) {
   }
 
   const openQuestion = (id) => {
+    haptic(6)
     setVisitedGaps((previous) => ({ ...previous, [id]: true }))
     setDraft(answers[id] ?? '')
     setHintOpen(false)
@@ -265,7 +291,7 @@ function Reading({ article = article1 }) {
       </header>
 
       <figure className="hero">
-        <img className="hero__img" src={game || article.number === 2 ? gameHero : plateImg} alt="" draggable="false" />
+        <img className="hero__img" src={gameHero} alt="" draggable="false" />
         <div className="hero__shade" />
         {game && (
           <div className="game-hint" ref={hintRef}>
@@ -279,14 +305,14 @@ function Reading({ article = article1 }) {
                   exit={{ opacity: 0, x: 6, scale: 0.9 }}
                   transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                 >
-                  Need a hint?
+                  Game info
                 </motion.p>
               )}
             </AnimatePresence>
             <motion.button
               type="button"
               className="game-hint__button"
-              aria-label="Game hints"
+              aria-label="Game info"
               aria-expanded={hintOpen}
               aria-controls="game-instructions"
               animate={hintControls}
@@ -332,7 +358,7 @@ function Reading({ article = article1 }) {
                 exit={{ opacity: 0, y: 6, scale: 0.9 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 20 }}
               >
-                Slide To<br />{game ? 'Disable' : 'Enable'} The Game.
+                Slide to<br />{game ? 'leave' : 'enable'} the game.
               </motion.p>
             )}
           </AnimatePresence>
@@ -346,7 +372,9 @@ function Reading({ article = article1 }) {
             onPointerDown={() => setTouched(true)}
             onClick={() => {
               if (dragged.current) return
-              setGame((g) => !g)
+              haptic(10)
+              animate(knobX, game ? 0 : travel, spring)
+              startTransition(() => setGame((g) => !g))
               resetOverlays()
             }}
           >
@@ -358,8 +386,16 @@ function Reading({ article = article1 }) {
               dragConstraints={{ left: 0, right: travel }}
               dragElastic={0.06}
               dragMomentum={false}
-              whileTap={{ scale: 0.94 }}
+              whileTap={{ scale: 0.97 }}
+              onDrag={() => {
+                const side = knobX.get() > travel / 2
+                if (side !== dragSide.current) {
+                  dragSide.current = side
+                  haptic(5)
+                }
+              }}
               onDragStart={() => {
+                dragSide.current = knobX.get() > travel / 2
                 dragged.current = true
                 setTouched(true)
               }}
@@ -368,16 +404,18 @@ function Reading({ article = article1 }) {
                 const next = Math.abs(info.velocity.x) > 350 ? info.velocity.x > 0 : pos > travel / 2
                 setTimeout(() => (dragged.current = false), 60)
                 if (next !== game) {
-                  setGame(next)
+                  haptic(10)
+                  animate(knobX, next ? travel : 0, spring)
+                  startTransition(() => setGame(next))
                   resetOverlays()
                 } else {
                   animate(knobX, game ? travel : 0, spring)
                 }
               }}
             >
-              <img className="toggle__feather" src={feather} alt="" draggable="false" />
+              <span className="toggle__icon" aria-hidden="true"><FeatherIcon /></span>
             </motion.span>
-            <img className={`toggle__idle-feather${game ? '' : ' toggle__idle-feather--right'}`} src={feather} alt="" />
+            <span className={`toggle__idle-feather${game ? '' : ' toggle__idle-feather--right'}`} aria-hidden="true"><PowerIcon /></span>
           </button>
         </div>
       </figure>
@@ -393,7 +431,7 @@ function Reading({ article = article1 }) {
 
         {article.body.map((para, i) => (
           <Fragment key={i}>
-            <p className={activeGap !== null && [activeGap, activeGap + 1].includes(i) ? 'read__context' : undefined}>{activeGap !== null && i === activeGap ? <FocusText text={para} which="before" /> : activeGap !== null && i === activeGap + 1 ? <FocusText text={para} which="after" /> : para}{game && article.inlineBlankAfter?.includes(i) && <button
+            <p className={focusGap !== null && [focusGap, focusGap + 1].includes(i) ? 'read__context' : undefined}>{focusGap !== null && i === focusGap ? <FocusText text={para} which="before" leaving={leaving} /> : focusGap !== null && i === focusGap + 1 ? <FocusText text={para} which="after" leaving={leaving} /> : para}{game && article.inlineBlankAfter?.includes(i) && <button
               type="button"
               id={`call-blank-${i}`}
               className={`read__inline-blank${callProgress.answers[i] ? ' read__inline-blank--filled' : ''}`}
@@ -402,7 +440,7 @@ function Reading({ article = article1 }) {
               aria-expanded={activeBlank === i}
               aria-controls={`call-options-${i}`}
               onClick={() => { setActiveBlank((previous) => previous === i ? null : i); setGame(true); setHintOpen(false) }}
-            >{callProgress.answers[i] ? null : <span aria-hidden="true">…</span>}</button>}</p>
+            >{callProgress.answers[i] ? null : <span aria-hidden="true">…</span>}</button>}{game && article.inlineBlankAfter?.includes(i) && callProgress.answers[i] && <span className="read__placed"> {callLines.find((line) => line.id === callProgress.answers[i])?.text}</span>}</p>
             {game && article.number === 2 && activeBlank === i && <section className="call-options" ref={choiceRef} id={`call-options-${i}`} aria-labelledby={`call-options-title-${i}`}>
               <header><h2 id={`call-options-title-${i}`}><span aria-hidden="true">▪</span> Place a line</h2><span>Target paragraph</span></header>
               <p className="call-options__description">Choose a line from the transcript to re-anchor the sequence.</p>
@@ -420,14 +458,14 @@ function Reading({ article = article1 }) {
               <div className="call-options__tools"><button type="button" onClick={openCall}>Review The Call</button>{callProgress.answers[i] && <button type="button" onClick={() => { setCallProgress((previous) => { const nextAnswers = { ...previous.answers }; delete nextAnswers[i]; return { ...previous, answers: nextAnswers } }); requestAnimationFrame(() => choiceRef.current?.querySelector('button')?.focus({ preventScroll: true })) }}>Clear answer</button>}</div>
             </section>}
             {game && article.number !== 2 && [1, 3, 5].includes(i) && (
-              <AnimatePresence mode="wait" initial={false}>
+              <AnimatePresence initial={false}>
               {activeGap === i ? (
                 <motion.div
                   key="panel"
                   className="question-wrap"
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: 'auto', opacity: 1, transition: { height: { duration: 0.45, ease: [0.22, 1, 0.36, 1] }, opacity: { duration: 0.35, delay: 0.1 } } }}
-                  exit={{ height: 0, opacity: 0, transition: { height: { duration: 0.35, ease: [0.5, 0, 0.75, 0] }, opacity: { duration: 0.2 } } }}
+                  exit={{ height: 0, opacity: 0, transition: { height: { duration: 0.45, ease: [0.32, 0.72, 0, 1] }, opacity: { duration: 0.25, ease: "easeOut" } } }}
                 >
                 <motion.section
                   className="question-panel"
@@ -465,13 +503,15 @@ function Reading({ article = article1 }) {
                 </motion.section>
                 </motion.div>
               ) : (
-                <motion.button
+                <motion.div
                   key="gap"
-                  initial={{ opacity: 0, scale: 0.85 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.85, transition: { duration: 0.15 } }}
-                  whileHover={{ scale: 1.06 }}
-                  whileTap={{ scale: 0.94 }}
+                  className="gap-wrap"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1, transition: { height: { duration: 0.45, ease: [0.32, 0.72, 0, 1] }, opacity: { duration: 0.3, delay: 0.1 } } }}
+                  exit={{ height: 0, opacity: 0, transition: { height: { duration: 0.45, ease: [0.32, 0.72, 0, 1] }, opacity: { duration: 0.15 } } }}
+                >
+                <motion.button
+                  whileTap={{ scale: 0.97 }}
                   transition={{ type: 'spring', stiffness: 380, damping: 22 }}
                   type="button"
                   ref={(node) => { gapRefs.current[i] = node }}
@@ -482,6 +522,7 @@ function Reading({ article = article1 }) {
                 >
                   <span aria-hidden="true" /><span aria-hidden="true" /><span aria-hidden="true" />
                 </motion.button>
+                </motion.div>
               )}
               </AnimatePresence>
             )}
@@ -489,10 +530,17 @@ function Reading({ article = article1 }) {
         ))}
 
         <div className={game ? 'read__actions read__actions--game' : 'read__actions'}>
-          {game && <button type="button" className="read__submit" onClick={() => {
-            saveReadingProgress(article.number, { answers, visitedGaps })
+          {game && <button type="button" className="read__submit" onClick={(event) => {
+            // include an answer that is typed in an open question but not yet saved
+            const pending = activeGap !== null && draft.trim() ? { ...answers, [activeGap]: draft } : answers
+            if (pending !== answers) setAnswers(pending)
+            saveReadingProgress(article.number, { answers: pending, visitedGaps })
             if (article.number === 2) saveCallProgress(callProgress)
-          }}>Submit Answers</button>}
+            setSaved(true)
+            absorb('answers', event.currentTarget)
+            clearTimeout(savedTimer.current)
+            savedTimer.current = setTimeout(() => setSaved(false), 1600)
+          }}>{saved ? "Saved ✓" : "Submit Answers"}</button>}
           <button type="button" className="read__next" onClick={() => {
             saveReadingProgress(article.number, { answers, visitedGaps })
             if (article.number === 2) saveCallProgress(callProgress)

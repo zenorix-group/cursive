@@ -7,7 +7,7 @@
   align-items: center;
   justify-content: center;
   border-bottom: 1px solid var(--ink);
-  background: #ecebe6;
+  background: #fbfbfa;
   position: sticky;
   top: 0;
   z-index: 5;
@@ -23,7 +23,7 @@
   height: 100%;
   object-fit: cover;
   object-position: 50% 30%;
-  transform: scale(1.14); /* push the plate's own torn border out of frame */
+  transform: none;
   user-select: none;
 }
 .hero__shade {
@@ -117,21 +117,18 @@
   filter: url(#wet-ink);
 }
 .read__title > span { display: block; }
-.read--banking { background-color: #ebebe9; background-image: var(--paper-grain), var(--paper-texture); background-size: 300px 300px, 700px 700px; background-blend-mode: multiply, multiply; }
+.read--banking { background-color: #f7f7f5; background-image: var(--paper-grain), var(--paper-texture); background-size: 300px 300px, 700px 700px; background-blend-mode: multiply, multiply; }
 .read--banking .hero__img { transform: none; object-position: center; }
 .read--banking .read__body { padding: calc(var(--u) * 32) calc(var(--u) * 30) calc(var(--u) * 32); }
 .read--banking .read__title { font-size: calc(var(--u) * 36); line-height: 0.95; margin-bottom: calc(var(--u) * 22); }
 .read__section-label { display: inline-flex; align-items: center; gap: 9px; padding: 3px 12px; margin-bottom: 14px; border: 1px solid #1e1b16; box-shadow: 0 1px 0 #1e1b16; background: #e4d1aa; font: 700 12px var(--text); text-transform: uppercase; letter-spacing: 1.5px; }
 .read__section-label > span { font: 700 16px Arial, sans-serif; }
-.read--banking .read__body > p { font: 400 calc(var(--u) * 16)/1.75 'Roboto Condensed', 'Arial Narrow', var(--sans); margin-bottom: calc(var(--u) * 28); }
+.read--banking .read__body > p { font: 400 calc(var(--u) * 16)/1.75 var(--text); margin-bottom: calc(var(--u) * 28); }
 .read__section-label { cursor: pointer; }
 .read__section-label:focus-visible { outline: 2px solid #a34525; outline-offset: 3px; }
-.read__inline-blank { position: relative; display: inline-flex; align-items: center; justify-content: center; vertical-align: -2px; width: 17px; height: 19px; margin-left: 7px; padding: 0; border: 1.5px solid #141414; border-radius: 50%; background: #f4f2ed; color: #141414; font: 700 12px/1 var(--sans); letter-spacing: 0; cursor: pointer; }
+.read__inline-blank { position: relative; display: inline-block; vertical-align: -1px; width: 13px; height: 15px; margin-left: 9px; padding: 0; border: 0; border-radius: 50%; background: url("../assets/site/pointer.svg") center / contain no-repeat; color: transparent; font-size: 0; cursor: pointer; transition: box-shadow 0.2s ease; }
 .read__inline-blank::after { content: ''; position: absolute; inset: -7px; }
-.read__inline-blank > span { display: none; transform: translateY(-2px); }
-.read--game .read__inline-blank:not(.read__inline-blank--filled) { border-style: dashed; }
-.read--game .read__inline-blank > span { display: block; }
-.read__inline-blank--filled { border-style: solid; border-color: #141414; background: #141414; }
+.read__inline-blank > span { display: none; }
 .read__inline-blank:focus-visible { outline: 2px solid #a34525; outline-offset: 2px; }
 .call-options { margin: 32px 0 40px; padding: 0 24px; }
 .call-options > header { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
@@ -155,20 +152,24 @@
 .read__author {
   display: flex;
   align-items: center;
-  gap: calc(var(--u) * 20);
+  gap: calc(var(--u) * 9);
   margin: calc(var(--u) * 18) 0 calc(var(--u) * 22);
-  font-size: calc(var(--u) * 30);
+  font-size: calc(var(--u) * 13);
 }
 .read__avatar {
-  width: calc(var(--u) * 72);
-  height: calc(var(--u) * 72);
+  width: calc(var(--u) * 28);
+  height: calc(var(--u) * 28);
   flex-shrink: 0;
   display: block;
   object-fit: cover;
   border-radius: 50%;
 }
 .read__author-name {
+  font-family: var(--text);
+  font-weight: 600;
   line-height: 1.2;
+  letter-spacing: 0.01em;
+  color: #2b2926;
 }
 .read__body p {
   margin-bottom: calc(var(--u) * 22);
@@ -194,7 +195,7 @@
 .read__next:hover { background: #2a2a2a; }
 
 .read--game {
-  background-color: #e9e9e7;
+  background-color: #f7f7f5;
   background-image: var(--paper-grain), var(--paper-texture);
   background-size: 300px 300px, 700px 700px;
   background-blend-mode: multiply, multiply;
@@ -205,13 +206,15 @@
 }
 .read--game .toggle { background: rgba(255, 255, 255, 0.4); }
 .read--game .toggle__knob { background: rgba(255, 255, 255, 0.3); }
-.toggle__feather { width: 14px; height: 19px; object-fit: contain; }
+.toggle__icon { display: grid; place-items: center; width: 18px; height: 18px; color: #3a3a3a; }
+.toggle__icon svg, .toggle__idle-feather svg { width: 100%; height: 100%; }
 .toggle__idle-feather {
   position: absolute;
   left: 7px;
-  top: 5px;
-  width: 12px;
-  height: 16px;
+  top: 7px;
+  width: 14px;
+  height: 14px;
+  color: #3a3a3a;
   opacity: 0.6;
 }
 .toggle__idle-feather--right { left: auto; right: 7px; }
@@ -248,7 +251,7 @@
   padding: 7px 12px;
   border-radius: 12px;
   background: #fff;
-  font: 600 11px/1.2 var(--sans);
+  font: 600 12px/1.2 var(--text);
   white-space: nowrap;
   color: var(--ink);
   pointer-events: none;
@@ -278,10 +281,10 @@
   background: #f6f4f0;
   color: #241c16;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
-  font-family: Arial, sans-serif;
+  font-family: var(--text);
 }
-.game-hint__card h2 { margin: 0 0 10px; font-size: 12px; line-height: 1.3; font-weight: 700; }
-.game-hint__card p { margin: 0; font-size: 11px; line-height: 14px; }
+.game-hint__card h2 { margin: 0 0 10px; font-family: var(--display); font-size: 15px; line-height: 1.25; font-weight: 700; }
+.game-hint__card p { margin: 0; font-size: 13px; line-height: 17px; }
 .game-hint__card p + p { margin-top: 10px; color: #594f47; }
 .game-gap {
   display: flex;
@@ -426,6 +429,39 @@
 .read .hero__game .toggle::after { content: none; }
 .read .hero__game .toggle__idle-feather { opacity: 0.85; }
 
+/* glassmorphism: frosted blur, bright rim, soft specular sheen */
+.read .hero__game .toggle {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.08) 55%, rgba(255, 255, 255, 0.18));
+  backdrop-filter: blur(18px) saturate(1.8) brightness(1.05);
+  -webkit-backdrop-filter: blur(18px) saturate(1.8) brightness(1.05);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 0 12px rgba(255, 255, 255, 0.12),
+    0 8px 24px rgba(0, 0, 0, 0.28);
+}
+.read .hero__game .toggle::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 50% 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0));
+  pointer-events: none;
+}
+.read .hero__game .toggle__knob {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.28));
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px) saturate(1.6);
+  -webkit-backdrop-filter: blur(10px) saturate(1.6);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.95), 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+.read .hero__game .toggle.is-on .toggle__knob { background: linear-gradient(145deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.32)); }
+.read .hero__game .toggle__icon { color: rgba(30, 30, 30, 0.8); }
+.read .hero__game .toggle__idle-feather { color: rgba(255, 255, 255, 0.95); opacity: 1; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35)); }
+
 /* only one sentence either side of the open question stays sharp */
 .read__dim { filter: blur(5px); transition: filter 0.35s ease; opacity: 0.8; }
 .read__focus { filter: none; }
@@ -438,7 +474,7 @@
   pointer-events: none;
   filter: drop-shadow(1px 2px 3px rgba(0, 0, 0, 0.32));
 }
-.focus-shape path { fill: #e6e4df; stroke: #e6e4df; stroke-width: 8; stroke-linejoin: round; }
+.focus-shape path { fill: #fcfcfb; stroke: #fcfcfb; stroke-width: 8; stroke-linejoin: round; }
 
 /* ---------- question open / close motion ---------- */
 .question-wrap { overflow: hidden; padding: 14px 12px; margin: -14px -12px; }
@@ -449,3 +485,69 @@
 .focus-shape { animation: shape-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both; }
 @keyframes shape-in { from { opacity: 0; transform: scale(0.985); } }
 @media (prefers-reduced-motion: reduce) { .read__dim, .focus-shape { animation: none; } }
+
+/* ---------- iOS-style liquid glass switch ---------- */
+.read .hero__game .toggle {
+  border: 0;
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(24px) saturate(2) contrast(1.05);
+  -webkit-backdrop-filter: blur(24px) saturate(2) contrast(1.05);
+  box-shadow:
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.55),
+    inset 1px 1.5px 2px rgba(255, 255, 255, 0.55),
+    inset -1px -1.5px 2px rgba(255, 255, 255, 0.25),
+    inset 0 -6px 10px rgba(0, 0, 0, 0.12),
+    0 10px 30px rgba(0, 0, 0, 0.3);
+  transition: background 0.55s cubic-bezier(0.32, 0.72, 0, 1), box-shadow 0.55s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.read .hero__game .toggle::before { background: radial-gradient(120% 90% at 20% 0%, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0) 60%); inset: 0; }
+.read .hero__game .toggle.is-on { background: rgba(255, 255, 255, 0.24); }
+.read .hero__game .toggle__knob {
+  border: 0;
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(6px) saturate(1.8);
+  -webkit-backdrop-filter: blur(6px) saturate(1.8);
+  box-shadow:
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.9),
+    inset 0 2px 3px rgba(255, 255, 255, 0.95),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.08),
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: background 0.3s ease;
+}
+.read .hero__game .toggle__knob:active { background: rgba(255, 255, 255, 0.7); }
+.read .hero__game .toggle.is-on .toggle__knob { background: rgba(255, 255, 255, 0.6); }
+.read .hero__game .toggle__icon { transition: opacity 0.3s ease; }
+.read .hero__game .toggle__idle-feather { transition: opacity 0.4s ease, color 0.4s ease; }
+
+/* the global button:hover lift made the switch jump; keep it still */
+.toggle:hover, .read .hero__game .toggle:hover { transform: none; }
+
+/* smoother motion: one blur layer only, knob on its own compositor layer */
+.read .hero__game .toggle__knob {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  will-change: transform;
+  transition: background 0.3s ease;
+}
+.read .hero__game .toggle { will-change: transform; transition: background 0.5s cubic-bezier(0.32, 0.72, 0, 1), box-shadow 0.5s cubic-bezier(0.32, 0.72, 0, 1); }
+
+/* closing: blur and highlight fade out together with the panel */
+.read__dim.is-leaving { animation: dim-out 0.45s cubic-bezier(0.32, 0.72, 0, 1) both; }
+@keyframes dim-out { from { filter: blur(5px); opacity: 0.8; } to { filter: blur(0); opacity: 1; } }
+.focus-shape.is-leaving { animation: shape-out 0.4s ease-out both; }
+@keyframes shape-out { from { opacity: 1; } to { opacity: 0; } }
+
+/* no hover movement on the reading page (the global button:hover lift caused small jumps) */
+.read button:hover { transform: none; }
+.gap-wrap { overflow: hidden; padding: 4px; margin: -4px; }
+
+/* the transcript line placed at a blank: green dashed underline on every line it wraps to */
+.read__placed {
+  text-decoration: underline dashed #5d8f4f;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 7px;
+  text-decoration-skip-ink: none;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
