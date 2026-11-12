@@ -3,6 +3,14 @@ import { plate1 } from './plates.js'
 export const article1 = {
   number: 1,
   mechanic: 'The Next Question',
+  // what the game card says: one idea per article, matching how its game actually works
+  gameInfo: {
+    title: 'Three moments in the story ask for your question.',
+    body: [
+      'Tap a bar between paragraphs and write the question you would want answered next, in your own words.',
+      'Open a bar again to change or clear your question. Nothing here is graded; a bar left empty is part of your reading too.',
+    ],
+  },
   tagline: 'Ask the question everything else waits on',
   title: ['The Courts Said Yes.', 'Now Get Nirav Modi Home.'],
   headline: 'Now Get Nirav Modi Home.',
@@ -26,6 +34,13 @@ export const article1 = {
 export const article2 = {
   number: 2,
   mechanic: 'The Call You Trust',
+  gameInfo: {
+    title: 'Three sections of the article are missing.',
+    body: [
+      'Open The Call and pick up to five lines from the conversation. Then tap a dot at the end of a paragraph and place the line you think completes it.',
+      'A dot stays an outline until a line is placed. You can change a placement whenever you like; lines you keep but never place are part of your receipt too.',
+    ],
+  },
   tagline: 'Highlights how easily a fraudulent call can appear genuine.',
   title: ['Common Banking Frauds', 'Everyone Should Know'],
   blurb: 'Where the answer lives: in what the piece argued,',

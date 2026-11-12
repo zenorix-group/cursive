@@ -84,3 +84,19 @@
   .receipt .receipt__card .receipt__badge { transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) calc(var(--d, 0ms) + 350ms); }
   .receipt .receipt__card.rv:not(.is-in) .receipt__badge { transform: scale(0.6); }
 }
+
+/* receipt loader: the overture mark, its five levels rising in turn */
+.receipt__loading:has(.ov-loader) { display: grid; place-items: center; min-height: 46vh; padding: 28px 0; }
+.ov-loader { display: grid; justify-items: center; gap: 22px; text-align: center; }
+.ov-loader__glyph { width: 104px; height: 104px; color: #14161a; overflow: visible; }
+.ov-loader__text { min-height: 28px; }
+.ov-loader__text p { margin: 0; font: 500 18px/1.4 var(--text); color: #3a3935; }
+.receipt__loading:has(.ov-loader) a { margin-top: 28px; }
+@media (min-width: 1000px) { .ov-loader__glyph { width: 132px; height: 132px; } .ov-loader__text p { font-size: 20px; } }
+@media (prefers-reduced-motion: no-preference) {
+  .ov-loader__glyph path { animation: ov-rise 1.5s cubic-bezier(0.45, 0, 0.25, 1) infinite; animation-delay: calc(var(--i) * 160ms); transform-box: fill-box; transform-origin: center; }
+}
+@keyframes ov-rise {
+  0%, 100% { opacity: 0.16; transform: translateY(3px) scaleX(0.9); }
+  35%, 55% { opacity: 1; transform: translateY(-1px) scaleX(1.06); }
+}

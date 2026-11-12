@@ -3,6 +3,9 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext.jsx'
 import { storeIntoOverture } from '../lib/overture.js'
 import { useReveal } from '../lib/useReveal.js'
+import OvertureLoader from '../components/OvertureLoader.jsx'
+
+const LOADING = ['Reading the questions you left.', 'Setting each one against the article.', 'Writing your receipt.']
 import { article1 as article } from '../data/articles.js'
 import { receiptTargets, receiptPhases } from '../data/receiptReferences.js'
 import { generateReceipt, getCachedReceipt, getReceiptQuestions } from '../data/receiptStorage.js'
@@ -98,7 +101,7 @@ function Receipt({ example = false }) {
         </div>
         {!receipt && (
           <section className="receipt__loading" aria-live="polite">
-            {error ? <><h2>Your questions are saved.</h2><p role="alert">{error}</p><button type="button" onClick={() => { setError(''); setAttempt((value) => value + 1) }}>Try again</button></> : <><h2>Reading the questions you left.</h2><p>Preparing your receipt from the article and your saved questions.</p></>}
+            {error ? <><h2>Your questions are saved.</h2><p role="alert">{error}</p><button type="button" onClick={() => { setError(''); setAttempt((value) => value + 1) }}>Try again</button></> : <OvertureLoader messages={LOADING} />}
             <Link to="/read">Return to the article</Link>
           </section>
         )}

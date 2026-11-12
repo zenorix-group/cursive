@@ -9,15 +9,25 @@ import { loadReadingProgress, saveReadingProgress } from '../data/readingProgres
 import { callLines, getCallOptions, loadCallProgress, saveCallProgress } from '../data/callProgress.js'
 import { haptic } from '../lib/haptics.js'
 import { absorb } from '../lib/overture.js'
+import { formatClock, useReadingClock } from '../lib/useReadingClock.js'
 import './Reading.css'
 
-const iconProps = { width: 16, height: 16, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' }
-const FeatherIcon = () => (
-  <svg {...iconProps}><path d="M20 4a7 7 0 0 0-10 0L5 9v6l-2 6 6-2h6l5-5a7 7 0 0 0 0-10z" /><path d="M16 8 2 22M17.5 15H9" /></svg>
+// Game-switch icons, one pair per article, drawn as plain black line pictograms (print-glossary style):
+// article 1 is the court case and the flight out of Heathrow, article 2 is the phone call and the card it is about.
+const iconProps = { width: 16, height: 16, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.6, strokeLinecap: 'round', strokeLinejoin: 'round' }
+const GavelIcon = () => (
+  <svg {...iconProps}><path d="M12.5 4.5l5 5-3 3-5-5z" /><path d="M15 3l6 6" /><path d="M11 11.5l-7 7" /><path d="M3 21h9" /></svg>
 )
-const PowerIcon = () => (
-  <svg {...iconProps}><path d="M12 3v8" /><path d="M7.5 6.6a7 7 0 1 0 9 0" /></svg>
+const PlaneIcon = () => (
+  <svg {...iconProps}><path d="M21 3L3 10.5l6.5 2.5L12 19.5 21 3z" /><path d="M9.5 13L21 3" /></svg>
 )
+const PhoneIcon = () => (
+  <svg {...iconProps}><path d="M6.5 4h3l1.2 4-2 1.3a10 10 0 005 5l1.3-2 4 1.2v3c0 .8-.7 1.5-1.5 1.5C10.8 18.5 5.5 13.2 5.5 6c0-1 .3-2 1-2z" /></svg>
+)
+const CardIcon = () => (
+  <svg {...iconProps}><rect x="3" y="5.5" width="18" height="13" rx="1.5" /><path d="M3 10h18M6.5 15h4" /></svg>
+)
+const GAME_ICONS = { 1: { knob: GavelIcon, end: PlaneIcon }, 2: { knob: PhoneIcon, end: CardIcon } }
 
 // split a paragraph into sentences, keeping the closing punctuation and spacing
 const sentences = (text) => text.match(/[^.!?]+(?:[.!?]+["”’')\]]*\s*|$)/g)?.filter((s) => s.trim()) ?? [text]
@@ -76,8 +86,11 @@ function FocusText({ text, which, leaving }) {
 
 function Reading({ article = article1 }) {
   const navigate = useNavigate()
+  // a plain counter of the time spent on this page
+  const clock = formatClock(useReadingClock())
   const location = useLocation()
-  const [game, setGame] = useState(() => location.state?.game ?? false)
+  const { knob: KnobIcon, end: EndIcon } = GAME_ICONS[article.number] ?? GAME_ICONS[1]
+  const [game, setGame] = useState(() => location.state?.game ?? true)
   const [callProgress, setCallProgress] = useState(loadCallProgress)
   const [activeBlank, setActiveBlank] = useState(null)
   const choiceRef = useRef(null)
@@ -145,9 +158,15 @@ function Reading({ article = article1 }) {
     }
   }, [game, hintTouched, hintOpen, activeBlank, activeGap, hintControls])
 
+  const knobPlaced = useRef(false)
   useLayoutEffect(() => {
     const measure = () => {
-      if (trackRef.current && knobRef.current) setTravel(trackRef.current.clientWidth - knobRef.current.offsetWidth)
+      if (trackRef.current && knobRef.current) {
+        const end = trackRef.current.clientWidth - knobRef.current.offsetWidth
+        setTravel(end)
+        // the first time, put the knob straight at its resting end so it does not slide in on load
+        if (!knobPlaced.current) { knobPlaced.current = true; knobX.set(game ? end : 0) }
+      }
     }
     measure()
     window.addEventListener('resize', measure)
@@ -161,7 +180,7 @@ function Reading({ article = article1 }) {
 
   // until the reader touches the switch, pop the tip up every few seconds and nudge the knob to show it slides
   useEffect(() => {
-    if (touched) {
+    if (touched || game) {
       setTipShown(false)
       return
     }
@@ -288,6 +307,10 @@ function Reading({ article = article1 }) {
       </svg>
       <header className="read__bar">
         <Link to="/" className="read__brand">cursive</Link>
+        <span className="read__time" role="timer" aria-label={`Time on this article: ${clock}`}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" /><path d="M12 7v5l3 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          <span className="read__time-text">{clock}</span>
+        </span>
       </header>
 
       <figure className="hero">
@@ -336,9 +359,8 @@ function Reading({ article = article1 }) {
             </motion.button>
             {hintOpen && (
               <aside id="game-instructions" className="game-hint__card" aria-labelledby="game-instructions-title">
-                <h2 id="game-instructions-title">Three sections of the article are missing.</h2>
-                <p>Choose the line from the conversation that best completes each sentence. Each gap includes a hint to help you find the right kind of detail.</p>
-                <p>You can review the conversation, use hints, and change your answers whenever you need. Wrong answers are part of the process.</p>
+                <h2 id="game-instructions-title">{article.gameInfo.title}</h2>
+                {article.gameInfo.body.map((line) => <p key={line}>{line}</p>)}
               </aside>
             )}
           </div>
@@ -413,9 +435,9 @@ function Reading({ article = article1 }) {
                 }
               }}
             >
-              <span className="toggle__icon" aria-hidden="true"><FeatherIcon /></span>
+              <span className="toggle__icon" aria-hidden="true"><KnobIcon /></span>
             </motion.span>
-            <span className={`toggle__idle-feather${game ? '' : ' toggle__idle-feather--right'}`} aria-hidden="true"><PowerIcon /></span>
+            <span className={`toggle__idle-feather${game ? '' : ' toggle__idle-feather--right'}`} aria-hidden="true"><EndIcon /></span>
           </button>
         </div>
       </figure>
@@ -427,7 +449,7 @@ function Reading({ article = article1 }) {
           <img className="read__avatar" src={authorProfile} alt={`${article.author} profile`} />
           <span className="read__author-name">{article.author}</span>
         </div>
-        {article.sectionLabel && game && <button type="button" className="read__section-label" onClick={openCall}><span aria-hidden="true">☎</span> {article.sectionLabel}</button>}
+        {article.sectionLabel && game && <button type="button" className={`read__section-label${article.number === 2 && callProgress.selectedIds.length === 0 ? ' is-nudge' : ''}`} onClick={openCall}><span aria-hidden="true">☎</span> {article.sectionLabel}</button>}
 
         {article.body.map((para, i) => (
           <Fragment key={i}>
