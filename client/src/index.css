@@ -6,7 +6,7 @@
   --ink: #141414;
   --ink-soft: #3d3b38;
   /* Lectio Imprint: Display for main headings, Text for subheadings and body.
-     Falls back to Newsreader until the font files are added (see @font-face below). */
+     The font files live in src/assets/font (see @font-face below); Newsreader is only the fallback. */
   --display: 'Lectio Imprint Display', 'Newsreader', Georgia, serif;
   --text: 'Lectio Imprint Text', 'Newsreader', Georgia, serif;
   --sans: 'Inter', system-ui, sans-serif;
@@ -34,20 +34,22 @@ body {
 
 a { color: inherit; text-decoration: none; }
 
-/* Uncomment once the files are in src/assets/fonts/
+/* Lectio Imprint, from src/assets/font. A wide weight range maps every requested weight onto the real file,
+   so the browser never fakes a bold or a regular on top of it. */
 @font-face {
   font-family: 'Lectio Imprint Display';
-  src: url('./assets/fonts/LectioImprintDisplay.woff2') format('woff2');
-  font-weight: 700;
+  src: url('./assets/font/LectioImprint-Display.otf') format('opentype'), url('./assets/font/LectioImprint-Display.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: 'Lectio Imprint Text';
-  src: url('./assets/fonts/LectioImprintText.woff2') format('woff2');
-  font-weight: 400;
+  src: url('./assets/font/LectioImprint-Text.otf') format('opentype'), url('./assets/font/LectioImprint-Text.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
   font-display: swap;
 }
-*/
 
 /* tactile micro-interactions */
 a, button { transition: transform .25s cubic-bezier(.22,1,.36,1), background-color .2s ease, opacity .2s ease, box-shadow .25s ease; }

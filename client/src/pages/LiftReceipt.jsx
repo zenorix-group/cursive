@@ -3,6 +3,9 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext.jsx'
 import { storeIntoOverture } from '../lib/overture.js'
 import { useReveal } from '../lib/useReveal.js'
+import OvertureLoader from '../components/OvertureLoader.jsx'
+
+const LOADING = ['Reading the lines you carried.', 'Tracing where each one landed.', 'Writing your receipt.']
 import { article2 } from '../data/articles.js'
 import { loadCallProgress } from '../data/callProgress.js'
 import { liftLineDetails } from '../data/liftReferences.js'
@@ -82,7 +85,7 @@ function LiftReceipt() {
         </>}
       </div>
       {!receipt ? <section className="receipt__loading" aria-live="polite">
-        {error ? <><h2>Receipt generation failed.</h2><p role="alert">{error}</p><p>Your selections and filled dots are saved on this device.</p><button type="button" onClick={() => { setError(''); setAttempt((value) => value + 1) }}>Try again</button></> : <><h2><span className="receipt__spinner" aria-hidden="true" />Generating your receipt…</h2><p>Reading your saved selections and placements. This can take up to a minute.</p></>}
+        {error ? <><h2>Receipt generation failed.</h2><p role="alert">{error}</p><p>Your selections and filled dots are saved on this device.</p><button type="button" onClick={() => { setError(''); setAttempt((value) => value + 1) }}>Try again</button></> : <OvertureLoader messages={LOADING} />}
         <Link to="/read/2">Return to the article</Link>
       </section> : <div className="receipt__sections">
         <section className="receipt__section lift-receipt__prose"><h2 className="receipt__section-heading"><span>01 / Your reading</span><span>[The receipt]</span></h2>{receipt.prose.map((paragraph, index) => <p key={index}>{paragraph}</p>)}</section>
