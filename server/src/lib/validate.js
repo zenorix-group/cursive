@@ -1,7 +1,7 @@
 // Pure validation helpers, kept free of Express and Mongoose so they are easy to test.
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const RECORD_KINDS = ['questions', 'call', 'receipt', 'lift-receipt'];
+const RECORD_KINDS = ['questions', 'call', 'receipt', 'lift-receipt', 'stored', 'emailed', 'narrative'];
 const ARTICLE_NUMBERS = [1, 2];
 const MAX_RECORD_CHARS = 40000;
 const MAX_PASSWORD_BYTES = 72; // bcrypt ignores anything past 72 bytes

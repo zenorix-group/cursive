@@ -20,6 +20,8 @@
 .sheet {
   background: rgba(250, 249, 246, 0.92);
   padding: calc(var(--u) * 8) calc(var(--u) * 10) calc(var(--u) * 14);
+  border: 1.5px solid rgba(35, 32, 28, 0.38);
+  box-shadow: 0 2px 4px rgba(35, 32, 28, 0.14), 0 10px 26px rgba(35, 32, 28, 0.2);
 }
 .sheet__prompt {
   font-family: var(--text);

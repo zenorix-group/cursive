@@ -1,0 +1,17 @@
+{
+  "kind": "narrative",
+  "reasoning": "In both games you looked for someone standing behind a claim. In the first story that meant asking *who decided* and *who signs the order*. In the call it meant marking the lines where the caller sounds *calm and professional* and *doesn’t rush you*. One reason stayed in the first story: you asked *whose word is it*, but marked nothing about where the call came from. New in the call were the code everything turns on (*she needs it*), details that make a call seem real (*the last four digits*) and your own unease (*begin to fret*). The first story hinges at its last point on who carries out the handover, while the second leaves no gap for how a caller sounds.",
+  "drawing": {
+    "carried": ["the person"],
+    "leftBehind": ["where it came from"],
+    "pickedUp": ["the step it waits on", "the particulars", "your own sense of it"],
+    "lead": "the person"
+  },
+  "together": {
+    "first": "The last step is the only one nobody has put their name to.",
+    "second": "They are retired professionals, young engineers, financially literate adults, and people exactly like you.",
+    "answer": "The first story cannot yet name the person who will act. The second names the people a fraud reaches, and they are people like you."
+  },
+  "confidence": "Once the money is gone, who stands behind you? Since October 2024, British banks have had to refund most people tricked into paying a fraudster, up to £85,000 a claim. (Unverified.)",
+  "closingQuestion": "Years on from a bank swindle or seconds into one, is there ever someone you can hold to account?"
+}

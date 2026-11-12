@@ -2,6 +2,7 @@ import { Route, Routes, useLocation } from 'react-router-dom'
 import { AnimatePresence, MotionConfig } from 'framer-motion'
 import PageTransition from './components/PageTransition.jsx'
 import RouteMenu from './components/RouteMenu.jsx'
+import Toast from './components/Toast.jsx'
 import { isHandoff } from './lib/overture.js'
 import Landing from './pages/Landing.jsx'
 import Plate from './pages/Plate.jsx'
@@ -10,6 +11,7 @@ import Reading from './pages/Reading.jsx'
 import Receipt from './pages/Receipt.jsx'
 import CallTranscript from './pages/CallTranscript.jsx'
 import LiftReceipt from './pages/LiftReceipt.jsx'
+import NarrativeReceipt from './pages/NarrativeReceipt.jsx'
 import Login from './pages/Login.jsx'
 import ReadingRoom from './pages/ReadingRoom.jsx'
 import LoadError from './auth/LoadError.jsx'
@@ -40,10 +42,13 @@ function App() {
       <Route path="/receipt" element={<Receipt />} />
       <Route path="/receipt/2" element={<LiftReceipt />} />
       <Route path="/receipt/example" element={<Receipt key="example" example />} />
+      <Route path="/receipt/narrative" element={<NarrativeReceipt />} />
+      <Route path="/receipt/narrative/example" element={<NarrativeReceipt key="example" example />} />
     </Routes>
     </PageTransition>
     </AnimatePresence>
     <RouteMenu />
+    <Toast />
     </MotionConfig>
   )
 }

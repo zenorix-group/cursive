@@ -1,4 +1,8 @@
-import { useEffect, useState } from 'react'
+import { copyText, downloadPdf, sharePdfFile, shareMessage } from '../lib/receiptPdf.js'
+import { receiptsPdf } from '../lib/receiptImage.js'
+import { emailCombinedReceipt } from '../lib/combinedReceipt.js'
+import { showToast } from '../components/Toast.jsx'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext.jsx'
 import { storeIntoOverture } from '../lib/overture.js'
@@ -12,6 +16,13 @@ import { generateReceipt, getCachedReceipt, getReceiptQuestions } from '../data/
 import receiptExample from '../data/receiptExample.json'
 import './Receipt.css'
 
+// once both receipts exist, the combined PDF goes to the signed-in reader's email; a message confirms it
+const mailCombined = () => {
+  emailCombinedReceipt()
+    .then((result) => { if (result.sent) showToast(`Your combined receipt has been sent to ${result.email}.`) })
+    .catch((failure) => showToast(`${failure.message} Your receipts are saved.`, 'error'))
+}
+
 function SectionHeading({ number, title, note }) {
   return <h2 className="receipt__section-heading"><span>{number} / {title}</span><span>[{note}]</span></h2>
 }
@@ -23,6 +34,7 @@ function Receipt({ example = false }) {
   const navigate = useNavigate()
   const storeAndGo = (event) => {
     event.preventDefault()
+    if (user && !example) mailCombined()
     storeIntoOverture(document.querySelector('.receipt'), example ? null : 1).then(() => navigate(nextArticlePath))
   }
   const [questions] = useState(() => getReceiptQuestions(article.number))
@@ -47,32 +59,27 @@ function Receipt({ example = false }) {
     return () => { current = false }
   }, [questions, receipt, attempt])
 
-  const shareReceipt = async () => {
-    const text = [
-      'Your Cursive receipt — The Questions You Left Open.', article.headline,
-      'WHAT YOU ASKED',
-      ...receipt.inquiries.map((item) => `Q${item.id}: ${item.text || '(nothing filed)'}\n${item.outcome} · ${item.label}\n${item.record}`),
-      'WHERE THE QUESTIONS SAT', ...receipt.inquiries.map((item) => `Q${item.id}: ${item.path}`),
-      'WHAT WE WOULD HAVE ASKED', ...receiptTargets.map((target) => `${target.question}\n${target.reason}`),
-      'WHAT WE NOTICED', ...receipt.observations,
-      'THE OPEN FILE', ...(receipt.openFiles.length ? receipt.openFiles.map((file) => `${receipt.inquiries.find((item) => item.id === file.inquiryId)?.text}\n${file.explanation}`) : ['No unresolved reporting question identified.']),
-      'OVERALL-PIECE INFOGRAPHIC', ...receiptPhases.map((phase) => `${phase.phase} | ${phase.jurisdiction} | ${phase.tension}`), receipt.cadenceNote,
-    ].join('\n\n')
+  const sharing = useRef(false)
+  // mode 'share' opens the share sheet; mode 'save' downloads the PDF. A second click while one runs is ignored.
+  const makePdf = async (mode) => {
+    if (sharing.current) return
+    sharing.current = true
     try {
-      if (navigator.share) await navigator.share({ title: 'Your Cursive receipt', text })
-      else {
-        const url = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' }))
-        const link = document.createElement('a')
-        link.href = url
-        link.download = 'cursive-receipt.txt'
-        link.click()
-        setTimeout(() => URL.revokeObjectURL(url), 1000)
-      }
-      setShareStatus('Receipt ready to share.')
+      const path = example ? '/receipt/example' : '/receipt'
+      const copied = await copyText(shareMessage(path)) // copied at the click, while the browser allows it
+      setShareStatus('Preparing your PDF…')
+      const pdf = await receiptsPdf([path])
+      const how = mode === 'save' ? (downloadPdf(pdf, 'cursive-receipt.pdf'), 'downloaded') : await sharePdfFile(pdf, 'cursive-receipt.pdf')
+      const note = copied ? ' The message with your link is copied: paste it with the PDF.' : ''
+      setShareStatus(how === 'shared' ? `Ready to send.${note}` : `PDF saved to your downloads.${note}`)
     } catch (failure) {
       if (failure.name !== 'AbortError') setShareStatus('Could not share. Please try again.')
+      else setShareStatus('')
+    } finally {
+      sharing.current = false
     }
   }
+  const shareReceipt = () => makePdf('share')
 
   return (
     <main className="receipt-page">
@@ -96,6 +103,7 @@ function Receipt({ example = false }) {
               <Link to={nextArticlePath} onClick={storeAndGo}>Next article <span aria-hidden="true">→</span></Link>
             </footer>
             {shareStatus && <p className="receipt__share-status" role="status">{shareStatus}</p>}
+            <button type="button" className="receipt__back" onClick={() => makePdf('save')}>Save as PDF</button>
             <Link className="receipt__back" to="/read">Back to your questions</Link>
           </>}
         </div>

@@ -31,7 +31,7 @@ export function makeReceiptsItem(navigate) {
 // which article a route belongs to (1 unless it is clearly article 2)
 // Article 1 is the onboarding journey (intro, reading, receipt, then sign-up). The overture only appears once the reader
 // has landed in the app itself, so none of these routes show it.
-const ONBOARDING = new Set(['/article/1', '/read', '/receipt', '/receipt/example'])
+const ONBOARDING = new Set(['/article/1', '/receipt', '/receipt/example'])
 
 const articleOf = (pathname) => (/^\/(article|read|receipt)\/2(\/|$)/.test(pathname) ? 2 : 1)
 
@@ -43,7 +43,7 @@ function RouteMenu() {
   const { user, logout } = useAuth()
   const { override } = useMenu()
   // inside an article the button doubles as a reading-progress ring
-  const progress = useReadProgress(pathname === '/read/2')
+  const progress = useReadProgress(pathname === '/read' || pathname === '/read/2')
 
   const go = (path) => () => navigate(path)
   const top = () => window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -64,6 +64,9 @@ function RouteMenu() {
       title: `Article ${pad(n)}`,
       items: [item('start', 'Start reading', <I.Play />, go(n === 2 ? '/read/2' : '/read')), room, item('home', 'Home', <I.Home />, go('/')), account],
     }
+  } else if (pathname === '/read' && !user) {
+    // article 1 is read before signing up: signed-out readers get a menu with only Sign in
+    page = { title: 'Reading · 01', items: [account], bare: true }
   } else if (pathname === '/read' || pathname === '/read/2') {
     page = {
       title: `Reading · ${pad(n)}`,
@@ -92,7 +95,7 @@ function RouteMenu() {
   }
 
   if (!page) return null
-  const withReceipts = page.items.some((entry) => entry.key === 'receipts') ? page.items : [...page.items, makeReceiptsItem(navigate)]
+  const withReceipts = page.bare || page.items.some((entry) => entry.key === 'receipts') ? page.items : [...page.items, makeReceiptsItem(navigate)]
   return <AssistiveTouch items={withReceipts} title={page.title} tone="light" progress={progress} />
 }
 

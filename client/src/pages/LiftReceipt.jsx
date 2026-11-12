@@ -1,4 +1,8 @@
-import { useEffect, useState } from 'react'
+import { copyText, downloadPdf, sharePdfFile, shareMessage } from '../lib/receiptPdf.js'
+import { receiptsPdf } from '../lib/receiptImage.js'
+import { emailCombinedReceipt } from '../lib/combinedReceipt.js'
+import { showToast } from '../components/Toast.jsx'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext.jsx'
 import { storeIntoOverture } from '../lib/overture.js'
@@ -12,6 +16,13 @@ import { liftLineDetails } from '../data/liftReferences.js'
 import { generateLiftReceipt, getCachedLiftReceipt } from '../data/liftReceiptStorage.js'
 import './Receipt.css'
 import './LiftReceipt.css'
+
+// once both receipts exist, the combined PDF goes to the signed-in reader's email; a message confirms it
+const mailCombined = () => {
+  emailCombinedReceipt()
+    .then((result) => { if (result.sent) showToast(`Your combined receipt has been sent to ${result.email}.`) })
+    .catch((failure) => showToast(`${failure.message} Your receipts are saved.`, 'error'))
+}
 
 function ReadingMark({ receipt }) {
   const selected = [...receipt.progress.selectedIds].sort((a, b) => a - b)
@@ -38,6 +49,7 @@ function LiftReceipt() {
   const navigate = useNavigate()
   const storeAndGo = (event) => {
     event.preventDefault()
+    if (user) mailCombined()
     storeIntoOverture(document.querySelector('.receipt'), 2).then(() => navigate(nextArticlePath))
   }
   const [progress] = useState(loadCallProgress)
@@ -57,20 +69,27 @@ function LiftReceipt() {
     return () => { current = false }
   }, [progress, receipt, attempt])
 
-  const share = async () => {
-    const text = ['Your Cursive receipt — The Lines You Carried.', article2.headline, ...receipt.prose,
-      ...receipt.placements.map((placement) => `${placement.letter} · ${placement.title}\n${placement.placedText || 'Nothing placed.'}\n${placement.explanation}`),
-      'WHAT STAYED IN YOUR HAND', receipt.keptObservation, ...receipt.kept.map((line) => line.text), 'ON THE CALL', receipt.confidence].join('\n\n')
+  const sharing = useRef(false)
+  // mode 'share' opens the share sheet; mode 'save' downloads the PDF. A second click while one runs is ignored.
+  const makePdf = async (mode) => {
+    if (sharing.current) return
+    sharing.current = true
     try {
-      if (navigator.share) await navigator.share({ title: 'Your Cursive receipt', text })
-      else {
-        const url = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' }))
-        const link = document.createElement('a'); link.href = url; link.download = 'cursive-the-call-receipt.txt'; link.click()
-        setTimeout(() => URL.revokeObjectURL(url), 1000)
-      }
-      setShareStatus('Receipt ready to share.')
-    } catch (failure) { if (failure.name !== 'AbortError') setShareStatus('Could not share. Please try again.') }
+      const path = '/receipt/2'
+      const copied = await copyText(shareMessage(path)) // copied at the click, while the browser allows it
+      setShareStatus('Preparing your PDF…')
+      const pdf = await receiptsPdf([path])
+      const how = mode === 'save' ? (downloadPdf(pdf, 'cursive-the-call-receipt.pdf'), 'downloaded') : await sharePdfFile(pdf, 'cursive-the-call-receipt.pdf')
+      const note = copied ? ' The message with your link is copied: paste it with the PDF.' : ''
+      setShareStatus(how === 'shared' ? `Ready to send.${note}` : `PDF saved to your downloads.${note}`)
+    } catch (failure) {
+      if (failure.name !== 'AbortError') setShareStatus('Could not share. Please try again.')
+      else setShareStatus('')
+    } finally {
+      sharing.current = false
+    }
   }
+  const share = () => makePdf('share')
 
   return <main className="receipt-page lift-receipt-page">
     <header className="receipt__bar"><Link to="/">cursive</Link></header>
@@ -81,6 +100,7 @@ function LiftReceipt() {
         {receipt && <>
       <footer className="receipt__footer"><button type="button" onClick={share}>Share receipt</button><Link to={nextArticlePath} onClick={storeAndGo}>Next article <span aria-hidden="true">→</span></Link></footer>
       {shareStatus && <p className="receipt__share-status" role="status">{shareStatus}</p>}
+      <button type="button" className="receipt__back" onClick={() => makePdf('save')}>Save as PDF</button>
       <Link className="receipt__back" to="/read/2">Back to your placements</Link>
         </>}
       </div>

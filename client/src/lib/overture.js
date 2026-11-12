@@ -1,6 +1,7 @@
 import { loadReadingProgress } from '../data/readingProgress.js'
 import { loadCallProgress } from '../data/callProgress.js'
 import { haptic } from './haptics.js'
+import { kvGet, kvSet } from '../data/cursiveStore.js'
 
 // "Overture" is the floating button: where saved things go. Pages talk to it through one window event,
 // so they never need to know where it is on screen.
@@ -55,18 +56,20 @@ export function storeIntoOverture(el, articleNumber) {
 }
 
 // ---- which receipts exist ----
-const STORED = 'cursive:overture:stored:v1'
-const readStored = () => {
-  try { return JSON.parse(localStorage.getItem(STORED)) || {} } catch { return {} }
+// whether a receipt has been put away goes through the same store as the rest of the reading:
+// the browser when signed out, the reader's MongoDB account when signed in (never both)
+const storedKey = (n) => `cursive:article:${n}:stored:v1`
+const isStored = (n) => {
+  try { return Boolean(JSON.parse(kvGet(storedKey(n)))?.at) } catch { return false }
 }
 export function markReceiptStored(n) {
   if (!n) return
-  try { localStorage.setItem(STORED, JSON.stringify({ ...readStored(), [n]: Date.now() })) } catch { /* optional */ }
+  kvSet(storedKey(n), JSON.stringify({ at: Date.now() }))
 }
 
 // 'stored' once the reader has put it away, 'ready' when there are answers to make one from, otherwise 'empty'
 export function receiptStatus(n) {
-  if (readStored()[n]) return 'stored'
+  if (isStored(n)) return 'stored'
   const hasAnswers = n === 2
     ? Object.keys(loadCallProgress().answers).length > 0
     : Object.values(loadReadingProgress(1).answers).some((text) => typeof text === 'string' && text.trim())

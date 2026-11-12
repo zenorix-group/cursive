@@ -100,3 +100,6 @@
   0%, 100% { opacity: 0.16; transform: translateY(3px) scaleX(0.9); }
   35%, 55% { opacity: 1; transform: translateY(-1px) scaleX(1.06); }
 }
+
+/* "Save as PDF" is a button styled like the text link below it */
+button.receipt__back { width: 100%; padding: 0; border: 0; background: none; color: inherit; cursor: pointer; }

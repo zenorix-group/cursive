@@ -142,7 +142,11 @@
 
 /* single-column layouts: size the card by the viewport height so the whole page fits without scrolling */
 @media (max-width: 1099px) {
-  .card { width: min(100%, max(240px, calc((100svh - 470px) * 0.7 + 22px))); margin-inline: auto; }
+  /* the picture spans exactly the text column; the paper frame sits just outside it */
+  .article .card { width: min(100%, 440px); margin-inline: auto; padding-inline: 0; }
+  .article .card__frame { inset: 0 calc(var(--u) * -11); }
+  .article--india .card__frame { inset: 0 calc(var(--u) * -22); }
+  .article--india .card__cap { margin-inline: 0; }
   .article__copy { width: min(100%, 440px); margin-inline: auto; }
 }
 @media (max-width: 1099px) {
