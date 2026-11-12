@@ -6,7 +6,7 @@
   "outputDirectory": "client/dist",
   "functions": {
     "api/index.js": {
-      "maxDuration": 60,
+      "maxDuration": 120,
       "includeFiles": "{client/src/data/**,client/package.json}"
     }
   },
