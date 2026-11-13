@@ -7,6 +7,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext.jsx'
 import { storeIntoOverture } from '../lib/overture.js'
 import { useReveal } from '../lib/useReveal.js'
+import { markOnboardingDone } from '../lib/onboarding.js'
 import OvertureLoader from '../components/OvertureLoader.jsx'
 
 const LOADING = ['Reading the lines you carried.', 'Tracing where each one landed.', 'Writing your receipt.']
@@ -55,6 +56,8 @@ function LiftReceipt() {
   const [progress] = useState(loadCallProgress)
   const [receipt, setReceipt] = useState(() => getCachedLiftReceipt(progress))
   useReveal(!!receipt)
+  // seeing a real receipt completes onboarding, which is what opens account creation
+  useEffect(() => { if (receipt) markOnboardingDone() }, [receipt])
   const [error, setError] = useState('')
   const [attempt, setAttempt] = useState(0)
   const [shareStatus, setShareStatus] = useState('')

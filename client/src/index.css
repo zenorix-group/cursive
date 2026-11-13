@@ -33,6 +33,7 @@ body {
 }
 
 a { color: inherit; text-decoration: none; }
+button { color: inherit; }
 
 /* Lectio Imprint, from src/assets/font. A wide weight range maps every requested weight onto the real file,
    so the browser never fakes a bold or a regular on top of it. */

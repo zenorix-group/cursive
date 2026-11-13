@@ -7,6 +7,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext.jsx'
 import { storeIntoOverture } from '../lib/overture.js'
 import { useReveal } from '../lib/useReveal.js'
+import { markOnboardingDone } from '../lib/onboarding.js'
 import OvertureLoader from '../components/OvertureLoader.jsx'
 
 const LOADING = ['Reading the questions you left.', 'Setting each one against the article.', 'Writing your receipt.']
@@ -40,6 +41,8 @@ function Receipt({ example = false }) {
   const [questions] = useState(() => getReceiptQuestions(article.number))
   const [receipt, setReceipt] = useState(() => example ? receiptExample : getCachedReceipt(article.number, questions))
   useReveal(!!receipt)
+  // seeing a real receipt completes onboarding, which is what opens account creation
+  useEffect(() => { if (receipt && !example) markOnboardingDone() }, [receipt, example])
   const [error, setError] = useState('')
   const [attempt, setAttempt] = useState(0)
   const [shareStatus, setShareStatus] = useState('')

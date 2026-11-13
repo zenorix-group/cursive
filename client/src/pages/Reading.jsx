@@ -449,7 +449,7 @@ function Reading({ article = article1 }) {
           <img className="read__avatar" src={authorProfile} alt={`${article.author} profile`} />
           <span className="read__author-name">{article.author}</span>
         </div>
-        {article.sectionLabel && game && <button type="button" className={`read__section-label${article.number === 2 && callProgress.selectedIds.length === 0 ? ' is-nudge' : ''}`} onClick={openCall}><span aria-hidden="true">☎</span> {article.sectionLabel}</button>}
+        {article.sectionLabel && game && <button type="button" className={`read__section-label${article.number === 2 && callProgress.selectedIds.length === 0 ? ' is-nudge' : ''}`} onClick={openCall}><span aria-hidden="true"><PhoneIcon /></span> {article.sectionLabel}</button>}
 
         {article.body.map((para, i) => (
           <Fragment key={i}>

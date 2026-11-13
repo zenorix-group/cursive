@@ -97,6 +97,7 @@ function Landing() {
           <Link className="intro__cta" to="/enter">
           Enter Cursive <span aria-hidden="true">→</span>
         </Link>
+          <Link className="intro__signin" to="/login">Already have an account? <span>Sign in</span></Link>
         </motion.div>
       </motion.section>
       </div>

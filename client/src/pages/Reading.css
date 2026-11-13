@@ -122,11 +122,13 @@
 .read--banking .read__body { padding: calc(var(--u) * 32) calc(var(--u) * 30) calc(var(--u) * 32); }
 .read--banking .read__title { font-size: calc(var(--u) * 36); line-height: 0.95; margin-bottom: calc(var(--u) * 22); }
 .read__section-label { display: inline-flex; align-items: center; gap: 9px; padding: 3px 12px; margin-bottom: 14px; border: 1px solid #1e1b16; box-shadow: 0 1px 0 #1e1b16; background: #e4d1aa; font: 700 12px var(--text); text-transform: uppercase; letter-spacing: 1.5px; }
-.read__section-label > span { font: 700 16px Arial, sans-serif; }
+.read__section-label { color: #1e1b16; -webkit-appearance: none; appearance: none; }
+.read__section-label > span { display: inline-flex; align-items: center; }
+.read__section-label > span svg { width: 15px; height: 15px; }
 .read--banking .read__body > p { font: 400 calc(var(--u) * 16)/1.75 var(--text); margin-bottom: calc(var(--u) * 28); }
 .read__section-label { cursor: pointer; }
 .read__section-label:focus-visible { outline: 2px solid #a34525; outline-offset: 3px; }
-.read__inline-blank { position: relative; display: inline-block; vertical-align: -1px; width: 13px; height: 15px; margin-left: 9px; padding: 0; border: 0; border-radius: 50%; background: url("../assets/site/pointer-outline.svg") center / contain no-repeat; color: transparent; font-size: 0; cursor: pointer; transition: box-shadow 0.2s ease; }
+.read__inline-blank { position: relative; display: inline-block; -webkit-appearance: none; appearance: none; vertical-align: middle; width: 13px; height: 15px; margin-left: 9px; padding: 0; border: 0; border-radius: 50%; background: url("../assets/site/pointer-outline.svg") center / contain no-repeat; color: transparent; font-size: 0; cursor: pointer; transition: box-shadow 0.2s ease; }
 .read__inline-blank::after { content: ''; position: absolute; inset: -7px; }
 .read__inline-blank > span { display: none; }
 /* nothing chosen for this blank: just the outline; once a line is placed the dot fills in */

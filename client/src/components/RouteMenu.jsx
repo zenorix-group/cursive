@@ -29,10 +29,6 @@ export function makeReceiptsItem(navigate) {
 }
 
 // which article a route belongs to (1 unless it is clearly article 2)
-// Article 1 is the onboarding journey (intro, reading, receipt, then sign-up). The overture only appears once the reader
-// has landed in the app itself, so none of these routes show it.
-const ONBOARDING = new Set(['/article/1', '/receipt', '/receipt/example'])
-
 const articleOf = (pathname) => (/^\/(article|read|receipt)\/2(\/|$)/.test(pathname) ? 2 : 1)
 
 // The floating menu follows the page the reader is on: it offers the next sensible moves from here.
@@ -56,7 +52,8 @@ function RouteMenu() {
   let page = null
   const n = articleOf(pathname)
 
-  if (ONBOARDING.has(pathname)) page = null
+  // the overture belongs to the app proper: guests are still in onboarding, whichever article they picked
+  if (!user) page = null
   else if (override) page = override
   else if (pathname === '/reading-room' || pathname === '/' || pathname === '/enter' || pathname === '/login') page = null
   else if (/^\/article\/\d+$/.test(pathname)) {

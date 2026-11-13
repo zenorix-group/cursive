@@ -1,4 +1,4 @@
-import { Route, Routes, useLocation } from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { AnimatePresence, MotionConfig } from 'framer-motion'
 import PageTransition from './components/PageTransition.jsx'
 import RouteMenu from './components/RouteMenu.jsx'
@@ -17,6 +17,13 @@ import ReadingRoom from './pages/ReadingRoom.jsx'
 import LoadError from './auth/LoadError.jsx'
 import { useAuth } from './auth/AuthContext.jsx'
 import { article2 } from './data/articles.js'
+
+// the app proper is for signed-in readers; a guest is sent to sign in and brought back afterwards
+function RequireAuth({ children }) {
+  const { user } = useAuth()
+  const location = useLocation()
+  return user ? children : <Navigate to="/login" replace state={{ from: location.pathname }} />
+}
 
 function App() {
   const location = useLocation()
@@ -38,11 +45,11 @@ function App() {
       <Route path="/read/2" element={<Reading key="article-2" article={article2} />} />
       <Route path="/read/2/call" element={<CallTranscript />} />
       <Route path="/login" element={<Login />} />
-      <Route path="/reading-room" element={<ReadingRoom />} />
+      <Route path="/reading-room" element={<RequireAuth><ReadingRoom /></RequireAuth>} />
       <Route path="/receipt" element={<Receipt />} />
       <Route path="/receipt/2" element={<LiftReceipt />} />
       <Route path="/receipt/example" element={<Receipt key="example" example />} />
-      <Route path="/receipt/narrative" element={<NarrativeReceipt />} />
+      <Route path="/receipt/narrative" element={<RequireAuth><NarrativeReceipt /></RequireAuth>} />
       <Route path="/receipt/narrative/example" element={<NarrativeReceipt key="example" example />} />
     </Routes>
     </PageTransition>

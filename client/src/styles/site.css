@@ -688,3 +688,6 @@
 .cs .r-sort__opt.is-active { background: #f1eee7; color: var(--r-ink); }
 .cs .r-sort__opt.is-selected { color: var(--r-ink); }
 .cs .r-sort__tick { width: 12px; display: inline-grid; place-items: center; color: var(--r-ink); }
+
+/* "Start with a short reading." shown instead of "Create an account." to someone who has not done onboarding */
+.cs .switch .switch__link { padding: 10px 2px; font: 600 15px/22.5px var(--sans); color: var(--ink); text-decoration: underline; text-underline-offset: 4px; }

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext.jsx'
 import SiteMasthead from '../components/SiteMasthead.jsx'
+import { onboardingDone } from '../lib/onboarding.js'
 import '../styles/site.css'
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -49,7 +50,12 @@ function Field({ id, label, type = 'text', value, onChange, onBlur, error, place
 function Login() {
   const { login, register } = useAuth()
   const navigate = useNavigate()
-  const [tab, setTab] = useState(() => (window.location.hash === '#create' ? 'create' : 'signin'))
+  const location = useLocation()
+  // creating an account is only open to someone who has been through onboarding (a first reading and its receipt);
+  // everyone else can sign in, or is pointed to the start
+  const canCreate = onboardingDone()
+  const wantedCreate = window.location.hash === '#create'
+  const [tab, setTab] = useState(() => (wantedCreate && canCreate ? 'create' : 'signin'))
   const [entered, setEntered] = useState(false)
   const [values, setValues] = useState({ siEmail: '', siPass: '', caName: '', caEmail: '', caPass: '', caConfirm: '' })
   const [errors, setErrors] = useState({})
@@ -102,7 +108,7 @@ function Login() {
     try {
       await run()
       setStatus({ signin: '', create: '', error: false, [which]: doneText })
-      timer.current = setTimeout(() => navigate('/reading-room'), 550)
+      timer.current = setTimeout(() => navigate(location.state?.from || '/reading-room'), 550)
     } catch (error) {
       // the server names the field when it is a validation problem (e.g. email already used)
       const key = { email: which === 'signin' ? 'siEmail' : 'caEmail', name: 'caName', password: which === 'signin' ? 'siPass' : 'caPass' }[error.field]
@@ -122,19 +128,19 @@ function Login() {
         <div className="view" id="view-auth">
           <div className="page">
             <div className="back-row">
-              <Link className="back" to="/reading-room"><span aria-hidden="true">←</span><span>Back to reading room</span></Link>
+              <Link className="back" to="/"><span aria-hidden="true">←</span><span>Back to start</span></Link>
             </div>
 
             <div className="layout">
               <div className="cs-intro">
                 <p className="kicker">Read. Question. Return.</p>
                 <h1>A little more room for thought.</h1>
-                <p className="standfirst">Sign in to return to your reading, or create an account to begin a more thoughtful reading experience.</p>
+                <p className="standfirst">{canCreate ? 'Sign in to return to your reading, or create an account to begin a more thoughtful reading experience.' : 'Sign in to return to your reading. New here? Start with a short reading first; your account comes after it.'}</p>
               </div>
 
               <main className="form-col">
                 <div className="tabs" role="tablist" aria-label="Account">
-                  {[['signin', 'Sign in'], ['create', 'Create account']].map(([key, label]) => (
+                  {(canCreate ? [['signin', 'Sign in'], ['create', 'Create account']] : [['signin', 'Sign in']]).map(([key, label]) => (
                     <button
                       key={key}
                       ref={(node) => { tabRefs.current[key] = node }}
@@ -145,7 +151,7 @@ function Login() {
                       aria-selected={tab === key}
                       tabIndex={tab === key ? 0 : -1}
                       onClick={() => show(key, false)}
-                      onKeyDown={(e) => { if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') show(key === 'signin' ? 'create' : 'signin', true) }}
+                      onKeyDown={(e) => { if (canCreate && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) show(key === 'signin' ? 'create' : 'signin', true) }}
                     >
                       {label}
                     </button>
@@ -167,11 +173,13 @@ function Login() {
                       labelExtra={<a className="forgot" href="#forgot" onClick={(e) => e.preventDefault()}>Forgot password?</a>} />
                     <button className="submit" type="submit" disabled={busy}><span>Sign in</span><span aria-hidden="true">→</span></button>
                     <p className={`status${status.error ? ' status--error' : ''}`} role="status" aria-live="polite">{status.signin}</p>
-                    <div className="switch"><span>New to Cursive?</span><button type="button" onClick={() => { show('create', false); window.scrollTo({ top: 0 }) }}>Create an account.</button></div>
+                    {canCreate
+                      ? <div className="switch"><span>New to Cursive?</span><button type="button" onClick={() => { show('create', false); window.scrollTo({ top: 0 }) }}>Create an account.</button></div>
+                      : <div className="switch"><span>New to Cursive?</span><Link to="/enter" className="switch__link">Start with a short reading.</Link></div>}
                   </form>
                 </section>
 
-                <section className={`panel${entered ? ' enter' : ''}`} id="panel-create" role="tabpanel" aria-labelledby="tab-create" hidden={tab !== 'create'}>
+                {canCreate && <section className={`panel${entered ? ' enter' : ''}`} id="panel-create" role="tabpanel" aria-labelledby="tab-create" hidden={tab !== 'create'}>
                   <h2>Begin your reading life.</h2>
                   <p className="sub">Create an account and make room for stories worth returning to.</p>
                   <form
@@ -191,7 +199,7 @@ function Login() {
                     <p className={`status${status.error ? ' status--error' : ''}`} role="status" aria-live="polite">{status.create}</p>
                     <div className="switch"><span>Already have an account?</span><button type="button" onClick={() => { show('signin', false); window.scrollTo({ top: 0 }) }}>Sign in.</button></div>
                   </form>
-                </section>
+                </section>}
               </main>
 
               <footer className="folio">
