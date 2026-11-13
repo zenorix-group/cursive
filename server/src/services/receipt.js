@@ -1,5 +1,6 @@
 const { pathToFileURL } = require('node:url');
 const path = require('node:path');
+const { buildRequest, isConfigured } = require('./gemini');
 
 const outcomes = ['match', 'answered', 'open', 'outside', 'view', 'unclear', 'skipped'];
 const labels = ['dependence', 'source', 'contents', 'rules', 'who', 'number', 'judgment', 'next', 'already', 'obstacle', 'none'];
@@ -98,38 +99,32 @@ function validateAnalysis(analysis, questions) {
 
 async function generateReceipt(body, fetchImpl = fetch) {
   const questions = validateRequest(body);
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw httpError(503, 'Receipt generation is not configured yet. Your questions are saved locally.');
+  if (!isConfigured()) throw httpError(503, 'Receipt generation is not configured yet. Your questions are saved locally.');
   const { article, targets } = await getArticleContext();
-  const model = process.env.GEMINI_MODEL || 'gemini-3.5-flash';
+  const { url, model, options, extractText } = buildRequest({
+    instructions,
+    schema,
+    context: {
+      article: { title: article.headline, paragraphs: article.body },
+      editorialTargets: targets,
+      readerQuestions: questions.map((question, index) => ({ ...question, afterParagraph: targets[index].gapId + 1 })),
+    },
+  });
   let response;
   try {
-    response = await fetchImpl(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-      signal: AbortSignal.timeout(110000),
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: instructions }] },
-        contents: [{ role: 'user', parts: [{ text: JSON.stringify({
-          article: { title: article.headline, paragraphs: article.body },
-          editorialTargets: targets,
-          readerQuestions: questions.map((question, index) => ({ ...question, afterParagraph: targets[index].gapId + 1 })),
-        }) }] }],
-        generationConfig: { responseMimeType: 'application/json', responseJsonSchema: schema, thinkingConfig: { thinkingLevel: 'LOW' }, maxOutputTokens: 12000 },
-      }),
-    });
+    response = await fetchImpl(url, { ...options, signal: AbortSignal.timeout(110000) });
   } catch (error) {
     throw httpError(503, ['TimeoutError', 'AbortError'].includes(error.name) ? 'Receipt generation took too long. Your questions are saved; please retry.' : 'Could not reach Gemini. Your questions are saved; please retry.');
   }
   if (!response.ok) {
+    console.error('Model request failed:', response.status, (await response.text().catch(() => '')).slice(0, 300));
     const message = response.status === 429 ? 'Gemini is temporarily rate limited. Please retry shortly.' :
       [400, 401, 403].includes(response.status) ? 'Gemini rejected the server configuration. Check the API key and model.' : 'Gemini could not generate this receipt. Please retry.';
     throw httpError(503, message);
   }
   let analysis;
   try {
-    const result = await response.json();
-    const text = result.candidates?.[0]?.content?.parts?.filter((part) => !part.thought).map((part) => part.text || '').join('');
-    analysis = JSON.parse(text);
+    analysis = JSON.parse(extractText(await response.json()));
   } catch {
     throw httpError(502, 'Gemini did not return a complete receipt. Please retry.');
   }

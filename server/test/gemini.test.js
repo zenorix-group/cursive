@@ -48,3 +48,26 @@ test('retries transient connection errors without inventing receipt output', asy
   assert.equal(calls, 2);
   assert.deepEqual(result.analysis, { ready: true });
 }));
+
+test('uses Vercel AI Gateway when a gateway credential is present', async () => {
+  const saved = { gw: process.env.AI_GATEWAY_API_KEY, gem: process.env.GEMINI_API_KEY };
+  process.env.AI_GATEWAY_API_KEY = 'gateway-test-key';
+  delete process.env.GEMINI_API_KEY;
+  try {
+    const result = await generateJson(request, async (url, options) => {
+      assert.equal(url, 'https://ai-gateway.vercel.sh/v1/chat/completions');
+      assert.equal(options.headers.Authorization, 'Bearer gateway-test-key');
+      const body = JSON.parse(options.body);
+      assert.equal(body.model, 'google/gemini-3.5-flash');
+      assert.equal(body.response_format.type, 'json_schema');
+      assert.equal(body.messages[0].content, 'Test');
+      return new Response(JSON.stringify({ choices: [{ message: { content: '{"ready":true}' } }] }));
+    });
+    assert.deepEqual(result, { analysis: { ready: true }, model: 'google/gemini-3.5-flash' });
+  } finally {
+    for (const [key, value] of [['AI_GATEWAY_API_KEY', saved.gw], ['GEMINI_API_KEY', saved.gem]]) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
+});
