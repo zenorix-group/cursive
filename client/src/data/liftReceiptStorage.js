@@ -25,7 +25,7 @@ export function generateLiftReceipt(progress) {
     const response = await fetch('/api/receipts', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ articleNumber: 2, progress: normalizeCallProgress(progress) }),
-      signal: AbortSignal.timeout(70000),
+      signal: AbortSignal.timeout(120000),
     })
     let data
     try { data = await response.json() } catch { throw new Error('The receipt service is unavailable. Please start the server and retry.') }

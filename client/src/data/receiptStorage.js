@@ -27,7 +27,7 @@ export function generateReceipt(articleNumber, questions) {
   const request = (async () => {
     const response = await fetch('/api/receipts', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ articleNumber, questions }), signal: AbortSignal.timeout(70000),
+      body: JSON.stringify({ articleNumber, questions }), signal: AbortSignal.timeout(120000),
     })
     let data
     try { data = await response.json() } catch { throw new Error('The receipt service is unavailable. Start the server and try again.') }

@@ -16,7 +16,7 @@ async function generateJson({ instructions, context, schema }, fetchImpl = fetch
   if (!apiKey) throw httpError(503, 'Receipt generation is not configured yet. Your choices are saved locally.');
   const model = process.env.GEMINI_MODEL || 'gemini-3.5-flash';
   let response;
-  const deadline = Date.now() + 60000;
+  const deadline = Date.now() + 110000; // stays under the 120s Vercel function limit
   const requestBody = JSON.stringify({
     systemInstruction: { parts: [{ text: instructions }] },
     contents: [{ role: 'user', parts: [{ text: JSON.stringify(context) }] }],

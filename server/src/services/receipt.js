@@ -106,7 +106,7 @@ async function generateReceipt(body, fetchImpl = fetch) {
   try {
     response = await fetchImpl(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
       method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-      signal: AbortSignal.timeout(60000),
+      signal: AbortSignal.timeout(110000),
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: instructions }] },
         contents: [{ role: 'user', parts: [{ text: JSON.stringify({
