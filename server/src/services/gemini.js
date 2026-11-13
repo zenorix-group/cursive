@@ -26,6 +26,19 @@ function isConfigured() {
   return Boolean(gatewayToken() || process.env.GEMINI_API_KEY);
 }
 
+// Strict structured output (needed for the model to respect enums) requires every object to list all of its
+// properties as required and to forbid extra ones. This returns such a copy of a receipt schema.
+function strictSchema(node) {
+  if (Array.isArray(node)) return node.map(strictSchema);
+  if (!node || typeof node !== 'object') return node;
+  const copy = Object.fromEntries(Object.entries(node).map(([key, value]) => [key, strictSchema(value)]));
+  if (copy.type === 'object' && copy.properties) {
+    copy.required = Object.keys(copy.properties);
+    copy.additionalProperties = false;
+  }
+  return copy;
+}
+
 // Builds the provider request for one JSON-schema generation. Returns the URL, fetch options (without a signal),
 // the model name to report, and a function that pulls the generated JSON text out of the provider's response body.
 function buildRequest({ instructions, context, schema }) {
@@ -43,7 +56,7 @@ function buildRequest({ instructions, context, schema }) {
           model,
           stream: false,
           messages: [{ role: 'system', content: instructions }, { role: 'user', content: JSON.stringify(context) }],
-          response_format: { type: 'json_schema', json_schema: { name: 'receipt', schema } },
+          response_format: { type: 'json_schema', json_schema: { name: 'receipt', strict: true, schema: strictSchema(schema) } },
           reasoning: { effort: 'low' },
           max_tokens: 12000,
         }),
