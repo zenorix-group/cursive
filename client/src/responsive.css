@@ -233,3 +233,31 @@ p, h1, h2, blockquote { overflow-wrap: break-word; }
   .receipt-page .receipt__back { margin-top: 16px; text-align: left; justify-content: flex-start; }
   .receipt-page .receipt__share-status { text-align: left; }
 }
+
+/* header wordmark in Lectio Imprint (was Inter) */
+.plate__brand, .article__brand, .read__brand { font-family: var(--display); font-weight: 600; letter-spacing: 0; }
+
+/* Desktop reading page is one vertical column: full-width picture on top, article text below it. */
+@media (min-width: 1100px) {
+  .read { display: block; }
+  .read > .hero { position: relative; top: auto; width: 100%; height: auto; min-height: 0; max-height: 70svh; aspect-ratio: 16 / 9; margin: 0; border: 0; }
+  .read .read__body { width: min(100%, 740px); max-width: 740px; margin: 0 auto; padding: 40px var(--page-gutter) 64px; }
+}
+
+/* Wider screens: show the whole picture (it is nearly square) instead of cropping it to a wide band.
+   The hero becomes a dark band with the full image centred in it and breathing room around it. */
+@media (min-width: 600px) {
+  .read > .hero, .read .hero { aspect-ratio: auto; height: min(82svh, 860px); max-height: none; padding: 20px 0; box-sizing: border-box; }
+  .read .hero__img { inset: 20px 0; width: 100%; height: calc(100% - 40px); object-fit: contain; object-position: center; }
+  .read .hero__shade { display: none; }
+}
+
+/* Wider screens: the picture is a centred, narrower frame at the article's column width, shown whole. */
+@media (min-width: 600px) {
+  .read > .hero, .read .hero { width: min(100%, 740px); height: auto; max-height: none; aspect-ratio: 1427 / 1546; margin: 32px auto 0; padding: 0; background: transparent; }
+  .read .hero__img { inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .read .hero__shade { display: block; }
+}
+@media (min-width: 600px) and (max-height: 900px) {
+  .read > .hero, .read .hero { width: min(100%, 740px, calc((100svh - 140px) * 0.923)); }
+}

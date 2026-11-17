@@ -32,7 +32,7 @@ test('login needs an email and a password', () => {
 
 test('record params only allow known articles and kinds', () => {
   assert.deepEqual(parseRecordParams({ articleNumber: '2', kind: 'lift-receipt' }).value, { articleNumber: 2, kind: 'lift-receipt' });
-  assert.ok(parseRecordParams({ articleNumber: '3', kind: 'questions' }).error);
+  assert.ok(parseRecordParams({ articleNumber: '4', kind: 'questions' }).error);
   assert.ok(parseRecordParams({ articleNumber: '1.5', kind: 'questions' }).error);
   assert.ok(parseRecordParams({ articleNumber: '1', kind: 'admin' }).error);
 });

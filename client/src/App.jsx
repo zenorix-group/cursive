@@ -12,11 +12,15 @@ import Receipt from './pages/Receipt.jsx'
 import CallTranscript from './pages/CallTranscript.jsx'
 import LiftReceipt from './pages/LiftReceipt.jsx'
 import NarrativeReceipt from './pages/NarrativeReceipt.jsx'
+import HoldReading from './pages/HoldReading.jsx'
+import HoldReceipt from './pages/HoldReceipt.jsx'
+import ReArrange from './pages/ReArrange.jsx'
+import ReArrangeReceipt from './pages/ReArrangeReceipt.jsx'
 import Login from './pages/Login.jsx'
 import ReadingRoom from './pages/ReadingRoom.jsx'
 import LoadError from './auth/LoadError.jsx'
 import { useAuth } from './auth/AuthContext.jsx'
-import { article2 } from './data/articles.js'
+import { article2, article3, article5 } from './data/articles.js'
 
 // the app proper is for signed-in readers; a guest is sent to sign in and brought back afterwards
 function RequireAuth({ children }) {
@@ -41,6 +45,12 @@ function App() {
       <Route path="/enter" element={<Plate />} />
       <Route path="/article/1" element={<ArticleIntro />} />
       <Route path="/article/2" element={<ArticleIntro article={article2} />} />
+      <Route path="/article/3" element={<ArticleIntro article={article3} />} />
+      <Route path="/read/3" element={<HoldReading key="article-3" />} />
+      <Route path="/receipt/3" element={<HoldReceipt />} />
+      <Route path="/article/5" element={<ArticleIntro article={article5} />} />
+      <Route path="/read/5" element={<ReArrange key="article-5" />} />
+      <Route path="/receipt/5" element={<ReArrangeReceipt />} />
       <Route path="/read" element={<Reading key="article-1" />} />
       <Route path="/read/2" element={<Reading key="article-2" article={article2} />} />
       <Route path="/read/2/call" element={<CallTranscript />} />

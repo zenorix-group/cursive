@@ -595,3 +595,46 @@
   58% { box-shadow: 0 1px 0 #1e1b16, 0 0 0 0 rgba(163, 69, 37, 0.5); }
   82%, 100% { box-shadow: 0 1px 0 #1e1b16, 0 0 0 14px rgba(163, 69, 37, 0); }
 }
+
+/* game controls now sit together at the bottom right of the picture: pill above, then [Game info] [switch] */
+.hero__row { display: flex; align-items: center; gap: calc(var(--u) * 10); }
+.hero__row > .game-hint { position: relative; top: auto; right: auto; }
+/* the card opens upward from the bottom-right corner */
+.hero__row .game-hint__card { top: auto; bottom: calc(100% + 10px); }
+/* the switch pill uses the same white pill as "Game info" */
+.read .hero__tip { background: #fff; color: var(--ink); font: 600 12px/1.2 var(--text); text-align: center; padding: 7px 12px; border-radius: 12px; }
+.read .hero__tip::after { background: #fff; }
+
+/* flat, opaque vector controls: no translucency, blur or glass shadows on the switch or the Game info button */
+.read .hero__game .toggle,
+.read .hero__game .toggle.is-on {
+  background: #1e1b16;
+  border: 1.5px solid #fff;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
+  overflow: visible;
+}
+.read .hero__game .toggle.is-on { background: #2f7a3e; }
+.read .hero__game .toggle::before { content: none; }
+.read .hero__game .toggle__knob,
+.read .hero__game .toggle.is-on .toggle__knob,
+.read .hero__game .toggle__knob:active {
+  background: #fff;
+  border: 0;
+  box-shadow: none;
+}
+.read .hero__game .toggle__icon { color: #1e1b16; }
+.read .hero__game .toggle.is-on .toggle__icon { color: #2f7a3e; }
+.read .hero__game .toggle__idle-feather { color: #fff; opacity: 1; filter: none; }
+.read .hero__game .game-hint__button,
+.read .hero__game .game-hint__button:hover,
+.read .hero__game .game-hint__button[aria-expanded='true'] {
+  background: #1e1b16;
+  border: 1.5px solid #fff;
+  box-shadow: none;
+}
+
+/* Game info button sits directly above the game switch, right-aligned */
+.hero__row { flex-direction: column; align-items: flex-end; gap: calc(var(--u) * 10); }
+.hero__row .game-hint__card { right: 0; }

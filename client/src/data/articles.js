@@ -66,3 +66,104 @@ export const article2 = {
     "If you've already shared one, act fast and don't waste time on embarrassment. Call 1930, the National Cyber Crime Helpline, and tell your bank to block the card and freeze the account. Save the messages, the numbers, and the call details. Prompt reporting can help authorities trace and freeze the money before it moves again.",
   ],
 }
+
+// Article 3, "The Hold". `body` blocks: { h } is a subheading; a paragraph is { p }, or { lead, hold, holdText, after } where
+// `lead` is the text before a hold marker, `holdText` the hold sentence (hidden until the reader presses the ±) and `after`
+// the sentence the article says about it (shown once the hold has been played).
+export const article3 = {
+  number: 3,
+  mechanic: 'The Hold',
+  rule: 'Hold until the year runs out, unless your share abroad leaves 10 to 15 per cent; then let go.',
+  gameInfo: {
+    title: 'Three moments in the story ask you to hold.',
+    body: [
+      'Press and hold a ± to play a real year of prices, one week at a time. Let go in the week you would act on your money.',
+      'If you never let go, the hold ends at the full stop and counts as holding to the end. Nothing here is graded.',
+    ],
+  },
+  tagline: 'Hold until the year runs out, unless your share abroad leaves 10 to 15 per cent.',
+  title: ['Should You Invest In', 'Foreign Or International', 'Equities?'],
+  readingTitle: ['Should You Invest In', 'Foreign Or International', 'Equities?'],
+  headline: 'Should You Invest In Foreign Or International Equities?',
+  blurb: 'Where the answer lives: in the rule in the article’s second paragraph.',
+  plate: plate1,
+  litFlag: 'in',
+  litPoints: article2.litPoints,
+  crop: article2.crop,
+  readPath: '/read/3',
+  minutes: 6,
+  author: 'Cursive Desk',
+  body: [
+    { p: 'The financial equivalent of putting all your nest eggs in one basket is keeping every rupee inside one country. In India, funds that buy foreign shares have long been small next to their domestic peers, but they have been climbing the ladder since they first arrived.' },
+    { p: 'Advisers often suggest keeping 10 to 15 per cent of your portfolio abroad. Once you have picked your figure, you act only when the part abroad leaves that range: above 15 per cent, you move the extra home, and below 10, you top it up. Inside the range, you leave it alone.' },
+    { h: 'What are foreign or international equities?' },
+    { p: 'As the name suggests, these are shares in companies listed on stock markets outside India, and there are two ways to reach them.' },
+    { p: 'Going direct means buying those shares yourself, through a broker who can deal abroad. Going indirect means putting your money into an Indian mutual fund and letting the fund do the buying for you.' },
+    { p: 'The indirect route works like any Indian fund you already know. You hand over rupees, you are given units in the scheme, and a daily price tells you what they are worth. Indian fund houses run all of it, under Indian rules.' },
+    { h: 'Why buy them?' },
+    { p: 'Google, Apple and their peers are headquartered abroad, and millions of their customers are here. Owning a slice of them puts part of your savings on growth that does not depend on the Indian economy alone.' },
+    {
+      lead: 'Nothing about a company being foreign makes it safer.', hold: 'h1',
+      holdText: 'In February 2020, weeks before the pandemic shut much of the world, you hold ₹1 lakh in American shares, 12 per cent of your portfolio.',
+      after: 'A global name can fall as hard as a local one.',
+    },
+    {
+      lead: 'In most years, though, world markets do not rise and fall together.', hold: 'h2',
+      holdText: 'In January 2011, as Indian shares begin a year-long slide, you hold ₹1 lakh in American shares, 12 per cent of your portfolio.',
+      after: 'A bad year for one country’s shares need not be a bad year for the rest.',
+    },
+    { h: 'What are the limits?' },
+    { p: 'Both routes are capped, but the two caps work differently.' },
+    { p: 'The government limits how much money one person may send out of India in a year, currently 250,000 dollars. That limit applies to the direct route.' },
+    { p: 'Indian mutual funds are allowed to hold only about seven billion dollars in foreign shares between them all. That ceiling is filled by everyone, and when it is close to full, fund houses stop taking new money.' },
+    { h: 'How do you start?' },
+    { p: 'Open an account with a brokerage that has a tie-up abroad, or go to a fund house if you are taking the indirect route. Identity proof and a verification check are enough to begin.' },
+    { h: 'Keeping to your figure' },
+    {
+      lead: 'There is no standard figure, because it depends on your appetite for risk.', hold: 'h3',
+      holdText: 'In January 2022, after two boom years for technology, you hold ₹1 lakh in American technology shares, 12 per cent of your portfolio.',
+      after: 'Keeping to the figure you pick is the harder part, and you only learn how hard when prices move.',
+    },
+    { h: 'The big markets' },
+    { p: 'In the United States, the big indices are the S&P 500, the Dow Jones and the Nasdaq. Britain has the FTSE 100, Hong Kong the Hang Seng, Japan the Nikkei 225 and Australia the S&P/ASX 200.' },
+  ],
+}
+
+// Article 5, "Behind Don Quixote": six moments, one paragraph each. The paragraphs never move; each one's title hides behind a
+// marker. m2 to m4 start with titles that are out of place (the ¶ ones); the reader swaps them. The page never says which is right.
+export const article5 = {
+  number: 5,
+  mechanic: 'Re-Arrange',
+  rule: 'Tap a marker to see its title. The three titles marked ¶ are in the wrong place. Drag each one to the moment it belongs to, then file.',
+  gameInfo: {
+    title: 'Three titles are in the wrong place.',
+    body: [
+      'Tap a marker to show its title. The three marked ¶ are the ones out of place.',
+      'Press and hold a ¶ title, then drop it on another ¶ moment to swap the two. Move them as often as you like, then file. Nothing here is graded.',
+    ],
+  },
+  tagline: 'Tap a marker to see its title. Three titles are out of place.',
+  title: ['Behind', 'Don Quixote'],
+  readingTitle: ['Behind', 'Don Quixote'],
+  subtitle: 'The Life That Shaped the Novel',
+  headline: 'Behind Don Quixote',
+  standfirst: 'Before he created one of literature’s most famous adventurers, Miguel de Cervantes had already lived an extraordinary adventure of his own.',
+  instruction: 'The three titles marked ¶ are in the wrong place. Move each one to the moment it belongs to.',
+  blurb: 'Where the answer lives: in each paragraph: what the moment is about.',
+  plate: plate1,
+  litFlag: 'in',
+  litPoints: article2.litPoints,
+  crop: article2.crop,
+  readPath: '/read/5',
+  minutes: 8,
+  author: 'Cursive Desk',
+  // movable: the ¶ moments, whose titles swap. Titles listed here are where they start.
+  moments: [
+    { id: 'm1', title: 'Before the Battle', movable: false, text: 'Cervantes was born in 1547 into a family that moved frequently through Spain. As a young man, he eventually travelled to Italy, where he encountered the culture of the Renaissance. But books, paintings and Roman streets would soon give way to something very different. Europe was preparing for war in the Mediterranean. Cervantes enlisted. The man of letters was about to become a man of arms.' },
+    { id: 'm2', title: 'Freedom', movable: true, text: 'Before Cervantes became a novelist, he became a soldier. At the Battle of Lepanto in 1571, Christian and Ottoman fleets collided in one of the great naval battles of the sixteenth century. Although ill, Cervantes insisted on fighting. He received several wounds, one of which permanently impaired his left hand. He would later remember Lepanto not with bitterness, but with pride.' },
+    { id: 'm3', title: 'The Soldier', movable: true, text: 'Freedom disappeared suddenly. While sailing back to Spain, Cervantes’s ship was captured by corsairs. He was taken to Algiers and spent five years in captivity. He did not simply wait for rescue. Again and again, he tried to escape. Several plans failed, yet contemporary testimony describes Cervantes accepting responsibility rather than betraying companions who had taken part with him. Captivity taught him the cost of freedom — and perhaps also the stubbornness required to keep imagining it.' },
+    { id: 'm4', title: 'The Captive', movable: true, text: 'Eventually, Cervantes did not escape. He was ransomed. In 1580, after five years in Algiers, he finally returned to Spain. The young man who had left his homeland seeking opportunity returned wounded, impoverished and carrying memories of war, captivity, fear, courage and frustrated hopes. His great adventures were over. Or so it might have seemed.' },
+    { id: 'm5', title: 'The Writer', movable: false, text: 'Years later, an ageing Cervantes began transforming experience into something stranger and more enduring than autobiography. In 1605, the first part of Don Quixote appeared. Its hero sees giants where others see windmills and pursues an ideal world that stubborn reality refuses to provide. It is tempting to ask how much Cervantes himself understood that distance between the world as it is and the world as we wish it to be.' },
+    { id: 'm6', title: 'The Question', movable: false, text: 'This tension between documented history and imagined inner life lies at the heart of I, Miguel de Cervantes, a fictional autobiography by Maria Gessy de Sales, published in Portuguese as Eu, Miguel de Cervantes: Memórias. The historical events are real: Italy, Lepanto, captivity in Algiers, repeated escape attempts and the return to Spain. History often tells us what happened, but we are curious to know what it felt like. A fictional autobiography asks a different kind of question: What happens inside a man while history is happening to him?' },
+  ],
+}

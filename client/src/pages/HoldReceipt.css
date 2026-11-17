@@ -1,0 +1,15 @@
+/* Article 3 receipt: Receipt.css supplies the page; this adds the habit, the mark and the questions. */
+.hold-receipt__habit { font: 400 17px/1.6 var(--text); }
+.hold-receipt__questions { margin: 20px 0 0; padding: 0 0 0 22px; }
+.hold-receipt__questions li { margin-bottom: 14px; font: italic 400 16px/1.55 var(--text); }
+.hold-receipt__aside { margin-top: 18px; color: #6d665b; font: 400 12px/1.5 var(--text); }
+.hold-mark { margin: 0; }
+.hold-mark svg { width: 100%; height: auto; display: block; }
+.hold-mark figcaption { margin-top: 8px; color: #6d665b; font: 400 12px/1.5 var(--text); }
+.hm-band { fill: #e4d1aa; opacity: 0.7; }
+.hm-line { fill: none; stroke: #38382d; stroke-width: 1.4; }
+.hm-label { font: 600 11px var(--text); fill: #25231f; }
+.hm-year { font: 500 10px var(--sans); fill: #6d665b; }
+.hm-tag { font: 500 9px var(--sans); fill: #6d665b; text-transform: uppercase; letter-spacing: 0.06em; }
+.hm-move { fill: #8a6414; }
+.hm-end { fill: #fbfbfa; stroke: #8a6414; stroke-width: 1.6; }

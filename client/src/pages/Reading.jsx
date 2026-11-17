@@ -12,6 +12,11 @@ import { absorb } from '../lib/overture.js'
 import { formatClock, useReadingClock } from '../lib/useReadingClock.js'
 import './Reading.css'
 
+// the two pills ("Game info", "Slide to enable the game") are shown until the reader has used each control once
+const usedKey = (name) => `cursive:used:${name}`
+const wasUsed = (name) => { try { return localStorage.getItem(usedKey(name)) === '1' } catch { return false } }
+const markUsed = (name) => { try { localStorage.setItem(usedKey(name), '1') } catch { /* storage unavailable */ } }
+
 // Game-switch icons, one pair per article, drawn as plain black line pictograms (print-glossary style):
 // article 1 is the court case and the flight out of Heathrow, article 2 is the phone call and the card it is about.
 const iconProps = { width: 16, height: 16, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.6, strokeLinecap: 'round', strokeLinejoin: 'round' }
@@ -98,7 +103,8 @@ function Reading({ article = article1 }) {
   // idle cue for the hint button, like the one on the game switch: until the reader has used it,
   // wiggle the feather, pulse a ring and pop a small tip every few seconds
   const hintControls = useAnimationControls()
-  const [hintTouched, setHintTouched] = useState(false)
+  const [hintTouched, setHintTouchedState] = useState(() => wasUsed('hint'))
+  const setHintTouched = (v) => { setHintTouchedState(v); if (v) markUsed('hint') }
   const [hintTip, setHintTip] = useState(false)
   const [hintRing, setHintRing] = useState(0)
 
@@ -107,7 +113,8 @@ function Reading({ article = article1 }) {
   const knobRef = useRef(null)
   const knobX = useMotionValue(0)
   const [travel, setTravel] = useState(36)
-  const [touched, setTouched] = useState(false)
+  const [touched, setTouchedState] = useState(() => wasUsed('switch'))
+  const setTouched = (v) => { setTouchedState(v); if (v) markUsed('switch') }
   const [tipShown, setTipShown] = useState(false)
   const dragged = useRef(false)
   const dragSide = useRef(false)
@@ -316,55 +323,6 @@ function Reading({ article = article1 }) {
       <figure className="hero">
         <img className="hero__img" src={gameHero} alt="" draggable="false" />
         <div className="hero__shade" />
-        {game && (
-          <div className="game-hint" ref={hintRef}>
-            <AnimatePresence>
-              {hintTip && !hintOpen && (
-                <motion.p
-                  key="hint-tip"
-                  className="game-hint__tip"
-                  initial={{ opacity: 0, x: 10, scale: 0.85 }}
-                  animate={{ opacity: 1, x: 0, scale: 1 }}
-                  exit={{ opacity: 0, x: 6, scale: 0.9 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                >
-                  Game info
-                </motion.p>
-              )}
-            </AnimatePresence>
-            <motion.button
-              type="button"
-              className="game-hint__button"
-              aria-label="Game info"
-              aria-expanded={hintOpen}
-              aria-controls="game-instructions"
-              animate={hintControls}
-              onPointerDown={() => setHintTouched(true)}
-              onClick={() => {
-                setHintTouched(true)
-                setHintOpen((open) => !open)
-              }}
-            >
-              {hintRing > 0 && (
-                <motion.span
-                  key={hintRing}
-                  className="game-hint__ring"
-                  aria-hidden="true"
-                  initial={{ scale: 1, opacity: 0.8 }}
-                  animate={{ scale: 1.8, opacity: 0 }}
-                  transition={{ duration: 1.3, ease: 'easeOut' }}
-                />
-              )}
-              <img src={feather} alt="" />
-            </motion.button>
-            {hintOpen && (
-              <aside id="game-instructions" className="game-hint__card" aria-labelledby="game-instructions-title">
-                <h2 id="game-instructions-title">{article.gameInfo.title}</h2>
-                {article.gameInfo.body.map((line) => <p key={line}>{line}</p>)}
-              </aside>
-            )}
-          </div>
-        )}
         <figcaption className="hero__meta">
           Article {String(article.number).padStart(2, '0')} / {String(article.minutes).padStart(2, '0')} min
         </figcaption>
@@ -384,61 +342,112 @@ function Reading({ article = article1 }) {
               </motion.p>
             )}
           </AnimatePresence>
-          <button
-            type="button"
-            ref={trackRef}
-            className={`toggle${game ? ' is-on' : ''}`}
-            role="switch"
-            aria-checked={game}
-            aria-label="Game mode"
-            onPointerDown={() => setTouched(true)}
-            onClick={() => {
-              if (dragged.current) return
-              haptic(10)
-              animate(knobX, game ? 0 : travel, spring)
-              startTransition(() => setGame((g) => !g))
-              resetOverlays()
-            }}
-          >
-            <motion.span
-              ref={knobRef}
-              className="toggle__knob"
-              style={{ x: knobX }}
-              drag="x"
-              dragConstraints={{ left: 0, right: travel }}
-              dragElastic={0.06}
-              dragMomentum={false}
-              whileTap={{ scale: 0.97 }}
-              onDrag={() => {
-                const side = knobX.get() > travel / 2
-                if (side !== dragSide.current) {
-                  dragSide.current = side
-                  haptic(5)
-                }
-              }}
-              onDragStart={() => {
-                dragSide.current = knobX.get() > travel / 2
-                dragged.current = true
-                setTouched(true)
-              }}
-              onDragEnd={(_, info) => {
-                const pos = knobX.get()
-                const next = Math.abs(info.velocity.x) > 350 ? info.velocity.x > 0 : pos > travel / 2
-                setTimeout(() => (dragged.current = false), 60)
-                if (next !== game) {
-                  haptic(10)
-                  animate(knobX, next ? travel : 0, spring)
-                  startTransition(() => setGame(next))
-                  resetOverlays()
-                } else {
-                  animate(knobX, game ? travel : 0, spring)
-                }
+          <div className="hero__row">
+          {game && (
+            <div className="game-hint" ref={hintRef}>
+              <AnimatePresence>
+                {!hintOpen && (
+                  <motion.p
+                    key="hint-tip"
+                    className="game-hint__tip"
+                    initial={{ opacity: 0, x: 10, scale: 0.85 }}
+                    animate={{ opacity: 1, x: 0, scale: 1 }}
+                    exit={{ opacity: 0, x: 6, scale: 0.9 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                  >
+                    Game info
+                  </motion.p>
+                )}
+              </AnimatePresence>
+              <motion.button
+                type="button"
+                className="game-hint__button"
+                aria-label="Game info"
+                aria-expanded={hintOpen}
+                aria-controls="game-instructions"
+                animate={hintControls}
+                onPointerDown={() => setHintTouched(true)}
+                onClick={() => {
+                  setHintTouched(true)
+                  setHintOpen((open) => !open)
+                }}
+              >
+                {hintRing > 0 && (
+                  <motion.span
+                    key={hintRing}
+                    className="game-hint__ring"
+                    aria-hidden="true"
+                    initial={{ scale: 1, opacity: 0.8 }}
+                    animate={{ scale: 1.8, opacity: 0 }}
+                    transition={{ duration: 1.3, ease: 'easeOut' }}
+                  />
+                )}
+                <img src={feather} alt="" />
+              </motion.button>
+              {hintOpen && (
+                <aside id="game-instructions" className="game-hint__card" aria-labelledby="game-instructions-title">
+                  <h2 id="game-instructions-title">{article.gameInfo.title}</h2>
+                  {article.gameInfo.body.map((line) => <p key={line}>{line}</p>)}
+                </aside>
+              )}
+            </div>
+          )}
+            <button
+              type="button"
+              ref={trackRef}
+              className={`toggle${game ? ' is-on' : ''}`}
+              role="switch"
+              aria-checked={game}
+              aria-label="Game mode"
+              onPointerDown={() => setTouched(true)}
+              onClick={() => {
+                if (dragged.current) return
+                haptic(10)
+                animate(knobX, game ? 0 : travel, spring)
+                startTransition(() => setGame((g) => !g))
+                resetOverlays()
               }}
             >
-              <span className="toggle__icon" aria-hidden="true"><KnobIcon /></span>
-            </motion.span>
-            <span className={`toggle__idle-feather${game ? '' : ' toggle__idle-feather--right'}`} aria-hidden="true"><EndIcon /></span>
-          </button>
+              <motion.span
+                ref={knobRef}
+                className="toggle__knob"
+                style={{ x: knobX }}
+                drag="x"
+                dragConstraints={{ left: 0, right: travel }}
+                dragElastic={0.06}
+                dragMomentum={false}
+                whileTap={{ scale: 0.97 }}
+                onDrag={() => {
+                  const side = knobX.get() > travel / 2
+                  if (side !== dragSide.current) {
+                    dragSide.current = side
+                    haptic(5)
+                  }
+                }}
+                onDragStart={() => {
+                  dragSide.current = knobX.get() > travel / 2
+                  dragged.current = true
+                  setTouched(true)
+                }}
+                onDragEnd={(_, info) => {
+                  const pos = knobX.get()
+                  const next = Math.abs(info.velocity.x) > 350 ? info.velocity.x > 0 : pos > travel / 2
+                  setTimeout(() => (dragged.current = false), 60)
+                  if (next !== game) {
+                    haptic(10)
+                    animate(knobX, next ? travel : 0, spring)
+                    startTransition(() => setGame(next))
+                    resetOverlays()
+                  } else {
+                    animate(knobX, game ? travel : 0, spring)
+                  }
+                }}
+              >
+                <span className="toggle__icon" aria-hidden="true"><KnobIcon /></span>
+              </motion.span>
+              <span className={`toggle__idle-feather${game ? '' : ' toggle__idle-feather--right'}`} aria-hidden="true"><EndIcon /></span>
+            </button>
+          </div>
         </div>
       </figure>
 

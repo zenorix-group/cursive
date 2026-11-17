@@ -1,6 +1,8 @@
 import { loadReadingProgress } from './readingProgress.js'
 import { loadCallProgress } from './callProgress.js'
 import { kvGet } from './cursiveStore.js'
+import { HOLD_IDS, loadHoldProgress } from './holdProgress.js'
+import { loadMoves } from './moveProgress.js'
 
 const hasReceipt = (key) => {
   try { return !!JSON.parse(kvGet(key))?.receipt } catch { return false }
@@ -21,6 +23,17 @@ export function articleStatus(articleNumber) {
     const { selectedIds, answers } = loadCallProgress()
     const placed = Object.keys(answers).length
     if (selectedIds.length || placed) return { status: 'ip', pct: Math.round((placed / GAPS) * 100) }
+  }
+  if (articleNumber === 3) {
+    if (hasReceipt('cursive:article:3:receipt:v1')) return { status: 'done' }
+    const played = Object.keys(loadHoldProgress().holds).length
+    if (played) return { status: 'ip', pct: Math.round((played / HOLD_IDS.length) * 100) }
+  }
+  if (articleNumber === 5) {
+    if (hasReceipt('cursive:article:5:receipt:v1')) return { status: 'done' }
+    const moves = loadMoves()
+    const touched = Object.keys(moves.opened).length
+    if (touched || moves.events.length) return { status: 'ip', pct: Math.min(100, Math.round((touched / 6) * 100)) }
   }
   return { status: 'ns' }
 }

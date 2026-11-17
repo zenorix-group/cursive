@@ -19,7 +19,7 @@ function ArticleIntro({ article = article1 }) {
   const crop = article.crop && { width: article.crop.width, marginLeft: article.crop.left, marginTop: article.crop.top }
 
   return (
-    <main className={`article${article.number === 2 ? ' article--india' : ''}`}>
+    <main className={`article${article.number >= 2 ? ' article--india' : ''}`}>
       {/* torn paper edge for the card backgrounds only, so text stays crisp */}
       <svg width="0" height="0" aria-hidden="true" focusable="false">
         <filter id="deckle" x="-3%" y="-3%" width="106%" height="106%">
@@ -40,7 +40,7 @@ function ArticleIntro({ article = article1 }) {
         <motion.section className="card" initial={{ opacity: 0, y: 40, rotate: -1.5 }} animate={{ opacity: 1, y: 0, rotate: 0 }} transition={{ duration: 0.9, ease }}>
           <div className="card__frame" />
 
-          <div className={`card__pic${article.number === 2 ? ' card__pic--india' : ''}`}>
+          <div className={`card__pic${article.number >= 2 ? ' card__pic--india' : ''}`}>
             <div className="card__crop" style={crop}>
               <motion.img src={plateImg} alt="" draggable="false" initial={{ scale: 1.12 }} animate={{ scale: 1 }} transition={{ duration: 1.6, ease }} />
               <svg viewBox={`0 0 ${w} ${h}`} aria-hidden="true">

@@ -35,10 +35,11 @@ export const catalog = [
     paths: { ns: '/article/1', ip: '/read', done: '/receipt' },
   },
   {
-    id: 2, img: 'equities', cat: 'finance', kick: '¶ Finance & Law', read: 5,
+    id: 2, article: 3, img: 'equities', cat: 'finance', kick: '¶ Finance & Law', read: 6,
     title: 'Should You Invest In Foreign Or International Equities?',
     dek: 'The financial equivalent of putting all your nest eggs in one basket is keeping every rupee inside one country. Funds that buy foreign shares have been climbing the ladder since they first arrived in India…',
     by: 'Cursive Desk',
+    paths: { ns: '/article/3', ip: '/read/3', done: '/receipt/3' },
   },
   {
     id: 3, img: 'earth', cat: 'essays', kick: '¶ Essays & Culture', read: 6,
@@ -54,10 +55,11 @@ export const catalog = [
     paths: { ns: '/article/2', ip: '/read/2', done: '/receipt/2' },
   },
   {
-    id: 5, img: 'quixote', cat: 'essays', kick: '§ Essays & Culture', read: 6,
+    id: 5, article: 5, img: 'quixote', cat: 'essays', kick: '§ Essays & Culture', read: 6,
     title: 'Behind Don Quixote',
     dek: 'Before he created one of literature’s most famous adventurers, Miguel de Cervantes had already lived an extraordinary adventure of his own: from Renaissance Italy to the battle of Lepanto…',
     by: 'Cursive Desk',
+    paths: { ns: '/article/5', ip: '/read/5', done: '/receipt/5' },
   },
   {
     id: 6, img: 'gentleman', cat: 'essays', kick: '§ Essays & Culture', read: 7,

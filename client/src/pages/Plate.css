@@ -256,3 +256,15 @@
   100% { stroke-dashoffset: -1; opacity: 0; }
 }
 .sheet__flag { transition: fill .35s ease, stroke .35s ease, opacity .35s ease; }
+
+/* "Point on any of the flag" flickers so the reader knows it is something to do */
+@media (prefers-reduced-motion: no-preference) {
+  .sheet__prompt { animation: prompt-flicker 1.8s ease-in-out infinite; }
+}
+@keyframes prompt-flicker {
+  0%, 100% { opacity: 1; }
+  12% { opacity: 0.25; }
+  22% { opacity: 1; }
+  34% { opacity: 0.4; }
+  46%, 85% { opacity: 1; }
+}

@@ -7,6 +7,7 @@ const combinedReceiptRoutes = require('./routes/combinedReceipt');
 const { generateReceipt } = require('./services/receipt');
 const { generateLiftReceipt } = require('./services/liftReceipt');
 const { generateNarrativeReceipt } = require('./services/narrativeReceipt');
+const { generateRearrangeReceipt } = require('./services/rearrangeReceipt');
 const rateLimit = require('./middleware/rateLimit');
 
 const app = express();
@@ -35,6 +36,16 @@ app.post('/api/receipts/narrative', rateLimit({ max: 12, message: 'Too many rece
   try {
     res.set('Cache-Control', 'no-store');
     res.json(await generateNarrativeReceipt(req.body));
+  } catch (error) {
+    next(error);
+  }
+});
+
+// the Re-Arrange receipt (article 5): the key lives on the server, so the page only learns it once she has filed
+app.post('/api/receipts/rearrange', rateLimit({ max: 30, message: 'Too many receipts requested. Please wait a few minutes and try again.' }), (req, res, next) => {
+  try {
+    res.set('Cache-Control', 'no-store');
+    res.json(generateRearrangeReceipt(req.body));
   } catch (error) {
     next(error);
   }

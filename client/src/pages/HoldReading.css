@@ -1,0 +1,58 @@
+/* Article 3, "The Hold". The page itself borrows Reading.css; this file only adds the hold. */
+.visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+.read--hold .read__author { margin-bottom: calc(var(--u) * 18); }
+.hold__rule { margin: 0 0 calc(var(--u) * 22) !important; padding: 10px 14px; border-left: 3px solid #8a6414; background: #f1e8d3; font: 400 14px/1.5 var(--text) !important; color: #2b2926; }
+.hold__rule b { margin-right: 8px; font: 700 10px var(--sans); letter-spacing: 0.14em; text-transform: uppercase; color: #8a6414; }
+.hold__heading { margin: calc(var(--u) * 34) 0 calc(var(--u) * 12); font: 700 calc(var(--u) * 22)/1.2 var(--display); color: #2b2926; }
+
+/* the ±, in the theme colour; its touch area is larger than the symbol */
+.hold__marker {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 1.15em;
+  height: 1.15em;
+  margin: 0 0.1em;
+  padding: 0;
+  vertical-align: baseline;
+  border: 1.5px solid #8a6414;
+  border-radius: 50%;
+  background: transparent;
+  color: #8a6414;
+  font: 700 0.85em/1 var(--sans);
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+.hold__marker::after { content: ''; position: absolute; inset: -12px; }
+.hold__marker.is-down { background: #8a6414; color: #fbfbfa; transform: scale(1.12); touch-action: none; }
+.hold__marker.is-done { background: #8a6414; color: #fbfbfa; cursor: default; }
+.hold__marker:disabled { opacity: 0.4; cursor: default; }
+.hold__marker:focus-visible { outline: 2px solid #2b2926; outline-offset: 3px; }
+
+/* the only underline in the piece: it grows from the marker toward the full stop, across line breaks as one line, and stays */
+.hold__line {
+  background-image: linear-gradient(#8a6414, #8a6414);
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: calc(var(--p, 0) * 100%) 2px;
+  -webkit-box-decoration-break: slice;
+  box-decoration-break: slice;
+  padding-bottom: 3px;
+  transition: background-size 0.5s linear;
+}
+@media (prefers-reduced-motion: reduce) { .hold__line { transition: none; } }
+/* each figure sits in a fixed-width space so the underline never jumps */
+.hold__fig { display: inline-block; font-variant-numeric: tabular-nums; vertical-align: bottom; white-space: nowrap; }
+.hold__fig--month { min-width: 7em; }
+.hold__fig--value { min-width: 3.9em; }
+.hold__fig--share { min-width: 1.9em; }
+
+.game-hint__rules { margin-top: 10px !important; padding-top: 10px; border-top: 1px solid #d9d2c3; }
+.game-hint__rules b { display: block; margin-bottom: 3px; font: 700 10px var(--sans); letter-spacing: 0.14em; text-transform: uppercase; color: #8a6414; }
