@@ -54,12 +54,16 @@ test('uses Vercel AI Gateway when a gateway credential is present', async () => 
   process.env.AI_GATEWAY_API_KEY = 'gateway-test-key';
   delete process.env.GEMINI_API_KEY;
   try {
-    const result = await generateJson(request, async (url, options) => {
+    const schema = { type: 'object', properties: { ready: { type: 'boolean' }, note: { type: 'string' } }, required: ['ready'] };
+    const result = await generateJson({ ...request, schema }, async (url, options) => {
       assert.equal(url, 'https://ai-gateway.vercel.sh/v1/chat/completions');
       assert.equal(options.headers.Authorization, 'Bearer gateway-test-key');
       const body = JSON.parse(options.body);
       assert.equal(body.model, 'google/gemini-3.5-flash');
       assert.equal(body.response_format.type, 'json_schema');
+      assert.equal(body.response_format.json_schema.strict, true);
+      assert.equal(body.response_format.json_schema.schema.additionalProperties, false);
+      assert.deepEqual(body.response_format.json_schema.schema.required, ['ready', 'note']);
       assert.equal(body.messages[0].content, 'Test');
       return new Response(JSON.stringify({ choices: [{ message: { content: '{"ready":true}' } }] }));
     });
