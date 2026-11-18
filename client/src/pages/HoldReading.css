@@ -56,3 +56,9 @@
 
 .game-hint__rules { margin-top: 10px !important; padding-top: 10px; border-top: 1px solid #d9d2c3; }
 .game-hint__rules b { display: block; margin-bottom: 3px; font: 700 10px var(--sans); letter-spacing: 0.14em; text-transform: uppercase; color: #8a6414; }
+
+/* article 3's picture is a landscape photo, with the reader on the right: keep him in the frame at phone width */
+.read.read--hold .hero__img { object-position: 72% 50%; }
+@media (min-width: 600px) {
+  .read.read--hold .hero { aspect-ratio: 16 / 9; width: min(100%, 900px); }
+}

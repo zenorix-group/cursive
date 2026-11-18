@@ -10,8 +10,9 @@ const wasUsed = (name) => { try { return localStorage.getItem(usedKey(name)) ===
 const markUsed = (name) => { try { localStorage.setItem(usedKey(name), '1') } catch { /* storage unavailable */ } }
 const spring = { type: 'spring', stiffness: 210, damping: 26, mass: 0.9 }
 
-// props: article ({ number, minutes, gameInfo, rule }), image, game, setGame, KnobIcon (on the knob), EndIcon (idle end of the track)
-function GameHero({ article, image, game, setGame, KnobIcon, EndIcon }) {
+// props: article ({ number, minutes, gameInfo, rule }), image, game, setGame, KnobIcon (on the knob), EndIcon (idle end of the track),
+// switchLabel (the switch's accessible name)
+function GameHero({ article, image, game, setGame, KnobIcon, EndIcon, switchLabel = 'Game mode' }) {
   const [hintOpen, setHintOpen] = useState(false)
   const hintRef = useRef(null)
   const trackRef = useRef(null)
@@ -121,7 +122,7 @@ function GameHero({ article, image, game, setGame, KnobIcon, EndIcon }) {
             className={`toggle${game ? ' is-on' : ''}`}
             role="switch"
             aria-checked={game}
-            aria-label="Game mode"
+            aria-label={switchLabel}
             onClick={toggleGame}
           >
             <motion.span ref={knobRef} className="toggle__knob" style={{ x: knobX }}>

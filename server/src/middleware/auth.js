@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 
@@ -48,4 +49,45 @@ function requireAccounts(req, res, next) {
   return next();
 }
 
-module.exports = { endSession, readSession, requireAccounts, requireAuth, startSession };
+// The admin signs in with their own username and password (ADMIN_USERNAME / ADMIN_PASSWORD in .env).
+// Their session is a separate cookie, so it never mixes with reader accounts.
+const ADMIN_COOKIE = 'cursive_admin';
+const ADMIN_MAX_AGE_MS = 8 * 60 * 60 * 1000;
+
+function checkAdminCredentials(username, password) {
+  const expectedUser = process.env.ADMIN_USERNAME;
+  const expectedPass = process.env.ADMIN_PASSWORD;
+  if (!expectedUser || !expectedPass || typeof username !== 'string' || typeof password !== 'string') return false;
+  const same = (a, b) => {
+    const x = crypto.createHash('sha256').update(a).digest();
+    const y = crypto.createHash('sha256').update(b).digest();
+    return crypto.timingSafeEqual(x, y);
+  };
+  return same(username.trim(), expectedUser) & same(password, expectedPass) ? true : false;
+}
+
+function startAdminSession(res) {
+  const token = jwt.sign({ role: 'admin' }, secret(), { expiresIn: Math.floor(ADMIN_MAX_AGE_MS / 1000) });
+  res.cookie(ADMIN_COOKIE, token, { ...cookieOptions(), maxAge: ADMIN_MAX_AGE_MS });
+}
+
+function endAdminSession(res) {
+  res.clearCookie(ADMIN_COOKIE, cookieOptions());
+}
+
+function isAdminSession(req) {
+  const token = req.cookies?.[ADMIN_COOKIE];
+  if (!token || !secret()) return false;
+  try {
+    return jwt.verify(token, secret()).role === 'admin';
+  } catch {
+    return false;
+  }
+}
+
+function requireAdmin(req, res, next) {
+  if (!isAdminSession(req)) return res.status(401).json({ message: 'Admin sign-in required.' });
+  return next();
+}
+
+module.exports = { checkAdminCredentials, endAdminSession, isAdminSession, requireAdmin, startAdminSession, endSession, readSession, requireAccounts, requireAuth, startSession };

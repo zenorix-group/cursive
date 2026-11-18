@@ -3,8 +3,10 @@ import { motion } from 'framer-motion'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import quixote from '../assets/site/quixote.jpg'
 import GameHero from '../components/GameHero.jsx'
+import InkFilter from '../components/InkFilter.jsx'
 import { article5 } from '../data/articles.js'
 import { MOVABLE, loadMoves, saveMoves } from '../data/moveProgress.js'
+import authorProfile from '../assets/author-profile.jpg'
 import { formatClock, useReadingClock } from '../lib/useReadingClock.js'
 import './Reading.css'
 import './ReArrange.css'
@@ -233,6 +235,7 @@ function ReArrange({ article = article5 }) {
 
   return (
     <main className={`read read--banking read--rearrange${game ? ' read--game' : ''}${folded ? ' is-folded' : ''}`}>
+      <InkFilter />
       <header className="read__bar">
         <Link to="/" className="read__brand">cursive</Link>
         <span className="read__time" role="timer" aria-label={`Time on this article: ${clock}`}>
@@ -246,7 +249,8 @@ function ReArrange({ article = article5 }) {
       <article className="read__body">
         <h1 className="read__title">{article.readingTitle.map((line) => <span key={line}>{line}</span>)}</h1>
         <p className="rearr__subtitle">{article.subtitle}</p>
-        <div className="read__author"><span className="read__author-name">{article.author}</span></div>
+        <div className="read__author"><img className="read__avatar" src={authorProfile} alt={`${article.author} profile`} />
+          <span className="read__author-name">{article.author}</span></div>
         <p className="rearr__standfirst">{article.standfirst}</p>
         {game && <p className="rearr__instruction">{article.instruction}</p>}
         <span className="visually-hidden" role="status" aria-live="polite">{announce}</span>

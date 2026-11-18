@@ -1,0 +1,80 @@
+.admin { --a-bg:#f6f6f4; --a-card:#fff; --a-line:#e5e4e0; --a-ink:#1a1a1a; --a-mute:#737069; --a-accent:#1f3a5f; --a-danger:#b3261e;
+  display:flex; min-height:100vh; background:var(--a-bg); color:var(--a-ink); font:14px/1.5 var(--sans); }
+.admin h1 { font:600 22px var(--sans); margin-bottom:16px; }
+.admin h2 { font:600 14px var(--sans); margin-bottom:12px; }
+.admin a { color:var(--a-accent); text-decoration:none; }
+.admin a:hover { text-decoration:underline; }
+.ad-side { width:210px; flex:none; background:var(--a-card); border-right:1px solid var(--a-line); padding:20px 14px; display:flex; flex-direction:column; gap:20px; position:sticky; top:0; height:100vh; }
+.ad-side nav { display:flex; flex-direction:column; gap:2px; }
+.ad-side nav a { padding:8px 10px; border-radius:6px; color:var(--a-ink); }
+.ad-side nav a.active { background:var(--a-bg); font-weight:600; }
+.ad-side nav a:hover { text-decoration:none; background:var(--a-bg); }
+.ad-side-foot { margin-top:auto; display:flex; flex-direction:column; gap:6px; color:var(--a-mute); word-break:break-all; }
+.ad-main { flex:1; min-width:0; padding:28px 32px; max-width:1100px; }
+.ad-muted { color:var(--a-mute); }
+.ad-error { color:var(--a-danger); margin:8px 0; }
+.ad-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:14px; }
+.ad-card, .ad-panel { background:var(--a-card); border:1px solid var(--a-line); border-radius:10px; padding:16px; }
+.ad-card span { color:var(--a-mute); display:block; }
+.ad-card b { font:600 28px var(--sans); }
+.ad-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.ad-panel { margin-bottom:14px; }
+.ad-bar-row { display:grid; grid-template-columns:80px 1fr 110px; align-items:center; gap:10px; padding:5px 0; }
+.ad-bar { height:8px; background:var(--a-bg); border-radius:4px; overflow:hidden; }
+.ad-bar i { display:block; height:100%; background:var(--a-accent); }
+.ad-spark { margin-bottom:14px; }
+.ad-spark > div { display:flex; align-items:flex-end; gap:3px; height:56px; margin-top:6px; }
+.ad-spark i { flex:1; background:var(--a-accent); opacity:.75; border-radius:2px; }
+.ad-input { width:100%; max-width:340px; padding:8px 12px; border:1px solid var(--a-line); border-radius:6px; background:var(--a-card); font:inherit; margin-bottom:14px; }
+.ad-table-wrap { background:var(--a-card); border:1px solid var(--a-line); border-radius:10px; overflow-x:auto; }
+.ad-table { width:100%; border-collapse:collapse; }
+.ad-table th, .ad-table td { text-align:left; padding:10px 14px; border-bottom:1px solid var(--a-line); white-space:nowrap; }
+.ad-table th { color:var(--a-mute); font-weight:500; font-size:12px; }
+.ad-table tr:last-child td { border-bottom:0; }
+.ad-tag { font-style:normal; font-size:11px; background:var(--a-bg); border:1px solid var(--a-line); border-radius:99px; padding:1px 8px; margin-left:8px; color:var(--a-mute); }
+.ad-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:16px; }
+.ad-head h1 { margin-bottom:2px; }
+.ad-back { color:var(--a-mute) !important; }
+.ad-btn { font:inherit; padding:5px 12px; border:1px solid var(--a-line); background:var(--a-card); border-radius:6px; cursor:pointer; }
+.ad-btn:hover { background:var(--a-bg); }
+.ad-btn.danger { color:var(--a-danger); border-color:var(--a-danger); }
+.ad-link { font:inherit; background:none; border:0; padding:0; color:var(--a-accent); cursor:pointer; text-align:left; }
+.ad-article { display:grid; grid-template-columns:100px 120px 1fr auto; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--a-line); }
+.ad-article:last-child { border-bottom:0; }
+.ad-status { font-size:12px; }
+.ad-status.done { color:#1b7a3d; } .ad-status.ip { color:#a15c00; } .ad-status.ns { color:var(--a-mute); }
+.ad-record { border-bottom:1px solid var(--a-line); padding:8px 0; }
+.ad-record:last-child { border-bottom:0; }
+.ad-record-row { display:grid; grid-template-columns:1fr auto auto; align-items:center; gap:12px; }
+.ad-record pre { margin-top:8px; padding:12px; background:var(--a-bg); border-radius:6px; max-height:320px; overflow:auto; font-size:12px; white-space:pre-wrap; word-break:break-word; }
+@media (max-width:760px) {
+  .admin { flex-direction:column; }
+  .ad-side { width:auto; height:auto; position:static; flex-direction:row; flex-wrap:wrap; align-items:center; }
+  .ad-side-foot { margin:0 0 0 auto; flex-direction:row; align-items:center; }
+  .ad-main { padding:20px 16px; }
+  .ad-cards, .ad-grid { grid-template-columns:1fr; }
+  .ad-article { grid-template-columns:1fr 1fr; }
+}
+
+.ad-center { align-items:center; justify-content:center; }
+.ad-login { background:var(--a-card); border:1px solid var(--a-line); border-radius:10px; padding:28px; width:min(360px,92vw); display:flex; flex-direction:column; gap:14px; }
+.ad-login h1 { margin-bottom:4px; }
+.ad-login label { display:flex; flex-direction:column; gap:4px; color:var(--a-mute); }
+.ad-login .ad-input { margin-bottom:0; max-width:none; color:var(--a-ink); }
+.ad-btn.primary { background:var(--a-accent); color:#fff; border-color:var(--a-accent); padding:9px 12px; }
+
+.ad-gap { margin-top:22px; }
+.ad-bad { color:var(--a-danger); font-weight:600; }
+.ad-wrap { white-space:normal !important; max-width:420px; word-break:break-word; }
+.ad-row { display:flex; justify-content:space-between; gap:12px; padding:9px 0; border-bottom:1px solid var(--a-line); }
+.ad-row:last-of-type { border-bottom:0; }
+.ad-row small { color:var(--a-mute); text-align:right; }
+.ad-dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:8px; }
+.ad-dot.on { background:#1b7a3d; } .ad-dot.off { background:var(--a-danger); }
+.ad-note { margin-top:10px; font-size:13px; }
+.ad-note code { background:var(--a-bg); padding:1px 5px; border-radius:4px; }
+.ad-switch { display:flex; gap:12px; align-items:flex-start; padding:10px 0; border-bottom:1px solid var(--a-line); cursor:pointer; }
+.ad-switch:last-child { border-bottom:0; }
+.ad-switch input { margin-top:4px; width:16px; height:16px; accent-color:var(--a-accent); }
+.ad-switch span { display:flex; flex-direction:column; }
+.ad-switch small { color:var(--a-mute); }

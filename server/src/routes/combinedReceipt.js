@@ -3,6 +3,8 @@ const User = require('../models/User');
 const { requireAccounts, requireAuth } = require('../middleware/auth');
 const rateLimit = require('../middleware/rateLimit');
 const mailer = require('../services/mailer');
+const limits = require('../lib/limits');
+const { logUsage } = require('../middleware/usage');
 
 const router = express.Router();
 const MAX_PDF_BYTES = 2 * 1024 * 1024;
@@ -12,7 +14,7 @@ router.post(
   '/',
   requireAccounts,
   requireAuth,
-  rateLimit({ max: 5, windowMs: 60 * 60 * 1000, message: 'The receipt was already sent a few times. Please try again later.' }),
+  rateLimit({ max: limits.combined.max, windowMs: limits.combined.windowMs, message: 'The receipt was already sent a few times. Please try again later.' }),
   express.json({ limit: '3mb' }),
   async (req, res, next) => {
     try {
@@ -25,7 +27,14 @@ router.post(
       }
       const user = await User.findById(req.userId).select('name email');
       if (!user) return res.status(401).json({ message: 'Please sign in to continue.' });
-      await mailer.sendCombinedReceipt({ to: user.email, name: user.name, pdf });
+      const start = Date.now();
+      try {
+        await mailer.sendCombinedReceipt({ to: user.email, name: user.name, pdf });
+      } catch (error) {
+        logUsage({ endpoint: 'email', ok: false, ms: Date.now() - start, message: error.message });
+        throw error;
+      }
+      logUsage({ endpoint: 'email', ok: true, ms: Date.now() - start });
       res.json({ ok: true, email: user.email });
     } catch (error) {
       next(error);

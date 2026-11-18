@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import gameHero from '../assets/reading/game-hero.png'
+import holdHero from '../assets/reading/hold-hero.webp'
 import GameHero from '../components/GameHero.jsx'
+import InkFilter from '../components/InkFilter.jsx'
 import HoldMarker from '../components/HoldMarker.jsx'
 import { article3 } from '../data/articles.js'
 import { HOLD_DATA, HOLD_DATA_VERSION } from '../data/holdData.js'
 import { loadHoldProgress, saveHoldProgress } from '../data/holdProgress.js'
+import authorProfile from '../assets/author-profile.jpg'
 import { formatClock, useReadingClock } from '../lib/useReadingClock.js'
 import './Reading.css'
 import './HoldReading.css'
@@ -48,6 +50,7 @@ function HoldReading({ article = article3 }) {
 
   return (
     <main className={`read read--banking read--hold${game ? ' read--game' : ''}`}>
+      <InkFilter />
       <header className="read__bar">
         <Link to="/" className="read__brand">cursive</Link>
         <span className="read__time" role="timer" aria-label={`Time on this article: ${clock}`}>
@@ -56,12 +59,13 @@ function HoldReading({ article = article3 }) {
         </span>
       </header>
 
-      <GameHero article={article} image={gameHero} game={game} setGame={setGame} KnobIcon={MarkerIcon} EndIcon={GlobeIcon} />
+      <GameHero article={article} image={holdHero} game={game} setGame={setGame} KnobIcon={MarkerIcon} EndIcon={GlobeIcon} />
 
       <article className="read__body">
         <h1 className="read__title">{article.readingTitle.map((line) => <span key={line}>{line}</span>)}</h1>
 
         <div className="read__author">
+          <img className="read__avatar" src={authorProfile} alt={`${article.author} profile`} />
           <span className="read__author-name">{article.author}</span>
         </div>
 

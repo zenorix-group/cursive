@@ -62,16 +62,18 @@ export const catalog = [
     paths: { ns: '/article/5', ip: '/read/5', done: '/receipt/5' },
   },
   {
-    id: 6, img: 'gentleman', cat: 'essays', kick: '§ Essays & Culture', read: 7,
+    id: 6, article: 6, img: 'gentleman', cat: 'essays', kick: '§ Essays & Culture', read: 7,
     title: 'The Retired Gentleman',
     dek: 'Mr. Murari Lal retired from his state bus driving duty some 15 years ago. He put his two kids through college, and just as he settled into retired life, his wife passed away…',
     by: 'Saumya Dikshit',
+    paths: { ns: '/article/6', ip: '/read/6', done: '/receipt/6' },
   },
   {
-    id: 7, img: 'room912', cat: 'investigations', kick: '§ Investigations', read: 3,
+    id: 7, article: 7, img: 'room912', cat: 'investigations', kick: '§ Investigations', read: 3,
     title: 'Room 912',
     dek: 'At 23:18, housekeeping received a request for fresh towels from Room 912, a room blocked from guest allocation since the start of the season. Reception confirmed: Room Status: Vacant…',
     by: 'Bureau of Unfiled Incidents',
+    paths: { ns: '/article/7', ip: '/read/7', done: '/receipt/7' },
   },
 ]
 

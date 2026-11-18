@@ -1,0 +1,26 @@
+/* Article 6, "Four Cups". The page borrows Reading.css; this adds the cups, the seats and the quotations. */
+.visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+.read--cups .read__author { margin-bottom: calc(var(--u) * 18); }
+.cups__quote { margin: calc(var(--u) * 6) 0 calc(var(--u) * 22); padding: 0 0 0 14px; border-left: 3px solid #d9c9a2; font: italic 400 calc(var(--u) * 18)/1.5 var(--text); color: #3a352c; }
+.cups__break { display: flex; justify-content: center; margin: calc(var(--u) * 14) 0; min-height: 44px; }
+.cups__break--mark { align-items: center; letter-spacing: 0.5em; color: #8a7f6a; }
+
+/* a row of four cups: one button, at least 44px square */
+.cups__row { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; padding: 4px 10px; border: 0; border-radius: 999px; background: transparent; cursor: pointer; -webkit-appearance: none; appearance: none; }
+.cups__row:focus-visible { outline: 2px solid #2b2926; outline-offset: 2px; }
+.cups__row-cup { display: inline-grid; place-items: center; width: 40px; height: 40px; }
+
+.cup { width: 30px; height: 30px; fill: none; stroke: #8a6414; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+.cup.is-filled { fill: #8a6414; }
+.cup.is-filled path:nth-child(n + 2) { fill: none; }
+
+/* the seat after a sentence: a space held for it so showing or hiding the seats never moves a word */
+.cups__seat { position: relative; display: inline-flex; align-items: center; vertical-align: middle; min-width: 44px; min-height: 44px; margin-left: 2px; }
+.cups__anchor { position: absolute; left: 0; top: 0; width: 1px; height: 1px; pointer-events: none; }
+.cups__empty, .cups__mine { display: inline-grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; cursor: pointer; -webkit-appearance: none; appearance: none; }
+.cups__empty { opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+.cups__empty.is-on { opacity: 1; pointer-events: auto; }
+.cups__empty:focus-visible, .cups__mine:focus-visible { outline: 2px solid #2b2926; outline-offset: -4px; border-radius: 50%; }
+.cups__mine:disabled { cursor: default; }
+@media (prefers-reduced-motion: reduce) { .cups__empty { transition: none; } }

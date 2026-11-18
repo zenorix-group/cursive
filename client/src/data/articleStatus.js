@@ -3,6 +3,8 @@ import { loadCallProgress } from './callProgress.js'
 import { kvGet } from './cursiveStore.js'
 import { HOLD_IDS, loadHoldProgress } from './holdProgress.js'
 import { loadMoves } from './moveProgress.js'
+import { loadCups } from './cupProgress.js'
+import { loadFiles } from './fileProgress.js'
 
 const hasReceipt = (key) => {
   try { return !!JSON.parse(kvGet(key))?.receipt } catch { return false }
@@ -34,6 +36,18 @@ export function articleStatus(articleNumber) {
     const moves = loadMoves()
     const touched = Object.keys(moves.opened).length
     if (touched || moves.events.length) return { status: 'ip', pct: Math.min(100, Math.round((touched / 6) * 100)) }
+  }
+  if (articleNumber === 6) {
+    if (hasReceipt('cursive:article:6:receipt:v1')) return { status: 'done' }
+    const cups = loadCups()
+    const set = cups.cups.filter((c) => c !== null).length
+    if (cups.game || cups.events.length) return { status: 'ip', pct: Math.round((set / 4) * 100) }
+  }
+  if (articleNumber === 7) {
+    if (hasReceipt('cursive:article:7:receipt:v1')) return { status: 'done' }
+    const files = loadFiles()
+    const written = Object.values(files.notes).filter((n) => n.trim()).length
+    if (files.game || files.events.length) return { status: 'ip', pct: Math.round((written / 2) * 100) }
   }
   return { status: 'ns' }
 }

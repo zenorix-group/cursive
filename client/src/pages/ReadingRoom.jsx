@@ -123,9 +123,14 @@ function ReadingRoom() {
   const searchRef = useRef(null)
   const barRef = useRef(null)
   const set = (patch) => setFilters((f) => ({ ...f, ...patch }))
+  // articles the admin has hidden from the reading room
+  const [hidden, setHidden] = useState([])
+  useEffect(() => {
+    fetch('/api/settings').then((r) => (r.ok ? r.json() : null)).then((d) => d && setHidden(d.hiddenArticles || [])).catch(() => {})
+  }, [])
 
   // status comes from the reader's saved reading (their account when signed in)
-  const articles = useMemo(() => catalog.map((entry) => {
+  const articles = useMemo(() => catalog.filter((entry) => !hidden.includes(entry.article)).map((entry) => {
     const status = entry.article ? articleStatus(entry.article) : { status: 'ns' }
     return {
       ...entry,
@@ -133,7 +138,7 @@ function ReadingRoom() {
       to: entry.article ? entry.paths[status.status] : null,
       cta: entry.article ? CTA[status.status] : entry.id === 2 ? 'Open essay →' : 'Begin reading →',
     }
-  }), [])
+  }), [hidden])
 
   const count = (s) => articles.filter((a) => a.status === s).length
   const items = useMemo(() => {

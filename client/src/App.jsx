@@ -16,11 +16,16 @@ import HoldReading from './pages/HoldReading.jsx'
 import HoldReceipt from './pages/HoldReceipt.jsx'
 import ReArrange from './pages/ReArrange.jsx'
 import ReArrangeReceipt from './pages/ReArrangeReceipt.jsx'
+import CupsReading from './pages/CupsReading.jsx'
+import CupsReceipt from './pages/CupsReceipt.jsx'
+import TwoFilesReading from './pages/TwoFilesReading.jsx'
+import FilesReceipt from './pages/FilesReceipt.jsx'
+import Admin from './admin/Admin.jsx'
 import Login from './pages/Login.jsx'
 import ReadingRoom from './pages/ReadingRoom.jsx'
 import LoadError from './auth/LoadError.jsx'
 import { useAuth } from './auth/AuthContext.jsx'
-import { article2, article3, article5 } from './data/articles.js'
+import { article2, article3, article5, article6, article7 } from './data/articles.js'
 
 // the app proper is for signed-in readers; a guest is sent to sign in and brought back afterwards
 function RequireAuth({ children }) {
@@ -51,9 +56,16 @@ function App() {
       <Route path="/article/5" element={<ArticleIntro article={article5} />} />
       <Route path="/read/5" element={<ReArrange key="article-5" />} />
       <Route path="/receipt/5" element={<ReArrangeReceipt />} />
+      <Route path="/article/6" element={<ArticleIntro article={article6} />} />
+      <Route path="/read/6" element={<CupsReading key="article-6" />} />
+      <Route path="/receipt/6" element={<CupsReceipt />} />
+      <Route path="/article/7" element={<ArticleIntro article={article7} />} />
+      <Route path="/read/7" element={<TwoFilesReading key="article-7" />} />
+      <Route path="/receipt/7" element={<FilesReceipt />} />
       <Route path="/read" element={<Reading key="article-1" />} />
       <Route path="/read/2" element={<Reading key="article-2" article={article2} />} />
       <Route path="/read/2/call" element={<CallTranscript />} />
+      <Route path="/admin/*" element={<Admin />} />
       <Route path="/login" element={<Login />} />
       <Route path="/reading-room" element={<RequireAuth><ReadingRoom /></RequireAuth>} />
       <Route path="/receipt" element={<Receipt />} />
@@ -64,7 +76,7 @@ function App() {
     </Routes>
     </PageTransition>
     </AnimatePresence>
-    <RouteMenu />
+    {!location.pathname.startsWith('/admin') && <RouteMenu />}
     <Toast />
     </MotionConfig>
   )

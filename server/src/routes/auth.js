@@ -1,18 +1,21 @@
 const express = require('express');
+const limits = require('../lib/limits');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const rateLimit = require('../middleware/rateLimit');
 const { endSession, readSession, requireAccounts, startSession } = require('../middleware/auth');
+const { getSettings } = require('../lib/settings');
 const { validateLogin, validateRegistration } = require('../lib/validate');
 
 const router = express.Router();
-const limiter = rateLimit({ max: 20 });
+const limiter = rateLimit({ max: limits.signIn.max, windowMs: limits.signIn.windowMs });
 const publicUser = (user) => ({ id: String(user._id), name: user.name, email: user.email });
 
 // compared against when an email is unknown, so a wrong email and a wrong password take about as long
 const DUMMY_HASH = bcrypt.hashSync('not-a-real-password', 12);
 
 router.post('/register', requireAccounts, limiter, async (req, res) => {
+  if (!(await getSettings()).registrationOpen) return res.status(403).json({ message: 'New sign-ups are closed for now.' });
   const { error, value } = validateRegistration(req.body);
   if (error) return res.status(400).json(error);
   try {
