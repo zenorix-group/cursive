@@ -159,11 +159,14 @@ function TwoFilesReading({ article = article7 }) {
         </span>
       </header>
 
+      <div className="read__head">
+        <h1 className="read__title">{article.readingTitle.map((line) => <span key={line}>{line}</span>)}</h1>
+        {article.subtitle && <p className="read__subtitle">{article.subtitle}</p>}
+      </div>
+
       <GameHero article={article} image={room912} game={game} setGame={setGame} KnobIcon={FileIcon} EndIcon={DoorIcon} switchLabel="Play Two Files" />
 
       <article className="read__body">
-        <h1 className="read__title">{article.readingTitle.map((line) => <span key={line}>{line}</span>)}</h1>
-        <p className="files__subtitle">{article.subtitle}</p>
 
         {article.body.map((block, i) => {
           if (block.break) return game ? breakBlock(block.break) : null

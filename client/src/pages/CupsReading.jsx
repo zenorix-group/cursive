@@ -171,10 +171,14 @@ function CupsReading({ article = article6 }) {
         </span>
       </header>
 
+      <div className="read__head">
+        <h1 className="read__title">{article.readingTitle.map((line) => <span key={line}>{line}</span>)}</h1>
+        {article.subtitle && <p className="read__subtitle">{article.subtitle}</p>}
+      </div>
+
       <GameHero article={article} image={gentleman} game={game} setGame={setGame} KnobIcon={CupIcon} EndIcon={TreeIcon} switchLabel="Play Four Cups" />
 
       <article className="read__body">
-        <h1 className="read__title">{article.readingTitle.map((line) => <span key={line}>{line}</span>)}</h1>
         <p className="cups__byline">{article.author}</p>
         <span className="visually-hidden" role="status" aria-live="polite">{announce}</span>
 

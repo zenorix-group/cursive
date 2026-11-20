@@ -14,6 +14,7 @@ const spring = { type: 'spring', stiffness: 210, damping: 26, mass: 0.9 }
 // switchLabel (the switch's accessible name)
 function GameHero({ article, image, game, setGame, KnobIcon, EndIcon, switchLabel = 'Game mode' }) {
   const [hintOpen, setHintOpen] = useState(false)
+  const [tipShown, setTipShown] = useState(false)
   const hintRef = useRef(null)
   const trackRef = useRef(null)
   const knobRef = useRef(null)
@@ -84,7 +85,7 @@ function GameHero({ article, image, game, setGame, KnobIcon, EndIcon, switchLabe
           {game && (
             <div className="game-hint" ref={hintRef}>
               <AnimatePresence>
-                {!hintOpen && (
+                {tipShown && !hintOpen && (
                   <motion.p
                     key="hint-tip"
                     className="game-hint__tip"
@@ -104,6 +105,10 @@ function GameHero({ article, image, game, setGame, KnobIcon, EndIcon, switchLabe
                 aria-expanded={hintOpen}
                 aria-controls="game-instructions"
                 onClick={() => setHintOpen((open) => !open)}
+                onMouseEnter={() => setTipShown(true)}
+                onMouseLeave={() => setTipShown(false)}
+                onFocus={() => setTipShown(true)}
+                onBlur={() => setTipShown(false)}
               >
                 <img src={feather} alt="" />
               </button>

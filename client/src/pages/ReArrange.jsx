@@ -243,11 +243,14 @@ function ReArrange({ article = article5 }) {
         </span>
       </header>
 
+      <div className="read__head">
+        <h1 className="read__title">{article.readingTitle.map((line) => <span key={line}>{line}</span>)}</h1>
+        {article.subtitle && <p className="read__subtitle">{article.subtitle}</p>}
+      </div>
+
       <GameHero article={article} image={quixote} game={game} setGame={setGame} KnobIcon={PilcrowIcon} EndIcon={BookIcon} />
 
       <article className="read__body">
-        <h1 className="read__title">{article.readingTitle.map((line) => <span key={line}>{line}</span>)}</h1>
-        <p className="rearr__subtitle">{article.subtitle}</p>
         <p className="rearr__standfirst">{article.standfirst}</p>
         {game && <p className="rearr__instruction">{article.instruction}</p>}
         <span className="visually-hidden" role="status" aria-live="polite">{announce}</span>

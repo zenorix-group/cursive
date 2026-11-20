@@ -59,10 +59,14 @@ function HoldReading({ article = article3 }) {
         </span>
       </header>
 
+      <div className="read__head">
+        <h1 className="read__title">{article.readingTitle.map((line) => <span key={line}>{line}</span>)}</h1>
+        {article.subtitle && <p className="read__subtitle">{article.subtitle}</p>}
+      </div>
+
       <GameHero article={article} image={holdHero} game={game} setGame={setGame} KnobIcon={MarkerIcon} EndIcon={GlobeIcon} />
 
       <article className="read__body">
-        <h1 className="read__title">{article.readingTitle.map((line) => <span key={line}>{line}</span>)}</h1>
 
         <div className="read__author">
           <img className="read__avatar" src={authorProfile} alt={`${article.author} profile`} />

@@ -170,11 +170,14 @@ function HighlightsReading({ article = article4 }) {
         </span>
       </header>
 
+      <div className="read__head">
+        <h1 className="read__title">{article.readingTitle.map((l) => <span key={l}>{l}</span>)}</h1>
+        {article.subtitle && <p className="read__subtitle">{article.subtitle}</p>}
+      </div>
+
       <GameHero article={article} image={earth} game={game} setGame={setGame} KnobIcon={MarkerIcon} EndIcon={LeafIcon} switchLabel="Play Hindsight Highlights" />
 
       <article className="read__body hh" ref={bodyRef}>
-        <h1 className="read__title">{article.readingTitle.map((l) => <span key={l}>{l}</span>)}</h1>
-        <p className="hh__subtitle">{article.subtitle}</p>
 
         <div role={game ? 'group' : undefined} aria-label={game ? 'The article. Each sentence is a button that marks it.' : undefined}>
           {article.body.map((block, i) => {

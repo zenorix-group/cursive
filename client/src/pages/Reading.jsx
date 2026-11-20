@@ -102,6 +102,7 @@ function Reading({ article = article1 }) {
   const [activeBlank, setActiveBlank] = useState(null)
   const choiceRef = useRef(null)
   const [hintOpen, setHintOpen] = useState(false)
+  const [hintTipHover, setHintTipHover] = useState(false)
   // idle cue for the hint button, like the one on the game switch: until the reader has used it,
   // wiggle the feather, pulse a ring and pop a small tip every few seconds
   const hintControls = useAnimationControls()
@@ -353,7 +354,7 @@ function Reading({ article = article1 }) {
           {game && (
             <div className="game-hint" ref={hintRef}>
               <AnimatePresence>
-                {!hintOpen && (
+                {hintTipHover && !hintOpen && (
                   <motion.p
                     key="hint-tip"
                     className="game-hint__tip"
@@ -374,6 +375,10 @@ function Reading({ article = article1 }) {
                 aria-controls="game-instructions"
                 animate={hintControls}
                 onPointerDown={() => setHintTouched(true)}
+                onMouseEnter={() => setHintTipHover(true)}
+                onMouseLeave={() => setHintTipHover(false)}
+                onFocus={() => setHintTipHover(true)}
+                onBlur={() => setHintTipHover(false)}
                 onClick={() => {
                   setHintTouched(true)
                   setHintOpen((open) => !open)
