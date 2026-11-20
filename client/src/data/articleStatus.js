@@ -5,6 +5,7 @@ import { HOLD_IDS, loadHoldProgress } from './holdProgress.js'
 import { loadMoves } from './moveProgress.js'
 import { loadCups } from './cupProgress.js'
 import { loadFiles } from './fileProgress.js'
+import { loadHighlights } from './highlightProgress.js'
 
 const hasReceipt = (key) => {
   try { return !!JSON.parse(kvGet(key))?.receipt } catch { return false }
@@ -30,6 +31,12 @@ export function articleStatus(articleNumber) {
     if (hasReceipt('cursive:article:3:receipt:v1')) return { status: 'done' }
     const played = Object.keys(loadHoldProgress().holds).length
     if (played) return { status: 'ip', pct: Math.round((played / HOLD_IDS.length) * 100) }
+  }
+  if (articleNumber === 4) {
+    if (hasReceipt('cursive:article:4:highlights-receipt:v1')) return { status: 'done' }
+    const h = loadHighlights()
+    // marks, then the words kept, then the line: three steps of the game
+    if (h.game || h.events.length) return { status: 'ip', pct: Math.round(((h.marked.length >= 2 ? 1 : 0) + (h.kept.length === 2 ? 1 : 0) + (h.line.trim() ? 1 : 0)) / 3 * 100) }
   }
   if (articleNumber === 5) {
     if (hasReceipt('cursive:article:5:receipt:v1')) return { status: 'done' }

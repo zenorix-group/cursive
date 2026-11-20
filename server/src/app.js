@@ -10,6 +10,7 @@ const { generateNarrativeReceipt } = require('./services/narrativeReceipt');
 const { generateRearrangeReceipt } = require('./services/rearrangeReceipt');
 const { generateCupsReceipt } = require('./services/cupsReceipt');
 const { generateFilesReceipt } = require('./services/filesReceipt');
+const { generateHighlightsReceipt } = require('./services/highlightsReceipt');
 const rateLimit = require('./middleware/rateLimit');
 const limits = require('./lib/limits');
 const { receiptsOn, track } = require('./middleware/usage');
@@ -83,6 +84,16 @@ app.post('/api/receipts/files', receiptsOn, track('files'), rateLimit({ max: lim
   try {
     res.set('Cache-Control', 'no-store');
     res.json(generateFilesReceipt(req.body));
+  } catch (error) {
+    next(error);
+  }
+});
+
+// the Hindsight Highlights receipt (article 4): the key lives on the server, and one model call judges her line
+app.post('/api/receipts/highlights', receiptsOn, track('highlights'), rateLimit({ max: limits.highlights.max, windowMs: limits.highlights.windowMs, message: 'Too many receipts requested. Please wait a few minutes and try again.' }), async (req, res, next) => {
+  try {
+    res.set('Cache-Control', 'no-store');
+    res.json(await generateHighlightsReceipt(req.body));
   } catch (error) {
     next(error);
   }

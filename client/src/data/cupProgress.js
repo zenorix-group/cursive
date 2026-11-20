@@ -6,7 +6,6 @@ import { article6 } from './articles.js'
 // back and file, one row each, never edited.
 const KEY = 'cursive:article:6:cups:v1'
 export const SEAT_IDS = article6.seats.map((s) => s.id)
-const MAX_EVENTS = 400
 
 export function normalizeCups(value) {
   const cups = [0, 1, 2, 3].map((i) => (SEAT_IDS.includes(value?.cups?.[i]) ? value.cups[i] : null))
@@ -15,7 +14,7 @@ export function normalizeCups(value) {
     game: value?.game === true,
     seen: value?.seen === true,
     filed: value?.filed === true,
-    events: Array.isArray(value?.events) ? value.events.filter((e) => e && typeof e === 'object').slice(-MAX_EVENTS) : [],
+    events: Array.isArray(value?.events) ? value.events.filter((e) => e && typeof e === 'object') : [],
   }
 }
 

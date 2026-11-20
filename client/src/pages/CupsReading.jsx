@@ -6,7 +6,6 @@ import GameHero from '../components/GameHero.jsx'
 import InkFilter from '../components/InkFilter.jsx'
 import { article6 } from '../data/articles.js'
 import { SEAT_IDS, loadCups, saveCups } from '../data/cupProgress.js'
-import authorProfile from '../assets/author-profile.jpg'
 import { formatClock, useReadingClock } from '../lib/useReadingClock.js'
 import './Reading.css'
 import './CupsReading.css'
@@ -43,7 +42,7 @@ function CupsReading({ article = article6 }) {
   const reached = useRef(0) // the furthest seat whose sentence has been on her screen, 0 for none
 
   useEffect(() => { openedAt.current = performance.now() }, [])
-  const { cups, game, filed } = state
+  const { cups, game } = state
   const left = cups.filter((c) => c === null).length
   const seatName = (id) => article.seats.find((s) => s.id === id).name
 
@@ -93,7 +92,7 @@ function CupsReading({ article = article6 }) {
 
   const setCup = (seat) => {
     const idx = stateRef.current.cups.indexOf(null)
-    if (idx === -1 || stateRef.current.filed) return
+    if (idx === -1) return
     const next = stateRef.current.cups.map((c, i) => (i === idx ? seat : c))
     const remaining = next.filter((c) => c === null).length
     log('cup', { seatId: seat, reached: reachedSeat(), left: remaining })
@@ -102,7 +101,7 @@ function CupsReading({ article = article6 }) {
   }
   const takeBack = (idx) => {
     const seat = stateRef.current.cups[idx]
-    if (!seat || stateRef.current.filed) return
+    if (!seat) return
     const next = stateRef.current.cups.map((c, i) => (i === idx ? null : c))
     const remaining = next.filter((c) => c === null).length
     log('back', { seatId: seat, reached: reachedSeat(), left: remaining })
@@ -152,7 +151,6 @@ function CupsReading({ article = article6 }) {
                   exit={{ opacity: 0, y: -10, scale: 0.7 }}
                   transition={{ type: 'spring', stiffness: 320, damping: 22 }}
                   onClick={() => takeBack(i)}
-                  disabled={filed}
                 ><Cup filled /></motion.button>
               ))}
             </AnimatePresence>
@@ -177,8 +175,7 @@ function CupsReading({ article = article6 }) {
 
       <article className="read__body">
         <h1 className="read__title">{article.readingTitle.map((line) => <span key={line}>{line}</span>)}</h1>
-        <div className="read__author"><img className="read__avatar" src={authorProfile} alt={`${article.author} profile`} />
-          <span className="read__author-name">{article.author}</span></div>
+        <p className="cups__byline">{article.author}</p>
         <span className="visually-hidden" role="status" aria-live="polite">{announce}</span>
 
         {article.body.map((block, i) => {

@@ -29,7 +29,10 @@ export function makeReceiptsItem(navigate) {
 }
 
 // which article a route belongs to (1 unless it is clearly article 2)
-const articleOf = (pathname) => (/^\/(article|read|receipt)\/2(\/|$)/.test(pathname) ? 2 : 1)
+const articleOf = (pathname) => Number(/^\/(?:article|read|receipt)\/([2-7])(?:\/|$)/.exec(pathname)?.[1]) || 1
+const readPath = (n) => (n === 1 ? '/read' : `/read/${n}`)
+const introPath = (n) => `/article/${n}`
+const receiptPath = (n) => (n === 1 ? '/receipt' : `/receipt/${n}`)
 
 // The floating menu follows the page the reader is on: it offers the next sensible moves from here.
 // Pages with their own actions (the reading room's tabs) take over through useMenuOverride.
@@ -39,7 +42,7 @@ function RouteMenu() {
   const { user, logout } = useAuth()
   const { override } = useMenu()
   // inside an article the button doubles as a reading-progress ring
-  const progress = useReadProgress(pathname === '/read' || pathname === '/read/2')
+  const progress = useReadProgress(/^\/read(\/[2-7])?$/.test(pathname))
 
   const go = (path) => () => navigate(path)
   const top = () => window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -59,19 +62,19 @@ function RouteMenu() {
   else if (/^\/article\/\d+$/.test(pathname)) {
     page = {
       title: `Article ${pad(n)}`,
-      items: [item('start', 'Start reading', <I.Play />, go(n === 2 ? '/read/2' : '/read')), room, item('home', 'Home', <I.Home />, go('/')), account],
+      items: [item('start', 'Start reading', <I.Play />, go(readPath(n))), room, item('home', 'Home', <I.Home />, go('/')), account],
     }
   } else if (pathname === '/read' && !user) {
     // article 1 is read before signing up: signed-out readers get a menu with only Sign in
     page = { title: 'Reading · 01', items: [account], bare: true }
-  } else if (pathname === '/read' || pathname === '/read/2') {
+  } else if (/^\/read(\/[2-7])?$/.test(pathname)) {
     page = {
       title: `Reading · ${pad(n)}`,
       items: [
         room,
-        item('intro', 'Article intro', <I.Back />, go(n === 2 ? '/article/2' : '/article/1')),
+        item('intro', 'Article intro', <I.Back />, go(introPath(n))),
         n === 2 ? item('call', 'The Call', <I.Phone />, go('/read/2/call')) : item('top', 'Back to top', <I.Up />, top),
-        item('finish', 'Finish', <I.Receipt />, go(n === 2 ? '/receipt/2' : '/receipt')),
+        item('finish', 'Finish', <I.Receipt />, go(receiptPath(n))),
       ],
     }
   } else if (pathname === '/read/2/call') {
@@ -84,7 +87,7 @@ function RouteMenu() {
       title: 'Your receipt',
       items: [
         room,
-        item('article', 'Back to article', <I.Back />, go(n === 2 ? '/read/2' : '/read')),
+        item('article', 'Back to article', <I.Back />, go(readPath(n))),
         item('top', 'Back to top', <I.Up />, top),
         item('next', 'Next article', <I.Next />, go(user ? '/reading-room' : '/login#create')),
       ],

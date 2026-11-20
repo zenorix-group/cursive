@@ -2,6 +2,8 @@ import { Fragment, useEffect, useLayoutEffect, useRef, startTransition, useState
 import { AnimatePresence, animate, motion, useAnimationControls, useMotionValue } from 'framer-motion'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import authorProfile from '../assets/author-profile.jpg'
+import monica from '../assets/authors/monica-behura.jpg'
+import sampurna from '../assets/authors/sampurna-majumder.webp'
 import gameHero from '../assets/reading/game-hero.png'
 import feather from '../assets/reading/feather.png'
 import { article1 } from '../data/articles.js'
@@ -320,6 +322,11 @@ function Reading({ article = article1 }) {
         </span>
       </header>
 
+      <div className="read__head">
+        <h1 className="read__title">{article.readingTitle ? article.readingTitle.map((line) => <span key={line}>{line}</span>) : article.headline}</h1>
+        {article.subtitle && <p className="read__subtitle">{article.subtitle}</p>}
+      </div>
+
       <figure className="hero">
         <img className="hero__img" src={gameHero} alt="" draggable="false" />
         <div className="hero__shade" />
@@ -452,10 +459,8 @@ function Reading({ article = article1 }) {
       </figure>
 
       <article className="read__body">
-        <h1 className="read__title">{article.readingTitle ? article.readingTitle.map((line) => <span key={line}>{line}</span>) : article.headline}</h1>
-
         <div className="read__author">
-          <img className="read__avatar" src={authorProfile} alt={`${article.author} profile`} />
+          <img className="read__avatar" src={{ 1: monica, 2: sampurna }[article.number] || authorProfile} alt={`${article.author} profile`} />
           <span className="read__author-name">{article.author}</span>
         </div>
         {article.sectionLabel && game && <button type="button" className={`read__section-label${article.number === 2 && callProgress.selectedIds.length === 0 ? ' is-nudge' : ''}`} onClick={openCall}><span aria-hidden="true"><PhoneIcon /></span> {article.sectionLabel}</button>}

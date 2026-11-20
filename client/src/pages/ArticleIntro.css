@@ -130,6 +130,7 @@
 .article--india { background-color: #f7f7f5; background-image: var(--paper-grain), var(--paper-texture); background-size: 300px 300px, 700px 700px; background-blend-mode: multiply, multiply; }
 .article--india .card { padding-inline: calc(var(--u) * 22); }
 .card__pic--india { aspect-ratio: 315 / 445; }
+.card__own { display: block; width: 100%; height: 100%; object-fit: cover; user-select: none; }
 .card__reference { display: block; width: 100%; height: 100%; object-fit: cover; }
 .article--india .card__cap { margin-inline: calc(var(--u) * -11); }
 .article--india .card__capbg { background-image: var(--paper-texture); background-blend-mode: multiply; background-size: 700px 700px; }

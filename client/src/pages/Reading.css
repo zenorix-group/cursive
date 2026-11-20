@@ -168,6 +168,7 @@
   flex-shrink: 0;
   display: block;
   object-fit: cover;
+  object-position: 50% 30%;
   border-radius: 50%;
 }
 .read__author-name {
@@ -638,3 +639,25 @@
 /* Game info button sits directly above the game switch, right-aligned */
 .hero__row { flex-direction: column; align-items: flex-end; gap: calc(var(--u) * 10); }
 .hero__row .game-hint__card { right: 0; }
+
+/* headline sits above the picture, as in the reference */
+.read__head { width: min(100%, calc(var(--u) * 402)); margin: 0 auto; padding: calc(var(--u) * 64) calc(var(--u) * 30) calc(var(--u) * 20); }
+@media (min-width: 900px) { .read__head { width: min(100%, 720px); } }
+.read__head .read__title { margin: 0; font-size: calc(var(--u) * 38); line-height: 1.02; letter-spacing: -0.01em; }
+.read__body > .read__title { display: none; }
+.read__author { padding-top: 0; border: 0; }
+@media (min-width: 900px) { .read__head .read__title { text-align: center; } }
+/* one-line headline: the type scales with the column so the whole title fits on a single line */
+.read__head { container-type: inline-size; }
+.read .read__head .read__title { white-space: nowrap; font-size: 4.5cqw; line-height: 1.15; }
+.read__head .read__title > span { display: inline; }
+.read__head .read__title > span + span::before { content: ' '; }
+/* wide layout: the headline and the picture share one column, and the headline fills it edge to edge */
+@media (min-width: 900px) {
+  .read .read__head { width: min(100%, 960px); padding-left: 0; padding-right: 0; padding-top: 64px; }
+  .read > .hero.hero { width: min(100%, 960px) !important; height: auto !important; max-height: none !important; aspect-ratio: 3 / 2 !important; margin: 0 auto !important; }
+}
+/* room between the headline block and the picture */
+.read .read__head { padding-bottom: calc(var(--u) * 36); }
+.read__head .read__subtitle { margin: calc(var(--u) * 16) 0 0; text-align: center; font: 400 calc(var(--u) * 17)/1.4 var(--sans); color: #2b2926; }
+@media (min-width: 900px) { .read .read__head { padding-bottom: 44px; } .read__head .read__subtitle { font-size: 20px; } }

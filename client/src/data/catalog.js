@@ -42,10 +42,11 @@ export const catalog = [
     paths: { ns: '/article/3', ip: '/read/3', done: '/receipt/3' },
   },
   {
-    id: 3, img: 'earth', cat: 'essays', kick: '¶ Essays & Culture', read: 6,
+    id: 3, article: 4, img: 'earth', cat: 'essays', kick: '¶ Essays & Culture', read: 3,
     title: 'Write for the Earth',
-    dek: 'A writing competition that asks for sentences about writing and the earth in the same breath. Mark the lines that carry both themes, then write to us with what is running through them…',
-    by: 'Cursive Desk',
+    dek: 'A writing competition that asks for sentences about writing and the earth in the same breath. Mark the sentences that carry both themes, then write to us with what is running through them…',
+    by: 'Bonnie Wiseman',
+    paths: { ns: '/article/4', ip: '/read/4', done: '/receipt/4' },
   },
   {
     id: 4, article: 2, img: 'lead', cat: 'finance', kick: '¶ Finance & Law', read: 8,

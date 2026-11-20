@@ -140,6 +140,13 @@ function HoldMarker({ id, holdText, after, result, busy, onActive, onEvent, onSe
       window.removeEventListener('blur', interrupt)
     }
   })
+  // a touch that has already started cannot be stopped from scrolling by a listener added later (iOS), so one stays on the window
+  // and blocks the page only while a hold plays; before the hold begins, a moving finger is an ordinary scroll
+  useEffect(() => {
+    const block = (event) => { if (phaseRef.current === 'setup' || phaseRef.current === 'playing') event.preventDefault() }
+    window.addEventListener('touchmove', block, { passive: false })
+    return () => window.removeEventListener('touchmove', block)
+  }, [])
   useEffect(() => () => { clearTimers(); unlockScroll() }, [])
 
   const playing = phase === 'setup' || phase === 'playing' || phase === 'done'

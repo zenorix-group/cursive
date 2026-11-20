@@ -84,31 +84,41 @@ export const HABITS = {
   none: 'You did not play any of the holds, so there is no pattern to describe yet.',
 }
 
-const priceWords = (j) => (j.priceMove === 'fall' ? 'The money was below where it began' : 'The money was above where it began')
 
-// one short story per year, told from her side
+// what the market did in each year, in plain words
+const MARKET = {
+  h1: 'American shares fell hard in the pandemic crash of early 2020, then climbed back.',
+  h2: 'American shares ended 2011 close to where they began, while Indian shares slid, so your share abroad crept up.',
+  h3: 'American technology shares fell through 2022, after two boom years.',
+}
+
+// one short story per year, told from her side: what happened in the market, what she saw, when she acted, what the rule asked,
+// whether she followed it and what that suggests about her
 export function yearStory(id, result) {
   const data = HOLD_DATA[id]
-  if (!result) {
-    return {
-      id, played: false, title: data.label,
-      lines: [`You skipped this year, so you did not see what it did. Over the year the ₹1 lakh moved between ${rupees(Math.min(...data.weeks.map((w) => w[2])))} and ${rupees(Math.max(...data.weeks.map((w) => w[2])))}, and it ended at ${rupees(data.weeks.at(-1)[2])}, ${share(data.weeks.at(-1)[3])} per cent of the portfolio.`],
-    }
-  }
+  const lows = Math.min(...data.weeks.map((w) => w[2]))
+  const highs = Math.max(...data.weeks.map((w) => w[2]))
+  const market = `${MARKET[id]} Your ₹1 lakh moved between ${rupees(lows)} and ${rupees(highs)}, and it ended at ${rupees(data.weeks.at(-1)[2])}.`
+  if (!result) return { id, played: false, title: data.label, lines: [`${market} You skipped this year, so you did not see it play.`] }
+
   const j = judgeHold(id, result)
-  const lines = [
-    `The year moved your ₹1 lakh between ${rupees(j.lowValue)} and ${rupees(j.highValue)}, and it ended at ${rupees(j.endValue)}.`,
-    j.acted
-      ? `You let go in ${j.monthLabel}. ${priceWords(j)}, at ${rupees(j.value)}, and your share was ${share(j.pct)} per cent.`
-      : `You held to the full stop, through to December. ${j.firstOut ? `Your share first left 10 to 15 per cent in ${j.firstOut.label}, at ${share(j.firstOut.pct)} per cent.` : 'Your share stayed inside 10 to 15 per cent the whole year.'}`,
-    j.ruleAsked === 'act'
-      ? `The rule asked you to act: ${j.acted ? `your share was ${share(j.pct)} per cent, outside 10 to 15` : `your share had left 10 to 15 per cent, ${j.firstOut.above ? 'above 15, so the extra moves home' : 'below 10, so you top it up'}`}.`
-      : `The rule asked you to wait: ${j.acted ? `your share was ${share(j.pct)} per cent, still inside 10 to 15, so there was nothing to move` : 'your share never left 10 to 15 per cent, so there was nothing to move'}.`,
-    j.acted
-      ? (j.leftRange ? `Your move left you ${j.pct > RANGE.high ? 'above' : 'below'} 10 to 15 per cent, which is where the rule says to act.` : `Your move came while your share sat inside 10 to 15 per cent, ${share(j.pct)}.`)
-      : `Holding left you at ${share(j.endPct)} per cent by December, ${outside(j.endPct) ? `${j.endPct > RANGE.high ? 'above' : 'below'} 10 to 15 per cent.` : 'inside 10 to 15 per cent.'}`,
-  ]
-  return { id, played: true, title: data.label, judged: j, lines }
+  const watched = j.acted
+    ? `You watched it play to ${j.monthLabel}, when it stood at ${rupees(j.value)} and your share at ${share(j.pct)} per cent.`
+    : `You watched the whole year play, to ${rupees(j.endValue)} and ${share(j.endPct)} per cent in December.`
+  const when = j.acted ? `You let go in ${j.monthLabel}.` : 'You held to the full stop, through to December.'
+  const rule = j.acted
+    ? `The rule asks you to act only once your share leaves 10 to 15 per cent. In ${j.monthLabel} yours was ${share(j.pct)}, ${j.leftRange ? 'outside' : 'inside'} that range, so the rule said ${j.leftRange ? 'act' : 'hold'}.`
+    : j.firstOut
+      ? `The rule asks you to act only once your share leaves 10 to 15 per cent. Yours first did in ${j.firstOut.label}, at ${share(j.firstOut.pct)}, so the rule said act then.`
+      : 'The rule asks you to act only once your share leaves 10 to 15 per cent. Yours never did, so the rule said hold.'
+  const followed = j.fits
+    ? 'Your decision followed the rule.'
+    : j.acted ? 'Your decision did not follow the rule: you acted while the rule said to hold.' : 'Your decision did not follow the rule: you held past the week it said to act.'
+  const reveals = j.acted
+    ? (j.leftRange ? 'That suggests you act on your share, not on the price.'
+      : j.priceMove === 'fall' ? 'That suggests you react to a falling price.' : 'That suggests you let a rising price move you.')
+    : (j.firstOut ? 'That suggests you hold on through a drift, even after the plan says to act.' : 'That suggests you are comfortable holding when the plan says hold.')
+  return { id, played: true, title: data.label, judged: j, lines: [`${market} ${watched}`, `${when} ${rule}`, `${followed} ${reveals}`] }
 }
 
 export function holdReceipt(holds) {

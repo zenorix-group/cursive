@@ -1,9 +1,17 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import plateImg from '../assets/landing/plate-1.png'
+import equities from '../assets/site/equities.jpg'
+import earth from '../assets/site/earth.jpg'
+import quixote from '../assets/site/quixote.jpg'
+import gentleman from '../assets/site/gentleman.jpg'
+import room912 from '../assets/site/room912.jpg'
 import { article1 } from '../data/articles.js'
 import { outsidePath } from '../data/plates.js'
 import './ArticleIntro.css'
+
+// the first two articles are the plate's flags; every later article shows its own picture on the card
+const OWN_IMAGE = { 3: equities, 4: earth, 5: quixote, 6: gentleman, 7: room912 }
 
 const ease = [0.22, 1, 0.36, 1]
 const rise = (delay = 0, y = 24) => ({
@@ -16,6 +24,7 @@ function ArticleIntro({ article = article1 }) {
   const { w, h } = article.plate.size
   const lit = article.plate.flags.find((f) => f.id === article.litFlag)
   const litPoints = article.litPoints ?? lit.points
+  const own = OWN_IMAGE[article.number]
   const crop = article.crop && { width: article.crop.width, marginLeft: article.crop.left, marginTop: article.crop.top }
 
   return (
@@ -41,6 +50,9 @@ function ArticleIntro({ article = article1 }) {
           <div className="card__frame" />
 
           <div className={`card__pic${article.number >= 2 ? ' card__pic--india' : ''}`}>
+            {own ? (
+              <motion.img className="card__own" src={own} alt="" draggable="false" initial={{ scale: 1.12 }} animate={{ scale: 1 }} transition={{ duration: 1.6, ease }} />
+            ) : (
             <div className="card__crop" style={crop}>
               <motion.img src={plateImg} alt="" draggable="false" initial={{ scale: 1.12 }} animate={{ scale: 1 }} transition={{ duration: 1.6, ease }} />
               <svg viewBox={`0 0 ${w} ${h}`} aria-hidden="true">
@@ -77,6 +89,7 @@ function ArticleIntro({ article = article1 }) {
                 <polygon className="card__run" points={litPoints} pathLength="1" />
               </svg>
             </div>
+            )}
           </div>
 
           <motion.div className="card__cap" {...rise(0.55, 30)}>

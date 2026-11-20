@@ -40,6 +40,16 @@ The shared layout rules are in `client/src/responsive.css`. Layout checks cover 
 - No paragraph-reading or selection-history events have been recorded. The receipt therefore describes final choices and does not claim that a reader changed their mind after reading a paragraph. Unverified voice-cloning claims from the test report are excluded.
 - Lift receipts have a separate local cache that is invalidated when a selection or placement changes.
 
+## Article 04: Write for the Earth (Hindsight Highlights)
+
+- The article is the Grand Prix Francophone announcement, in thirteen markable sentences (S1 to S13). The byline and the two subheadings are not markable. Ids exist only in the log and on the server, and are never rendered.
+- With the game on, each sentence is a `role="button"` inside the running paragraph. One tap marks it, another unmarks it; the mark is a single highlight at the text edge. Marking is free until **File**. The budget of five is shown as a count and never enforced.
+- **File** draws six words (nouns and verbs, at most two per sentence, one from each sentence first) from the marked sentences. Below two marked sentences the words stage does not open and the page offers the Overture. She keeps two, writes a line that contains both (any inflected form), and sends it. The drawer of words per sentence, with its stop list, is `article4.drawer` in `client/src/data/articles.js`.
+- The log is raw rows (`mark`, `offer`, `keep`, `line`, plus `game` and `file`), never edited or deduplicated; the line is stored exactly as typed. It lives under `cursive:article:4:highlights:v1`.
+- `/receipt/4` posts the rows to `/api/receipts/highlights`. The server holds the key and the rubric: it computes what each mark is, her habit, and the words she kept, released and passed over, then makes one model call that judges what her line is about and writes the sentences. The server then checks them against the answer sheet (no sentence ids, nothing quoted from the article except one word, no praise, counts or backend words, 40 words a sentence, 250 words or 300 above six marks, judgments at most one in five, one failure and never first), sends a failed draft back once, and trims by the word and ratio limits rather than returning an over-long receipt. Fewer than two sentences gives the one-line refusal; the four answers, the drawing and the confidence note always appear.
+- The confidence note is drafted by the model and always carries `unverified` in place of a source until an editor exists.
+- Receipts are limited to 12 requests per 15 minutes per address (`server/src/lib/limits.js`). `npm test --prefix server` includes `highlightsReceipt.test.js`, built from the three example readers in the second-draft test report.
+
 ## Checks
 
 ```sh

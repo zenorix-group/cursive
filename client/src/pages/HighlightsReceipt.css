@@ -1,0 +1,26 @@
+/* Article 4 receipt: Receipt.css supplies the page; this adds the prose, the drawing and the confidence note. */
+.hh-receipt__prose { margin: 0 0 14px; font: 400 17px/1.6 var(--text); }
+.hh-receipt__note p { margin: 0 0 8px; font: 400 16px/1.6 var(--text); }
+.hh-receipt__source { font: 400 12px/1.4 var(--sans) !important; color: #6d665b; }
+
+.hh-draw { position: relative; margin: 0; }
+.hh-draw__rows { list-style: none; margin: 0; padding: 0; }
+.hh-draw__row { display: grid; grid-template-columns: minmax(0, 1fr) 22% minmax(0, 0.9fr); align-items: center; gap: 8px; min-height: 26px; padding: 2px 0; font: 400 12px/1.25 var(--sans); color: #8d8678; }
+.hh-draw__row.is-marked, .hh-draw__row.is-letgo { color: #1e1b16; }
+.hh-draw__row.is-marked .hh-draw__label { font-weight: 600; }
+.hh-draw__label em { display: block; font: italic 400 11px/1.25 var(--text); color: #6d665b; }
+.hh-draw__bar { display: block; height: 14px; border-radius: 2px; background: #f0ede4; }
+.hh-draw__row.is-marked .hh-draw__bar { background: #2f7a3e; }
+.hh-draw__row.is-letgo .hh-draw__bar { background: #2f7a3e; opacity: 0.28; }
+.hh-draw__row.is-four .hh-draw__bar { box-shadow: inset 0 0 0 1.5px #1e1b16; }
+.hh-draw__row.is-four.is-marked .hh-draw__bar { box-shadow: 0 0 0 1.5px #1e1b16; }
+.hh-draw__row.is-arguable .hh-draw__bar { box-shadow: inset 0 0 0 1.5px #1e1b16; background-image: none; border: 1px dashed #1e1b16; }
+.hh-draw__words { display: flex; flex-wrap: wrap; gap: 4px; }
+.hh-draw__chip { padding: 1px 8px; border: 1px solid #b9b19e; border-radius: 10px; font: 400 11.5px/1.5 var(--sans); color: #4a443a; }
+.hh-draw__chip.is-kept { background: #2f7a3e; border-color: #2f7a3e; color: #fff; }
+.hh-draw__chip.is-released { text-decoration: line-through; background: #2f7a3e22; border-color: #2f7a3e; }
+.hh-draw__line { margin: 34px 0 6px; font: italic 400 16px/1.55 var(--text); color: #25231f; text-align: right; }
+.hh-draw__line mark { background: #2f7a3e2b; color: inherit; padding: 0 1px; }
+.hh-draw__threads { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.hh-draw__threads path { fill: none; stroke: #2f7a3e; stroke-width: 1; }
+.hh-draw figcaption { margin-top: 10px; font: italic 400 12px/1.5 var(--text); color: #6d665b; }

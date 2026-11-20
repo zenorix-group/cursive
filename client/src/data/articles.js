@@ -14,7 +14,7 @@ export const article1 = {
   tagline: 'Ask the question everything else waits on',
   title: ['The Courts Said Yes.', 'Now Get Nirav Modi Home.'],
   headline: 'Now Get Nirav Modi Home.',
-  author: 'Author name',
+  author: 'Monica Behura',
   minutes: 8,
   blurb: "Where the answer lives: in what the piece argued, except at Q3, where it doesn't exist yet",
   plate: plate1,
@@ -54,7 +54,7 @@ export const article2 = {
   headline: 'Common Banking Frauds Everyone Should Know',
   readingTitle: ['Common Banking', 'Frauds Everyone', 'Should Know'],
   minutes: 8,
-  author: 'Author name',
+  author: 'Sampurna Majumder',
   sectionLabel: 'The Call',
   inlineBlankAfter: [1, 2, 3],
   body: [
@@ -128,6 +128,88 @@ export const article3 = {
     { p: 'In the United States, the big indices are the S&P 500, the Dow Jones and the Nasdaq. Britain has the FTSE 100, Hong Kong the Hang Seng, Japan the Nikkei 225 and Australia the S&P/ASX 200.' },
   ],
 }
+
+// Article 4, "Write for the Earth" (Hindsight Highlights). `body` blocks: { byline } the dateline, { h } a subheading, { s: [...] } a
+// paragraph whose sentences are the markable ones, { q: [...] } the president's quote (set apart). Ids are for the log and the server
+// only and are never rendered. The byline and the two subheadings are not markable.
+export const article4 = {
+  number: 4,
+  mechanic: 'Hindsight Highlights',
+  rule: 'Mark the sentences that are a combination of the two themes in the article and then write to us with what is running through your head.',
+  gameInfo: {
+    title: 'Mark the sentences that carry both themes.',
+    body: [
+      'A sentence qualifies when it is about writing and the earth in the same breath. One theme alone does not, however good the sentence is.',
+      'Tap a sentence to mark it and tap again to unmark it. File when you are done, keep two of the words offered from what you marked, and write whatever you like with them. Nothing is judged at the tap.',
+    ],
+  },
+  tagline: 'Mark where writing and the earth share a sentence.',
+  title: ['Write for', 'the Earth'],
+  readingTitle: ['Write for', 'the Earth'],
+  subtitle: 'Literature: the Grand Prix Francophone de Poésie et du Conte officially opens, and the Francophone world is invited to “Write for the Earth”.',
+  headline: 'Write for the Earth',
+  blurb: 'Where the answer lives: in the sentences where writing and the earth arrive together, and in the line you write from them.',
+  plate: plate1,
+  litFlag: 'in',
+  litPoints: article2.litPoints,
+  crop: article2.crop,
+  readPath: '/read/4',
+  minutes: 3,
+  author: 'Bonnie Wiseman',
+  budget: 5, // a guess, set above the number that qualifies so that the count is not itself a hint
+  body: [
+    { byline: 'Bonnie Wiseman · Paris, 9 September 2026' },
+    { s: [
+      { id: 'S1', text: 'Lovers of words, of poetry and of short stories now have a date they cannot miss.' },
+      { id: 'S2', text: 'The Grand Prix Francophone de Poésie et du Conte is officially opening entries for its first edition, and invites every author writing in French, amateur and established alike, to make their voice heard on one of the great questions of our time: the protection of our planet.' },
+    ] },
+    { s: [
+      { id: 'S3', text: 'Organised by the educational, cultural and literary platform Grand Prix Francophone, which is run by the France-based NGO Réseau pour l’Éducation, l’Art et le Développement (READ), this international literary competition sets out to promote Francophone writing while awakening citizens to the great environmental challenges.' },
+    ] },
+    { h: 'A theme that carries hope' },
+    { s: [
+      { id: 'S4', text: 'For this inaugural edition, entrants must submit an original work inspired by the environmental theme.' },
+      { id: 'S5', text: 'Through their writing, candidates may explore any number of key subjects: the preservation of nature, waste management, recycling, the protection of water resources, the fight against the pollution of oceans and waterways, and the impact of climate change.' },
+    ] },
+    { s: [
+      { id: 'S6', text: 'For Bonnie Wiseman, president of READ and of the Grand Prix Francophone organising committee, this competition, open to the whole of the Francophone world, is intended as a channel for expression and a celebration of creativity:' },
+    ] },
+    { q: [
+      { id: 'S7', text: '“A great many texts are still asleep in notebooks and in drawers.' },
+      { id: 'S8', text: 'This competition is an invitation to bring them to life.' },
+      { id: 'S9', text: 'Every pen can help awaken consciences and build a more sustainable future,” he says.' },
+    ] },
+    { h: 'An international reach.' },
+    { s: [
+      { id: 'S10', text: 'Dedicated to the discovery of new talent, the competition offers an exceptional showcase to emerging pens and seasoned writers alike.' },
+      { id: 'S11', text: 'The works will be judged by an international jury made up of academics and figures from the European and African literary scene.' },
+    ] },
+    { s: [
+      { id: 'S12', text: 'This 2026 edition will culminate in some twenty prizewinners being honoured internationally, at two award ceremonies: the first in Abidjan, the second in Paris.' },
+    ] },
+    { s: [
+      { id: 'S13', text: 'The organising committee invites everyone with a passion for writing to begin today, to turn their reflections into poems or short stories, and to take part in this great celebration of Francophone creation.' },
+    ] },
+  ],
+  // the drawer the six words are drawn from: nouns and verbs only, in the order they are preferred. The stop list (competition,
+  // edition, committee and the like carry nothing) is the words left out of these lists.
+  drawer: {
+    S1: ['words', 'poetry', 'stories', 'lovers'],
+    S2: ['planet', 'voice', 'author', 'protection'],
+    S3: ['writing', 'citizens', 'challenges'],
+    S4: ['work', 'theme'],
+    S5: ['oceans', 'nature', 'waste', 'recycling', 'climate', 'pollution', 'water'],
+    S6: ['expression', 'creativity'],
+    S7: ['texts', 'drawers', 'notebooks'],
+    S8: ['life', 'invitation'],
+    S9: ['pen', 'future', 'consciences'],
+    S10: ['talent', 'pens', 'writers', 'showcase'],
+    S11: ['jury', 'academics', 'figures'],
+    S12: ['prizewinners', 'Paris', 'Abidjan', 'ceremonies'],
+    S13: ['reflections', 'poems', 'stories', 'creation'],
+  },
+}
+export const SENTENCE_IDS = article4.body.flatMap((b) => (b.s || b.q || []).map((s) => s.id))
 
 // Article 5, "Behind Don Quixote": six moments, one paragraph each. The paragraphs never move; each one's title hides behind a
 // marker. m2 to m4 start with titles that are out of place (the ¶ ones); the reader swaps them. The page never says which is right.

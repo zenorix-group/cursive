@@ -1,7 +1,7 @@
 /* Article 7, "Two Files". The report borrows Reading.css; the two breaks borrow its own look: plain lines, colons and labels. */
 .visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
-.read--files { --files-theme: #8a6414; --files-ink: #1e1b16; }
+.read--files { --files-theme: #314099; --files-ink: #1a1d24; }
 .files__subtitle { margin: calc(var(--u) * -6) 0 calc(var(--u) * 22) !important; font: italic 400 calc(var(--u) * 17)/1.4 var(--text) !important; color: #5b544a; }
 .files__status { margin: 0 0 calc(var(--u) * 20); font: 400 calc(var(--u) * 16)/1.75 var(--text); color: var(--files-ink); }
 .files__itinerary { list-style: none; margin: 0 0 calc(var(--u) * 20); padding: 0 0 0 14px; border-left: 3px solid #d9c9a2; font: 400 calc(var(--u) * 16)/1.75 var(--text); color: var(--files-ink); }
@@ -16,5 +16,5 @@
 .files__field { position: relative; display: flex; align-items: flex-end; gap: 10px; min-height: 44px; border-bottom: 1px solid var(--files-theme); }
 .files__field:focus-within { border-bottom-width: 2px; }
 .files__field textarea { flex: 1; min-width: 0; min-height: 44px; margin: 0; padding: 10px 0 6px; border: 0; border-radius: 0; background: transparent; resize: none; overflow: hidden; font: 400 calc(var(--u) * 16)/1.55 var(--text); color: var(--files-ink); outline: none; box-shadow: none; -webkit-appearance: none; appearance: none; }
-.files__field textarea::placeholder { color: #b8ae96; opacity: 1; }
-.files__count { flex: none; padding-bottom: 8px; font: 400 12px var(--sans); color: #7d7768; white-space: nowrap; }
+.files__field textarea::placeholder { color: #c7cad0; opacity: 1; }
+.files__count { flex: none; padding-bottom: 8px; font: 400 12px var(--sans); color: #7a8090; white-space: nowrap; }

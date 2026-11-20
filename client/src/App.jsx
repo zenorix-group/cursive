@@ -14,6 +14,8 @@ import LiftReceipt from './pages/LiftReceipt.jsx'
 import NarrativeReceipt from './pages/NarrativeReceipt.jsx'
 import HoldReading from './pages/HoldReading.jsx'
 import HoldReceipt from './pages/HoldReceipt.jsx'
+import HighlightsReading from './pages/HighlightsReading.jsx'
+import HighlightsReceipt from './pages/HighlightsReceipt.jsx'
 import ReArrange from './pages/ReArrange.jsx'
 import ReArrangeReceipt from './pages/ReArrangeReceipt.jsx'
 import CupsReading from './pages/CupsReading.jsx'
@@ -25,7 +27,7 @@ import Login from './pages/Login.jsx'
 import ReadingRoom from './pages/ReadingRoom.jsx'
 import LoadError from './auth/LoadError.jsx'
 import { useAuth } from './auth/AuthContext.jsx'
-import { article2, article3, article5, article6, article7 } from './data/articles.js'
+import { article2, article3, article4, article5, article6, article7 } from './data/articles.js'
 
 // the app proper is for signed-in readers; a guest is sent to sign in and brought back afterwards
 function RequireAuth({ children }) {
@@ -44,7 +46,8 @@ function App() {
   return (
     <MotionConfig reducedMotion="user">
     <AnimatePresence mode="wait" custom={handoff}>
-    <PageTransition key={location.pathname} handoff={handoff}>
+    {/* the admin panel is one page: moving between its sections must not fade the whole screen out and back in */}
+    <PageTransition key={location.pathname.startsWith('/admin') ? '/admin' : location.pathname} handoff={handoff}>
     <Routes location={location}>
       <Route path="/" element={<Landing />} />
       <Route path="/enter" element={<Plate />} />
@@ -53,6 +56,9 @@ function App() {
       <Route path="/article/3" element={<ArticleIntro article={article3} />} />
       <Route path="/read/3" element={<HoldReading key="article-3" />} />
       <Route path="/receipt/3" element={<HoldReceipt />} />
+      <Route path="/article/4" element={<ArticleIntro article={article4} />} />
+      <Route path="/read/4" element={<HighlightsReading key="article-4" />} />
+      <Route path="/receipt/4" element={<HighlightsReceipt />} />
       <Route path="/article/5" element={<ArticleIntro article={article5} />} />
       <Route path="/read/5" element={<ReArrange key="article-5" />} />
       <Route path="/receipt/5" element={<ReArrangeReceipt />} />

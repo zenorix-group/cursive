@@ -6,7 +6,6 @@ import { article5 } from './articles.js'
 const KEY = 'cursive:article:5:moves:v1'
 export const MOVABLE = article5.moments.filter((m) => m.movable).map((m) => m.id)
 export const startPlacement = () => Object.fromEntries(article5.moments.filter((m) => m.movable).map((m) => [m.id, m.title]))
-const MAX_EVENTS = 300
 
 export function normalizeMoves(value) {
   const start = startPlacement()
@@ -22,7 +21,7 @@ export function normalizeMoves(value) {
     // the fold shows all three middle titles, and from then on they stay shown
     revealed: value?.revealed === true,
     filed: value?.filed === true,
-    events: Array.isArray(value?.events) ? value.events.filter((e) => e && typeof e === 'object').slice(-MAX_EVENTS) : [],
+    events: Array.isArray(value?.events) ? value.events.filter((e) => e && typeof e === 'object') : [],
   }
 }
 

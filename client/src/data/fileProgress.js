@@ -4,7 +4,6 @@ import { kvGet, kvSet } from './cursiveStore.js'
 // whether the game is on. `events` is the raw log: game, note and file, one row each, never edited.
 const KEY = 'cursive:article:7:files:v1'
 export const MAX_WORDS = 12
-const MAX_EVENTS = 400
 
 // a field takes no thirteenth word: text past the twelfth word is cut there, and everything before it stays exactly as typed
 export function limitWords(text) {
@@ -19,7 +18,7 @@ export function normalizeFiles(value) {
     notes: { hotel: note(value?.notes?.hotel), bureau: note(value?.notes?.bureau) },
     game: value?.game === true,
     filed: value?.filed === true,
-    events: Array.isArray(value?.events) ? value.events.filter((e) => e && typeof e === 'object').slice(-MAX_EVENTS) : [],
+    events: Array.isArray(value?.events) ? value.events.filter((e) => e && typeof e === 'object') : [],
   }
 }
 

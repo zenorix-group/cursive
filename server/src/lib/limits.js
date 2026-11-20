@@ -7,5 +7,6 @@ module.exports = {
   rearrange: { label: 'Re-Arrange receipt', max: 30, windowMs: WINDOW },
   cups: { label: 'Four Cups receipt', max: 30, windowMs: WINDOW },
   files: { label: 'Two Files receipt', max: 30, windowMs: WINDOW },
+  highlights: { label: 'Hindsight Highlights receipt (AI)', max: 12, windowMs: WINDOW },
   combined: { label: 'Combined receipt email', max: 5, windowMs: HOUR },
 };
