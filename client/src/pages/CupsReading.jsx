@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { AnimatePresence, MotionConfig, motion } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 import gentleman from '../assets/site/gentleman.jpg'
 import GameHero from '../components/GameHero.jsx'
 import InkFilter from '../components/InkFilter.jsx'
@@ -9,6 +9,8 @@ import { SEAT_IDS, loadCups, saveCups } from '../data/cupProgress.js'
 import { formatClock, useReadingClock } from '../lib/useReadingClock.js'
 import './Reading.css'
 import './CupsReading.css'
+import BrandLink from '../components/BrandLink.jsx'
+import { useFiling, usePlainNext } from '../lib/companion.js'
 
 const iconProps = { width: 16, height: 16, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.6, strokeLinecap: 'round', strokeLinejoin: 'round' }
 // the game switch for article 6: a cup of tea, and the tree
@@ -40,6 +42,10 @@ function CupsReading({ article = article6 }) {
   const openedAt = useRef(0)
   const session = useRef(`s${Date.now().toString(36)}`)
   const reached = useRef(0) // the furthest seat whose sentence has been on her screen, 0 for none
+  const origins = useRef({}) // where each set cup flew in from, as an offset from its seat
+  const lastBack = useRef({ dx: 0, dy: -60 }) // where the cup she just took back flies to
+  const anchor = useRef(null) // keeps her place while the game's spaces appear or go
+  const bodyRef = useRef(null)
 
   useEffect(() => { openedAt.current = performance.now() }, [])
   const { cups, game } = state
@@ -81,6 +87,10 @@ function CupsReading({ article = article6 }) {
   const setGame = (value) => {
     const on = typeof value === 'function' ? value(stateRef.current.game) : value
     if (on === stateRef.current.game) return
+    // note a paragraph on screen, so the page can hold her place once the spaces appear or go
+    const blocks = [...(bodyRef.current?.children ?? [])]
+    const first = blocks.find((el) => el.getBoundingClientRect().bottom > 90)
+    anchor.current = first ? { el: first, top: first.getBoundingClientRect().top } : null
     log('game', { on })
     update({ game: on })
   }
@@ -90,11 +100,30 @@ function CupsReading({ article = article6 }) {
     setShowSeats((s) => !s)
   }
 
+  // a cup flies between the nearest row of four and its seat: an arc from a row on the screen; with none on the screen, a slide in
+  // from the screen edge nearest a row
+  const flight = (seatId) => {
+    const target = document.querySelector(`[data-seat="${seatId}"] .cups__empty`)?.getBoundingClientRect()
+    const rows = [...document.querySelectorAll('.cups__row')].map((r) => r.getBoundingClientRect())
+    if (!target || !rows.length) return { dx: 0, dy: -60 }
+    const cx = target.left + target.width / 2
+    const cy = target.top + target.height / 2
+    const vh = window.innerHeight
+    const onScreen = rows.filter((r) => r.bottom > 0 && r.top < vh)
+    if (onScreen.length) {
+      const near = onScreen.reduce((a, b) => (Math.abs(a.top - target.top) <= Math.abs(b.top - target.top) ? a : b))
+      return { dx: near.left + near.width / 2 - cx, dy: near.top + near.height / 2 - cy }
+    }
+    const near = rows.reduce((a, b) => (Math.abs(a.top - target.top) <= Math.abs(b.top - target.top) ? a : b))
+    return near.top < 0 ? { dx: 0, dy: -cy - 40 } : { dx: 0, dy: vh - cy + 40 }
+  }
+
   const setCup = (seat) => {
     const idx = stateRef.current.cups.indexOf(null)
     if (idx === -1) return
     const next = stateRef.current.cups.map((c, i) => (i === idx ? seat : c))
     const remaining = next.filter((c) => c === null).length
+    origins.current[idx] = flight(seat)
     log('cup', { seatId: seat, reached: reachedSeat(), left: remaining })
     update({ cups: next })
     setAnnounce(`Cup set after ${seatName(seat)}. ${remaining} left among the four.`)
@@ -104,21 +133,40 @@ function CupsReading({ article = article6 }) {
     if (!seat) return
     const next = stateRef.current.cups.map((c, i) => (i === idx ? null : c))
     const remaining = next.filter((c) => c === null).length
+    lastBack.current = flight(seat)
     log('back', { seatId: seat, reached: reachedSeat(), left: remaining })
     update({ cups: next })
     setAnnounce(`Cup taken back from ${seatName(seat)}. ${remaining} left among the four.`)
   }
 
-  const file = () => {
-    if (!stateRef.current.filed) { log('file'); update({ filed: true }) }
+  useLayoutEffect(() => {
+    const held = anchor.current
+    anchor.current = null
+    if (!held?.el?.isConnected) return
+    const shift = held.el.getBoundingClientRect().top - held.top
+    if (shift) window.scrollBy(0, shift)
+  }, [game])
+
+  const file = (from = 'overture') => {
+    if (!stateRef.current.filed) { log('file', { from }); update({ filed: true }) }
     navigate('/receipt/6')
   }
+  const plainNext = usePlainNext()
+  useFiling(6, file, setGame)
 
   // one row of four: tapping it shows or hides the seats; a cup she has set leaves an empty outline here
   const row = (key) => (
-    <button key={key} type="button" className="cups__row" aria-expanded={showSeats} aria-label="Four cups of tea, show the seats" onClick={toggleSeats}>
-      {cups.map((seat, i) => <span key={i} className="cups__row-cup"><Cup filled={seat === null} /></span>)}
-    </button>
+    <motion.button key={key} type="button" className="cups__row" aria-expanded={showSeats} aria-label="Four cups of tea, show the seats" onClick={toggleSeats} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.95 }}>
+      {cups.map((seat, i) => (
+        <motion.span
+          key={i}
+          className="cups__row-cup"
+          initial={{ opacity: 0, y: 10 }}
+          animate={state.seen ? { opacity: 1, y: 0 } : { opacity: 1, y: [0, -5, 0] }}
+          transition={state.seen ? { type: 'spring', stiffness: 300, damping: 20, delay: i * 0.06 } : { duration: 1.1, delay: 1 + i * 0.12, repeat: 3, repeatDelay: 2.4, ease: 'easeInOut' }}
+        ><Cup filled={seat === null} /></motion.span>
+      ))}
+    </motion.button>
   )
 
   const allSet = left === 0
@@ -139,17 +187,24 @@ function CupsReading({ article = article6 }) {
               aria-hidden={!(showSeats && !allSet)}
               onClick={() => setCup(id)}
             ><Cup /></button>
-            <AnimatePresence initial={false}>
+            <AnimatePresence initial={false} custom={lastBack.current}>
               {mine.map(({ i }) => (
                 <motion.button
                   key={i}
                   type="button"
                   className="cups__mine"
                   aria-label={`Your cup ${place} ${seatName(id)}, take it back`}
-                  initial={{ opacity: 0, y: -14, scale: 0.6 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -10, scale: 0.7 }}
-                  transition={{ type: 'spring', stiffness: 320, damping: 22 }}
+                  custom={origins.current[i] || { dx: 0, dy: -60 }}
+                  variants={{
+                    from: (o) => ({ opacity: 0, x: o.dx, y: o.dy, scale: 0.7 }),
+                    seated: { opacity: 1, x: 0, y: 0, scale: 1, transition: { x: { duration: 0.6, ease: 'easeOut' }, y: { duration: 0.6, ease: 'easeIn' }, opacity: { duration: 0.2 }, scale: { type: 'spring', stiffness: 300, damping: 14, delay: 0.35 } } },
+                    back: (o) => ({ opacity: 0, x: o.dx, y: o.dy, scale: 0.7, transition: { x: { duration: 0.5, ease: 'easeIn' }, y: { duration: 0.5, ease: 'easeOut' }, opacity: { duration: 0.5, delay: 0.15 } } }),
+                  }}
+                  initial="from"
+                  animate="seated"
+                  exit="back"
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.9 }}
                   onClick={() => takeBack(i)}
                 ><Cup filled /></motion.button>
               ))}
@@ -161,10 +216,11 @@ function CupsReading({ article = article6 }) {
   }
 
   return (
+    <MotionConfig reducedMotion="user">
     <main className={`read read--banking read--cups${game ? ' read--game' : ''}`}>
       <InkFilter />
       <header className="read__bar">
-        <Link to="/" className="read__brand">cursive</Link>
+        <BrandLink className="read__brand" />
         <span className="read__time" role="timer" aria-label={`Time on this article: ${clock}`}>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" /><path d="M12 7v5l3 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
           <span className="read__time-text">{clock}</span>
@@ -172,14 +228,18 @@ function CupsReading({ article = article6 }) {
       </header>
 
       <div className="read__head">
-        <h1 className="read__title">{article.readingTitle.map((line) => <span key={line}>{line}</span>)}</h1>
+        <h1 className="read__title">{article.readingTitle.map((line) => <span key={line}>{line} </span>)}</h1>
         {article.subtitle && <p className="read__subtitle">{article.subtitle}</p>}
       </div>
 
       <GameHero article={article} image={gentleman} game={game} setGame={setGame} KnobIcon={CupIcon} EndIcon={TreeIcon} switchLabel="Play Four Cups" />
 
-      <article className="read__body">
-        <p className="cups__byline">{article.author}</p>
+      <article className="read__body" ref={bodyRef}>
+        <div className="read__author cups__author">
+          <span className="cups__initials" aria-hidden="true">{article.author.split(' ').map((w) => w[0]).join('')}</span>
+          <span className="read__author-name">{article.author}</span>
+        </div>
+
         <span className="visually-hidden" role="status" aria-live="polite">{announce}</span>
 
         {article.body.map((block, i) => {
@@ -196,10 +256,11 @@ function CupsReading({ article = article6 }) {
         })}
 
         <div className="read__actions">
-          <button type="button" className="read__next" onClick={file}>File <span aria-hidden="true">→</span></button>
+          {!game && <motion.button type="button" className="read__next" onClick={() => navigate(plainNext)} whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }}>Next article</motion.button>}
         </div>
       </article>
     </main>
+    </MotionConfig>
   )
 }
 

@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { onboardingDone } from './lib/onboarding.js'
 import { AnimatePresence, MotionConfig } from 'framer-motion'
 import PageTransition from './components/PageTransition.jsx'
 import RouteMenu from './components/RouteMenu.jsx'
@@ -12,6 +13,7 @@ import Receipt from './pages/Receipt.jsx'
 import CallTranscript from './pages/CallTranscript.jsx'
 import LiftReceipt from './pages/LiftReceipt.jsx'
 import NarrativeReceipt from './pages/NarrativeReceipt.jsx'
+import VaultReceipt from './pages/VaultReceipt.jsx'
 import HoldReading from './pages/HoldReading.jsx'
 import HoldReceipt from './pages/HoldReceipt.jsx'
 import HighlightsReading from './pages/HighlightsReading.jsx'
@@ -34,6 +36,12 @@ function RequireAuth({ children }) {
   const { user } = useAuth()
   const location = useLocation()
   return user ? children : <Navigate to="/login" replace state={{ from: location.pathname }} />
+}
+
+// no account is needed, but the app proper opens once the first reading and its receipt are done
+function AfterOnboarding({ children }) {
+  const { user } = useAuth()
+  return user || onboardingDone() ? children : <Navigate to="/" replace />
 }
 
 function App() {
@@ -73,11 +81,13 @@ function App() {
       <Route path="/read/2/call" element={<CallTranscript />} />
       <Route path="/admin/*" element={<Admin />} />
       <Route path="/login" element={<Login />} />
-      <Route path="/reading-room" element={<RequireAuth><ReadingRoom /></RequireAuth>} />
+      {/* reading and playing never need an account: the sign-in is asked once, at the door, and never as a gate */}
+      <Route path="/reading-room" element={<AfterOnboarding><ReadingRoom /></AfterOnboarding>} />
       <Route path="/receipt" element={<Receipt />} />
       <Route path="/receipt/2" element={<LiftReceipt />} />
       <Route path="/receipt/example" element={<Receipt key="example" example />} />
       <Route path="/receipt/narrative" element={<RequireAuth><NarrativeReceipt /></RequireAuth>} />
+      <Route path="/receipt/vault" element={<RequireAuth><VaultReceipt /></RequireAuth>} />
       <Route path="/receipt/narrative/example" element={<NarrativeReceipt key="example" example />} />
     </Routes>
     </PageTransition>

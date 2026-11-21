@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import plateImg from '../assets/landing/plate-1.png'
 import { outsidePath, plate1 as plate } from '../data/plates.js'
 import './Plate.css'
+import BrandLink from '../components/BrandLink.jsx'
 
 // "U.K.", " the  UK " and "United Kingdom" all compare equal
 const normalise = (v) =>
@@ -108,7 +109,7 @@ function Plate() {
       </svg>
 
       <header className="plate__bar">
-        <Link to="/" className="plate__brand">cursive</Link>
+        <BrandLink className="plate__brand" />
       </header>
 
       {open && <div className={`plate__veil${shown ? ' is-shown' : ''}`} onClick={closeFlag} />}

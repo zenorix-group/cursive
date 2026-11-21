@@ -7,6 +7,7 @@ const combinedReceiptRoutes = require('./routes/combinedReceipt');
 const { generateReceipt } = require('./services/receipt');
 const { generateLiftReceipt } = require('./services/liftReceipt');
 const { generateNarrativeReceipt } = require('./services/narrativeReceipt');
+const { generateHoldReceipt } = require('./services/holdReceipt');
 const { generateRearrangeReceipt } = require('./services/rearrangeReceipt');
 const { generateCupsReceipt } = require('./services/cupsReceipt');
 const { generateFilesReceipt } = require('./services/filesReceipt');
@@ -35,6 +36,18 @@ app.get('/api/settings', async (req, res, next) => {
   }
 });
 
+// the Bleed's items: the same list for everyone, newest first, without the ones whose date has passed
+app.get('/api/bleed', rateLimit({ max: limits.bleed.max, windowMs: limits.bleed.windowMs, message: 'Too many requests. Please wait a few minutes.' }), async (req, res, next) => {
+  try {
+    res.set('Cache-Control', 'no-store');
+    const { activeFilter, publicItem } = require('./lib/bleed');
+    const items = await require('./models/BleedItem').find(activeFilter()).sort({ createdAt: -1 }).limit(20).lean();
+    res.json({ items: items.map(publicItem) });
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api/me/records', recordRoutes);
 app.use('/api/admin', require('./routes/admin'));
@@ -54,6 +67,16 @@ app.post('/api/receipts/narrative', receiptsOn, track('narrative'), rateLimit({ 
   try {
     res.set('Cache-Control', 'no-store');
     res.json(await generateNarrativeReceipt(req.body));
+  } catch (error) {
+    next(error);
+  }
+});
+
+// the Hold receipt (article 3): written on the server from the holds she played, like the others
+app.post('/api/receipts/hold', receiptsOn, track('hold'), rateLimit({ max: limits.hold.max, windowMs: limits.hold.windowMs, message: 'Too many receipts requested. Please wait a few minutes and try again.' }), (req, res, next) => {
+  try {
+    res.set('Cache-Control', 'no-store');
+    res.json(generateHoldReceipt(req.body));
   } catch (error) {
     next(error);
   }

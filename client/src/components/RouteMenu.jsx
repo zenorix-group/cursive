@@ -5,6 +5,8 @@ import { useAuth } from '../auth/AuthContext.jsx'
 import * as I from './menuIcons.jsx'
 import { useReadProgress } from '../lib/readProgress.js'
 import { receiptStatus } from '../lib/overture.js'
+import { useWaitingSign } from '../lib/signs.js'
+import { useBleed } from '../lib/bleed.js'
 
 const pad = (n) => String(n).padStart(2, '0')
 
@@ -42,8 +44,11 @@ function RouteMenu() {
   const { user, logout } = useAuth()
   const { override } = useMenu()
   // inside an article the button doubles as a reading-progress ring
-  const progress = useReadProgress(/^\/read(\/[2-7])?$/.test(pathname))
+  const inArticle = /^\/read(\/[2-7])?$/.test(pathname)
+  const progress = useReadProgress(inArticle)
 
+  useWaitingSign(!!user)
+  useBleed(!!user && pathname === '/reading-room')
   const go = (path) => () => navigate(path)
   const top = () => window.scrollTo({ top: 0, behavior: 'smooth' })
   const item = (key, label, icon, onClick) => ({ key, label, icon, onClick })
@@ -55,8 +60,9 @@ function RouteMenu() {
   let page = null
   const n = articleOf(pathname)
 
-  // the overture belongs to the app proper: guests are still in onboarding, whichever article they picked
-  if (!user) page = null
+  // the overture belongs to the app proper: guests are still in onboarding, whichever article they picked. But the Blot is how a
+  // reader files, so a guest in an article still gets it, with a menu of only Sign in.
+  if (!user) page = inArticle ? { title: `Reading · ${pad(n)}`, items: [account], bare: true } : null
   else if (override) page = override
   else if (pathname === '/reading-room' || pathname === '/' || pathname === '/enter' || pathname === '/login') page = null
   else if (/^\/article\/\d+$/.test(pathname)) {
@@ -64,9 +70,6 @@ function RouteMenu() {
       title: `Article ${pad(n)}`,
       items: [item('start', 'Start reading', <I.Play />, go(readPath(n))), room, item('home', 'Home', <I.Home />, go('/')), account],
     }
-  } else if (pathname === '/read' && !user) {
-    // article 1 is read before signing up: signed-out readers get a menu with only Sign in
-    page = { title: 'Reading · 01', items: [account], bare: true }
   } else if (/^\/read(\/[2-7])?$/.test(pathname)) {
     page = {
       title: `Reading · ${pad(n)}`,
@@ -96,7 +99,7 @@ function RouteMenu() {
 
   if (!page) return null
   const withReceipts = page.bare || page.items.some((entry) => entry.key === 'receipts') ? page.items : [...page.items, makeReceiptsItem(navigate)]
-  return <AssistiveTouch items={withReceipts} title={page.title} tone="light" progress={progress} />
+  return <AssistiveTouch items={withReceipts} title={page.title} tone="light" progress={progress} fixed={inArticle} />
 }
 
 export default RouteMenu

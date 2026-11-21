@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import holdHero from '../assets/reading/hold-hero.webp'
 import GameHero from '../components/GameHero.jsx'
 import InkFilter from '../components/InkFilter.jsx'
@@ -11,6 +11,8 @@ import authorProfile from '../assets/author-profile.jpg'
 import { formatClock, useReadingClock } from '../lib/useReadingClock.js'
 import './Reading.css'
 import './HoldReading.css'
+import BrandLink from '../components/BrandLink.jsx'
+import { useFiling, usePlainNext } from '../lib/companion.js'
 
 const iconProps = { width: 16, height: 16, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.6, strokeLinecap: 'round', strokeLinejoin: 'round' }
 // the game switch for article 3: the ± marker, and the globe the money travels to
@@ -44,15 +46,24 @@ function HoldReading({ article = article3 }) {
     setHolds(next)
     saveHoldProgress({ holds: next, events: events.current })
   }
+  // filing: one row when she moves on to the receipt
+  const fileReading = (from) => {
+    events.current = [...events.current, {
+      sessionId: session.current, articleId: 3, type: 'file', from,
+      ms: Math.round((typeof performance !== 'undefined' ? performance.now() : 0) - opened.current), seq: seq.current++,
+    }]
+    persist(holds)
+  }
   useEffect(() => { persist(holds) }, [])
 
-  const playedAll = Object.keys(holds).length
+  const plainNext = usePlainNext()
+  useFiling(3, (from) => { fileReading(from); navigate('/receipt/3') }, setGame)
 
   return (
     <main className={`read read--banking read--hold${game ? ' read--game' : ''}`}>
       <InkFilter />
       <header className="read__bar">
-        <Link to="/" className="read__brand">cursive</Link>
+        <BrandLink className="read__brand" />
         <span className="read__time" role="timer" aria-label={`Time on this article: ${clock}`}>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" /><path d="M12 7v5l3 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
           <span className="read__time-text">{clock}</span>
@@ -60,7 +71,7 @@ function HoldReading({ article = article3 }) {
       </header>
 
       <div className="read__head">
-        <h1 className="read__title">{article.readingTitle.map((line) => <span key={line}>{line}</span>)}</h1>
+        <h1 className="read__title">{article.readingTitle.map((line) => <span key={line}>{line} </span>)}</h1>
         {article.subtitle && <p className="read__subtitle">{article.subtitle}</p>}
       </div>
 
@@ -73,7 +84,6 @@ function HoldReading({ article = article3 }) {
           <span className="read__author-name">{article.author}</span>
         </div>
 
-        {game && <p className="hold__rule"><b>Rules</b> {article.rule}</p>}
 
         {article.body.map((block, i) => {
           if (block.h) return <h2 className="hold__heading" key={i}>{block.h}</h2>
@@ -102,9 +112,7 @@ function HoldReading({ article = article3 }) {
         })}
 
         <div className="read__actions">
-          <button type="button" className="read__next" onClick={() => { saveHoldProgress({ holds, events: events.current }); navigate('/receipt/3') }}>
-            {playedAll ? 'See your receipt' : 'Next Article'} {game && <span aria-hidden="true">→</span>}
-          </button>
+          {!game && <button type="button" className="read__next" onClick={() => navigate(plainNext)}>Next article</button>}
         </div>
       </article>
     </main>

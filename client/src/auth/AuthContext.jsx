@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { enterAccount, leaveAccount } from '../data/cursiveStore.js'
+import { setReader } from '../lib/companion.js'
 
 const AuthContext = createContext(null)
 const jsonHeaders = { 'Content-Type': 'application/json' }
@@ -36,6 +37,8 @@ export function AuthProvider({ children }) {
   }, [])
 
   useEffect(() => { boot() }, [boot])
+  // the companion's records carry her account once she signs in, her session until then
+  useEffect(() => { setReader(state.user?.id ?? null) }, [state.user])
 
   const authenticate = useCallback(async (path, body) => {
     const { user } = await post(path, body)

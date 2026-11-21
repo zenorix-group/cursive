@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useLayoutEffect, useRef, startTransition, useState } from 'react'
 import { AnimatePresence, animate, motion, useAnimationControls, useMotionValue } from 'framer-motion'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import authorProfile from '../assets/author-profile.jpg'
 import monica from '../assets/authors/monica-behura.jpg'
 import sampurna from '../assets/authors/sampurna-majumder.webp'
@@ -11,8 +11,10 @@ import { loadReadingProgress, saveReadingProgress } from '../data/readingProgres
 import { callLines, getCallOptions, loadCallProgress, saveCallProgress } from '../data/callProgress.js'
 import { haptic } from '../lib/haptics.js'
 import { absorb } from '../lib/overture.js'
+import { usePlaying, useFiling, usePlainNext } from '../lib/companion.js'
 import { formatClock, useReadingClock } from '../lib/useReadingClock.js'
 import './Reading.css'
+import BrandLink from '../components/BrandLink.jsx'
 
 // the two pills ("Game info", "Slide to enable the game") are shown until the reader has used each control once
 const usedKey = (name) => `cursive:used:${name}`
@@ -98,10 +100,12 @@ function Reading({ article = article1 }) {
   const location = useLocation()
   const { knob: KnobIcon, end: EndIcon } = GAME_ICONS[article.number] ?? GAME_ICONS[1]
   const [game, setGame] = useState(() => location.state?.game ?? true)
+  usePlaying(game)
   const [callProgress, setCallProgress] = useState(loadCallProgress)
   const [activeBlank, setActiveBlank] = useState(null)
   const choiceRef = useRef(null)
   const [hintOpen, setHintOpen] = useState(false)
+  const [switchTip, setSwitchTip] = useState(false)
   const [hintTipHover, setHintTipHover] = useState(false)
   // idle cue for the hint button, like the one on the game switch: until the reader has used it,
   // wiggle the feather, pulse a ring and pop a small tip every few seconds
@@ -187,6 +191,23 @@ function Reading({ article = article1 }) {
     const controls = animate(knobX, game ? travel : 0, spring)
     return () => controls.stop()
   }, [game, travel])
+
+  // touch screens have no hover, so show the switch bubble by itself once (first visit only)
+  useEffect(() => {
+    if (typeof matchMedia !== 'function' || !matchMedia('(hover: none)').matches || wasUsed('switchTip') || wasUsed('switch')) return undefined
+    const el = trackRef.current
+    if (!el || typeof IntersectionObserver !== 'function') return undefined
+    let hide
+    const io = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return
+      io.disconnect()
+      setSwitchTip(true)
+      markUsed('switchTip')
+      hide = setTimeout(() => setSwitchTip(false), 4500)
+    }, { threshold: 1 })
+    io.observe(el)
+    return () => { io.disconnect(); clearTimeout(hide) }
+  }, [])
 
   // until the reader touches the switch, pop the tip up every few seconds and nudge the knob to show it slides
   useEffect(() => {
@@ -307,6 +328,14 @@ function Reading({ article = article1 }) {
     }
   }, [hintOpen])
 
+  const plainNext = usePlainNext()
+  // filing is the companion's: the Overture at the last paragraph, or early with a tap on the Blot
+  useFiling(article.number, () => {
+    saveReadingProgress(article.number, { answers, visitedGaps })
+    if (article.number === 2) saveCallProgress(callProgress)
+    navigate(article.number === 2 ? '/receipt/2' : '/receipt')
+  }, setGame)
+
   return (
     <main className={`read${game ? ' read--game' : ''}${article.number === 2 ? ' read--banking' : ''}${activeGap !== null ? ' read--question-open' : ''}`}>
       <svg width="0" height="0" aria-hidden="true" focusable="false">
@@ -316,7 +345,7 @@ function Reading({ article = article1 }) {
         </filter>
       </svg>
       <header className="read__bar">
-        <Link to="/" className="read__brand">cursive</Link>
+        <BrandLink className="read__brand" />
         <span className="read__time" role="timer" aria-label={`Time on this article: ${clock}`}>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" /><path d="M12 7v5l3 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
           <span className="read__time-text">{clock}</span>
@@ -324,7 +353,7 @@ function Reading({ article = article1 }) {
       </header>
 
       <div className="read__head">
-        <h1 className="read__title">{article.readingTitle ? article.readingTitle.map((line) => <span key={line}>{line}</span>) : article.headline}</h1>
+        <h1 className="read__title">{article.readingTitle ? article.readingTitle.map((line) => <span key={line}>{line} </span>) : article.headline}</h1>
         {article.subtitle && <p className="read__subtitle">{article.subtitle}</p>}
       </div>
 
@@ -375,9 +404,9 @@ function Reading({ article = article1 }) {
                 aria-controls="game-instructions"
                 animate={hintControls}
                 onPointerDown={() => setHintTouched(true)}
-                onMouseEnter={() => setHintTipHover(true)}
-                onMouseLeave={() => setHintTipHover(false)}
-                onFocus={() => setHintTipHover(true)}
+                onPointerEnter={(e) => e.pointerType === 'mouse' && setHintTipHover(true)}
+                onPointerLeave={() => setHintTipHover(false)}
+                onFocus={(e) => e.target.matches(':focus-visible') && setHintTipHover(true)}
                 onBlur={() => setHintTipHover(false)}
                 onClick={() => {
                   setHintTouched(true)
@@ -404,61 +433,77 @@ function Reading({ article = article1 }) {
               )}
             </div>
           )}
-            <button
-              type="button"
-              ref={trackRef}
-              className={`toggle${game ? ' is-on' : ''}`}
-              role="switch"
-              aria-checked={game}
-              aria-label="Game mode"
-              onPointerDown={() => setTouched(true)}
-              onClick={() => {
-                if (dragged.current) return
-                haptic(10)
-                animate(knobX, game ? 0 : travel, spring)
-                startTransition(() => setGame((g) => !g))
-                resetOverlays()
-              }}
-            >
-              <motion.span
-                ref={knobRef}
-                className="toggle__knob"
-                style={{ x: knobX }}
-                drag="x"
-                dragConstraints={{ left: 0, right: travel }}
-                dragElastic={0.06}
-                dragMomentum={false}
-                whileTap={{ scale: 0.97 }}
-                onDrag={() => {
-                  const side = knobX.get() > travel / 2
-                  if (side !== dragSide.current) {
-                    dragSide.current = side
-                    haptic(5)
-                  }
-                }}
-                onDragStart={() => {
-                  dragSide.current = knobX.get() > travel / 2
-                  dragged.current = true
-                  setTouched(true)
-                }}
-                onDragEnd={(_, info) => {
-                  const pos = knobX.get()
-                  const next = Math.abs(info.velocity.x) > 350 ? info.velocity.x > 0 : pos > travel / 2
-                  setTimeout(() => (dragged.current = false), 60)
-                  if (next !== game) {
-                    haptic(10)
-                    animate(knobX, next ? travel : 0, spring)
-                    startTransition(() => setGame(next))
-                    resetOverlays()
-                  } else {
-                    animate(knobX, game ? travel : 0, spring)
-                  }
+            <div className="switch-wrap" onPointerEnter={(e) => e.pointerType === 'mouse' && setSwitchTip(true)} onPointerLeave={() => setSwitchTip(false)} onFocus={(e) => e.target.matches(':focus-visible') && setSwitchTip(true)} onBlur={() => setSwitchTip(false)}>
+              <AnimatePresence>
+                {switchTip && (
+                  <motion.p
+                    key="switch-tip"
+                    className="game-hint__tip"
+                    initial={{ opacity: 0, x: 10, scale: 0.85 }}
+                    animate={{ opacity: 1, x: 0, scale: 1 }}
+                    exit={{ opacity: 0, x: 6, scale: 0.9 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                  >
+                    {game ? 'Turn off the game' : 'Turn on the game'}
+                  </motion.p>
+                )}
+              </AnimatePresence>
+              <button
+                type="button"
+                ref={trackRef}
+                className={`toggle${game ? ' is-on' : ''}`}
+                role="switch"
+                aria-checked={game}
+                aria-label="Game mode"
+                onPointerDown={() => setTouched(true)}
+                onClick={() => {
+                  if (dragged.current) return
+                  haptic(10)
+                  animate(knobX, game ? 0 : travel, spring)
+                  startTransition(() => setGame((g) => !g))
+                  resetOverlays()
                 }}
               >
-                <span className="toggle__icon" aria-hidden="true"><KnobIcon /></span>
-              </motion.span>
-              <span className={`toggle__idle-feather${game ? '' : ' toggle__idle-feather--right'}`} aria-hidden="true"><EndIcon /></span>
-            </button>
+                <motion.span
+                  ref={knobRef}
+                  className="toggle__knob"
+                  style={{ x: knobX }}
+                  drag="x"
+                  dragConstraints={{ left: 0, right: travel }}
+                  dragElastic={0.06}
+                  dragMomentum={false}
+                  whileTap={{ scale: 0.97 }}
+                  onDrag={() => {
+                    const side = knobX.get() > travel / 2
+                    if (side !== dragSide.current) {
+                      dragSide.current = side
+                      haptic(5)
+                    }
+                  }}
+                  onDragStart={() => {
+                    dragSide.current = knobX.get() > travel / 2
+                    dragged.current = true
+                    setTouched(true)
+                  }}
+                  onDragEnd={(_, info) => {
+                    const pos = knobX.get()
+                    const next = Math.abs(info.velocity.x) > 350 ? info.velocity.x > 0 : pos > travel / 2
+                    setTimeout(() => (dragged.current = false), 60)
+                    if (next !== game) {
+                      haptic(10)
+                      animate(knobX, next ? travel : 0, spring)
+                      startTransition(() => setGame(next))
+                      resetOverlays()
+                    } else {
+                      animate(knobX, game ? travel : 0, spring)
+                    }
+                  }}
+                >
+                  <span className="toggle__icon" aria-hidden="true"><KnobIcon /></span>
+                </motion.span>
+                <span className={`toggle__idle-feather${game ? '' : ' toggle__idle-feather--right'}`} aria-hidden="true"><EndIcon /></span>
+              </button>
+            </div>
           </div>
         </div>
       </figure>
@@ -582,11 +627,7 @@ function Reading({ article = article1 }) {
             clearTimeout(savedTimer.current)
             savedTimer.current = setTimeout(() => setSaved(false), 1600)
           }}>{saved ? "Saved ✓" : "Submit Answers"}</button>}
-          <button type="button" className="read__next" onClick={() => {
-            saveReadingProgress(article.number, { answers, visitedGaps })
-            if (article.number === 2) saveCallProgress(callProgress)
-            navigate(article.number === 2 ? '/receipt/2' : '/receipt')
-          }}>Next Article {game && <span aria-hidden="true">→</span>}</button>
+          {!game && <button type="button" className="read__next" onClick={() => navigate(plainNext)}>Next article</button>}
         </div>
       </article>
     </main>

@@ -3,7 +3,7 @@ import { receiptsPdf } from '../lib/receiptImage.js'
 import { emailCombinedReceipt } from '../lib/combinedReceipt.js'
 import { showToast } from '../components/Toast.jsx'
 import { useEffect, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext.jsx'
 import { storeIntoOverture } from '../lib/overture.js'
 import { useReveal } from '../lib/useReveal.js'
@@ -17,6 +17,8 @@ import { liftLineDetails } from '../data/liftReferences.js'
 import { generateLiftReceipt, getCachedLiftReceipt } from '../data/liftReceiptStorage.js'
 import './Receipt.css'
 import './LiftReceipt.css'
+import BrandLink from '../components/BrandLink.jsx'
+import ReceiptEnding from '../components/ReceiptEnding.jsx'
 
 // once both receipts exist, the combined PDF goes to the signed-in reader's email; a message confirms it
 const mailCombined = () => {
@@ -46,12 +48,9 @@ function ReadingMark({ receipt }) {
 function LiftReceipt() {
   // finishing an article sends a guest to sign in (their reading moves into the account); a signed-in reader goes on to the reading room
   const { user } = useAuth()
-  const nextArticlePath = user ? '/reading-room' : '/login#create'
-  const navigate = useNavigate()
-  const storeAndGo = (event) => {
-    event.preventDefault()
+  const storeThenGo = () => {
     if (user) mailCombined()
-    storeIntoOverture(document.querySelector('.receipt'), 2).then(() => navigate(nextArticlePath))
+    return storeIntoOverture(document.querySelector('.receipt'), 2)
   }
   const [progress] = useState(loadCallProgress)
   const [receipt, setReceipt] = useState(() => getCachedLiftReceipt(progress))
@@ -95,16 +94,19 @@ function LiftReceipt() {
   const share = () => makePdf('share')
 
   return <main className="receipt-page lift-receipt-page">
-    <header className="receipt__bar"><Link to="/">cursive</Link></header>
+    <header className="receipt__bar"><BrandLink /></header>
     <article className="receipt lift-receipt">
       <div className="receipt__rail">
       <header className="receipt__intro"><p className="receipt__eyebrow">Your Cursive receipt</p><h1>The Lines You<br />Carried.</h1></header>
       <div className="receipt__metadata"><div><span>Article 02</span><span>{article2.minutes} min read</span></div><p>{article2.headline}</p><div className="receipt__interaction"><span>Interaction</span><strong>{article2.mechanic}</strong></div></div>
         {receipt && <>
-      <footer className="receipt__footer"><button type="button" onClick={share}>Share receipt</button><Link to={nextArticlePath} onClick={storeAndGo}>Next article <span aria-hidden="true">→</span></Link></footer>
+      <div className="receipt__links">
+        <button type="button" className="receipt__back" onClick={share}>Share receipt</button>
+        <button type="button" className="receipt__back" onClick={() => makePdf('save')}>Save as PDF</button>
+        <Link className="receipt__back" to="/read/2">Back to your placements</Link>
+      </div>
       {shareStatus && <p className="receipt__share-status" role="status">{shareStatus}</p>}
-      <button type="button" className="receipt__back" onClick={() => makePdf('save')}>Save as PDF</button>
-      <Link className="receipt__back" to="/read/2">Back to your placements</Link>
+      <ReceiptEnding articleId={2} store={storeThenGo} />
         </>}
       </div>
       {!receipt ? <section className="receipt__loading" aria-live="polite">

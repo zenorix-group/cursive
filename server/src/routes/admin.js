@@ -11,6 +11,8 @@ const limits = require('../lib/limits');
 const mailer = require('../services/mailer');
 const { isConfigured: aiConfigured } = require('../services/gemini');
 const { getSettings, saveSettings } = require('../lib/settings');
+const BleedItem = require('../models/BleedItem');
+const { validateBleedItem } = require('../lib/bleed');
 
 const audit = (action, detail) => AuditLog.create({ action, detail }).catch(() => {});
 
@@ -186,6 +188,23 @@ router.put('/settings', async (req, res) => {
   const settings = await saveSettings(patch);
   audit('Changed settings', JSON.stringify(patch));
   res.json({ settings });
+});
+
+// the Bleed: editorial adds and removes the items every reader sees
+router.get('/bleed', async (req, res) => res.json({ items: await BleedItem.find().sort({ createdAt: -1 }).limit(100) }));
+router.post('/bleed', async (req, res) => {
+  const { error, value } = validateBleedItem(req.body);
+  if (error) return res.status(400).json(error);
+  const item = await BleedItem.create(value);
+  audit('Bleed item added', item.title);
+  return res.status(201).json({ item });
+});
+router.delete('/bleed/:id', async (req, res) => {
+  if (!validId(req.params.id)) return res.status(404).json({ message: 'Not found.' });
+  const item = await BleedItem.findByIdAndDelete(req.params.id);
+  if (!item) return res.status(404).json({ message: 'Not found.' });
+  audit('Bleed item removed', item.title);
+  return res.json({ ok: true });
 });
 
 router.get('/audit', async (req, res) => {

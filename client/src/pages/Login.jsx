@@ -3,6 +3,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext.jsx'
 import SiteMasthead from '../components/SiteMasthead.jsx'
 import { onboardingDone } from '../lib/onboarding.js'
+import { logCompanion } from '../lib/companion.js'
+import { saveReadingConsent } from '../data/consent.js'
 import '../styles/site.css'
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -55,6 +57,9 @@ function Login() {
   // everyone else can sign in, or is pointed to the start
   const canCreate = onboardingDone()
   const wantedCreate = window.location.hash === '#create'
+  // the door to the website, reached after the onboarding: the one place she is asked to sign in
+  const atDoor = wantedCreate && canCreate
+  const [consent, setConsent] = useState(false)
   const [tab, setTab] = useState(() => (wantedCreate && canCreate ? 'create' : 'signin'))
   const [entered, setEntered] = useState(false)
   const [values, setValues] = useState({ siEmail: '', siPass: '', caName: '', caEmail: '', caPass: '', caConfirm: '' })
@@ -65,6 +70,9 @@ function Login() {
   const timer = useRef(null)
 
   useEffect(() => { document.title = 'Cursive – Sign in and create account' }, [])
+  const asked = useRef(false)
+  useEffect(() => { if (atDoor && !asked.current) { asked.current = true; logCompanion('signin', { action: 'asked' }) } }, [atDoor])
+  const notNow = () => { logCompanion('signin', { action: 'declined' }); navigate('/reading-room') }
   useEffect(() => () => clearTimeout(timer.current), [])
 
   const show = (which, focus) => {
@@ -107,6 +115,7 @@ function Login() {
     setStatus({ signin: '', create: '', error: false, [which]: busyText })
     try {
       await run()
+      if (atDoor) logCompanion('signin', { action: 'accepted' })
       setStatus({ signin: '', create: '', error: false, [which]: doneText })
       timer.current = setTimeout(() => navigate(location.state?.from || '/reading-room'), 550)
     } catch (error) {
@@ -182,10 +191,11 @@ function Login() {
                 {canCreate && <section className={`panel${entered ? ' enter' : ''}`} id="panel-create" role="tabpanel" aria-labelledby="tab-create" hidden={tab !== 'create'}>
                   <h2>Begin your reading life.</h2>
                   <p className="sub">Create an account and make room for stories worth returning to.</p>
+                  <p className="sub">An account keeps your receipts, stacks and issue across days and devices. Without one they stay in this browser, and go when you clear it.</p>
                   <form
                     id="form-create"
                     noValidate
-                    onSubmit={submit('create', ['caName', 'caEmail', 'caPass', 'caConfirm'], () => register(values.caName.trim(), values.caEmail.trim(), values.caPass), 'Creating your account…', 'Account created. Opening your reading room…')}
+                    onSubmit={submit('create', ['caName', 'caEmail', 'caPass', 'caConfirm'], async () => { const user = await register(values.caName.trim(), values.caEmail.trim(), values.caPass); saveReadingConsent(consent); return user }, 'Creating your account…', 'Account created. Opening your reading room…')}
                   >
                     <Field id="ca-name" label="Full name" autoComplete="name" placeholder="e.g. Eleanor Vance"
                       value={values.caName} onChange={set('caName')} onBlur={blur('caName')} error={errors.caName} />
@@ -195,8 +205,13 @@ function Login() {
                       value={values.caPass} onChange={set('caPass')} onBlur={blur('caPass')} error={errors.caPass} />
                     <Field id="ca-confirm" label="Confirm password" type="password" autoComplete="new-password" placeholder="Repeat your password" withShow
                       value={values.caConfirm} onChange={set('caConfirm')} onBlur={blur('caConfirm')} error={errors.caConfirm} />
+                    <label className="consent">
+                      <input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} />
+                      <span>Let Cursive use what I read to choose what it shows me. Optional, and off until I agree. I can have an account without it.</span>
+                    </label>
                     <button className="submit" type="submit" disabled={busy}><span>Create account</span><span aria-hidden="true">→</span></button>
                     <p className={`status${status.error ? ' status--error' : ''}`} role="status" aria-live="polite">{status.create}</p>
+                    {atDoor && <div className="switch"><span>Not ready?</span><button type="button" onClick={notNow}>Not now, keep reading.</button></div>}
                     <div className="switch"><span>Already have an account?</span><button type="button" onClick={() => { show('signin', false); window.scrollTo({ top: 0 }) }}>Sign in.</button></div>
                   </form>
                 </section>}

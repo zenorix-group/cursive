@@ -6,6 +6,7 @@ import SortSelect from '../components/SortSelect.jsx'
 import { useMenuOverride } from '../components/menuContext.jsx'
 import { makeReceiptsItem } from '../components/RouteMenu.jsx'
 import { articleStatus } from '../data/articleStatus.js'
+import { pendingMate } from '../data/stacks.js'
 import { CATS, CTA, IMG, STATUSES, catalog } from '../data/catalog.js'
 import '../styles/site.css'
 
@@ -51,7 +52,8 @@ function Go({ a, children }) {
 
 function Lead({ a }) {
   return (
-    <article className="art art-lead">
+    <article className={`art art-lead${a.nextUp ? ' is-nextup' : ''}`}>
+      {a.nextUp && <p className="nextup">Next to complete</p>}
       <Go a={a}><Plate a={a}><span className="chip">{a.plate || `Plate ref. no. ${pad(a.id)}`}</span></Plate></Go>
       <div className="meta"><span className="lbl kick">{a.kick}</span><Stat a={a} /></div>
       <h2><Go a={a}>{a.title}</Go></h2>
@@ -155,10 +157,13 @@ function ReadingRoom() {
   // the big lead is the article in progress, else one not yet started; completed ones never lead
   const featured = useMemo(() => {
     const pick = (st, real) => items.find((a) => a.status === st && (!real || a.article))
-    const lead = pick('ip', true) || pick('ns', true) || pick('ip') || pick('ns') || items[0]
+    // the other half of a stack she has started always leads, named as the next to complete
+    const mate = pendingMate()
+    const named = mate && items.find((a) => a.article === mate && a.status !== 'done')
+    const lead = named ? { ...named, nextUp: true } : pick('ip', true) || pick('ns', true) || pick('ip') || pick('ns') || items[0]
     if (!lead) return items
     // real (readable) articles come right after the lead so they are never buried
-    const rest = items.filter((a) => a !== lead)
+    const rest = items.filter((a) => a.id !== lead.id)
     return [lead, ...rest.filter((a) => a.article), ...rest.filter((a) => !a.article)]
   }, [items])
   const filtered = filters.cat !== 'all' || filters.status !== 'all' || filters.q

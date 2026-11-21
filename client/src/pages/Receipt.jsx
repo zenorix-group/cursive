@@ -3,7 +3,7 @@ import { receiptsPdf } from '../lib/receiptImage.js'
 import { emailCombinedReceipt } from '../lib/combinedReceipt.js'
 import { showToast } from '../components/Toast.jsx'
 import { useEffect, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext.jsx'
 import { storeIntoOverture } from '../lib/overture.js'
 import { useReveal } from '../lib/useReveal.js'
@@ -16,6 +16,8 @@ import { receiptTargets, receiptPhases } from '../data/receiptReferences.js'
 import { generateReceipt, getCachedReceipt, getReceiptQuestions } from '../data/receiptStorage.js'
 import receiptExample from '../data/receiptExample.json'
 import './Receipt.css'
+import BrandLink from '../components/BrandLink.jsx'
+import ReceiptEnding from '../components/ReceiptEnding.jsx'
 
 // once both receipts exist, the combined PDF goes to the signed-in reader's email; a message confirms it
 const mailCombined = () => {
@@ -31,12 +33,9 @@ function SectionHeading({ number, title, note }) {
 function Receipt({ example = false }) {
   // finishing an article sends a guest to sign in (their reading moves into the account); a signed-in reader goes on to the reading room
   const { user } = useAuth()
-  const nextArticlePath = user ? '/reading-room' : '/login#create'
-  const navigate = useNavigate()
-  const storeAndGo = (event) => {
-    event.preventDefault()
+  const storeThenGo = () => {
     if (user && !example) mailCombined()
-    storeIntoOverture(document.querySelector('.receipt'), example ? null : 1).then(() => navigate(nextArticlePath))
+    return storeIntoOverture(document.querySelector('.receipt'), example ? null : 1)
   }
   const [questions] = useState(() => getReceiptQuestions(article.number))
   const [receipt, setReceipt] = useState(() => example ? receiptExample : getCachedReceipt(article.number, questions))
@@ -86,7 +85,7 @@ function Receipt({ example = false }) {
 
   return (
     <main className="receipt-page">
-      <header className="receipt__bar"><Link to="/">cursive</Link></header>
+      <header className="receipt__bar"><BrandLink /></header>
       <article className="receipt">
         <div className="receipt__rail">
         <header className="receipt__intro">
@@ -101,13 +100,13 @@ function Receipt({ example = false }) {
         </div>
 
           {receipt && <>
-            <footer className="receipt__footer">
-              <button type="button" onClick={shareReceipt}>Share receipt</button>
-              <Link to={nextArticlePath} onClick={storeAndGo}>Next article <span aria-hidden="true">→</span></Link>
-            </footer>
+            <div className="receipt__links">
+              <button type="button" className="receipt__back" onClick={shareReceipt}>Share receipt</button>
+              <button type="button" className="receipt__back" onClick={() => makePdf('save')}>Save as PDF</button>
+              <Link className="receipt__back" to="/read">Back to your questions</Link>
+            </div>
             {shareStatus && <p className="receipt__share-status" role="status">{shareStatus}</p>}
-            <button type="button" className="receipt__back" onClick={() => makePdf('save')}>Save as PDF</button>
-            <Link className="receipt__back" to="/read">Back to your questions</Link>
+            <ReceiptEnding articleId={1} store={storeThenGo} />
           </>}
         </div>
         {!receipt && (

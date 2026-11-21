@@ -198,6 +198,7 @@ p, h1, h2, blockquote { overflow-wrap: break-word; }
 .receipt-page .receipt__rail { display: contents; }
 .receipt-page .receipt__sections,
 .receipt-page .receipt__loading { order: 2; }
+.receipt-page .receipt__rail > .receipt__links,
 .receipt-page .receipt__rail > .receipt__footer,
 .receipt-page .receipt__rail > .receipt__share-status,
 .receipt-page .receipt__rail > .receipt__back { order: 3; }
@@ -232,6 +233,9 @@ p, h1, h2, blockquote { overflow-wrap: break-word; }
   .receipt-page .receipt__footer { grid-template-columns: 1fr; gap: 10px; }
   .receipt-page .receipt__back { margin-top: 16px; text-align: left; justify-content: flex-start; }
   .receipt-page .receipt__share-status { text-align: left; }
+  .receipt-page .receipt__links { justify-content: flex-start; margin: 12px 0 4px; }
+  /* the desktop rule above gives each back link its own top margin: inside the row all three share one line */
+  .receipt-page .receipt__links .receipt__back { margin: 0; justify-content: flex-start; }
 }
 
 /* header wordmark in Lectio Imprint (was Inter) */

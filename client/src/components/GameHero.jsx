@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { AnimatePresence, animate, motion, useMotionValue } from 'framer-motion'
 import feather from '../assets/reading/feather.png'
 import { haptic } from '../lib/haptics.js'
+import { usePlaying } from '../lib/companion.js'
 
 // The picture at the top of a game article: the "Game info" button and card, and the switch that turns the game on and off.
 // Styled by Reading.css. Used by the articles built from article 3 on.
@@ -13,8 +14,10 @@ const spring = { type: 'spring', stiffness: 210, damping: 26, mass: 0.9 }
 // props: article ({ number, minutes, gameInfo, rule }), image, game, setGame, KnobIcon (on the knob), EndIcon (idle end of the track),
 // switchLabel (the switch's accessible name)
 function GameHero({ article, image, game, setGame, KnobIcon, EndIcon, switchLabel = 'Game mode' }) {
+  usePlaying(game)
   const [hintOpen, setHintOpen] = useState(false)
   const [tipShown, setTipShown] = useState(false)
+  const [switchTip, setSwitchTip] = useState(false)
   const hintRef = useRef(null)
   const trackRef = useRef(null)
   const knobRef = useRef(null)
@@ -38,6 +41,23 @@ function GameHero({ article, image, game, setGame, KnobIcon, EndIcon, switchLabe
     const controls = animate(knobX, game ? travel : 0, spring)
     return () => controls.stop()
   }, [game, travel])
+
+  // touch screens have no hover, so show the switch bubble by itself once (first visit only)
+  useEffect(() => {
+    if (typeof matchMedia !== 'function' || !matchMedia('(hover: none)').matches || wasUsed('switchTip') || wasUsed('switch')) return undefined
+    const el = trackRef.current
+    if (!el || typeof IntersectionObserver !== 'function') return undefined
+    let hide
+    const io = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return
+      io.disconnect()
+      setSwitchTip(true)
+      markUsed('switchTip')
+      hide = setTimeout(() => setSwitchTip(false), 4500)
+    }, { threshold: 1 })
+    io.observe(el)
+    return () => { io.disconnect(); clearTimeout(hide) }
+  }, [])
 
   useEffect(() => {
     if (!hintOpen) return undefined
@@ -105,9 +125,9 @@ function GameHero({ article, image, game, setGame, KnobIcon, EndIcon, switchLabe
                 aria-expanded={hintOpen}
                 aria-controls="game-instructions"
                 onClick={() => setHintOpen((open) => !open)}
-                onMouseEnter={() => setTipShown(true)}
-                onMouseLeave={() => setTipShown(false)}
-                onFocus={() => setTipShown(true)}
+                onPointerEnter={(e) => e.pointerType === 'mouse' && setTipShown(true)}
+                onPointerLeave={() => setTipShown(false)}
+                onFocus={(e) => e.target.matches(':focus-visible') && setTipShown(true)}
                 onBlur={() => setTipShown(false)}
               >
                 <img src={feather} alt="" />
@@ -121,20 +141,36 @@ function GameHero({ article, image, game, setGame, KnobIcon, EndIcon, switchLabe
               )}
             </div>
           )}
-          <button
-            type="button"
-            ref={trackRef}
-            className={`toggle${game ? ' is-on' : ''}`}
-            role="switch"
-            aria-checked={game}
-            aria-label={switchLabel}
-            onClick={toggleGame}
-          >
-            <motion.span ref={knobRef} className="toggle__knob" style={{ x: knobX }}>
-              <span className="toggle__icon" aria-hidden="true"><KnobIcon /></span>
-            </motion.span>
-            <span className={`toggle__idle-feather${game ? '' : ' toggle__idle-feather--right'}`} aria-hidden="true"><EndIcon /></span>
-          </button>
+          <div className="switch-wrap" onPointerEnter={(e) => e.pointerType === 'mouse' && setSwitchTip(true)} onPointerLeave={() => setSwitchTip(false)} onFocus={(e) => e.target.matches(':focus-visible') && setSwitchTip(true)} onBlur={() => setSwitchTip(false)}>
+            <AnimatePresence>
+              {switchTip && (
+                <motion.p
+                  key="switch-tip"
+                  className="game-hint__tip"
+                  initial={{ opacity: 0, x: 10, scale: 0.85 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  exit={{ opacity: 0, x: 6, scale: 0.9 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                >
+                  {game ? 'Turn off the game' : 'Turn on the game'}
+                </motion.p>
+              )}
+            </AnimatePresence>
+            <button
+              type="button"
+              ref={trackRef}
+              className={`toggle${game ? ' is-on' : ''}`}
+              role="switch"
+              aria-checked={game}
+              aria-label={switchLabel}
+              onClick={toggleGame}
+            >
+              <motion.span ref={knobRef} className="toggle__knob" style={{ x: knobX }}>
+                <span className="toggle__icon" aria-hidden="true"><KnobIcon /></span>
+              </motion.span>
+              <span className={`toggle__idle-feather${game ? '' : ' toggle__idle-feather--right'}`} aria-hidden="true"><EndIcon /></span>
+            </button>
+          </div>
         </div>
       </div>
     </figure>

@@ -103,3 +103,14 @@
 
 /* "Save as PDF" is a button styled like the text link below it */
 button.receipt__back { width: 100%; padding: 0; border: 0; background: none; color: inherit; cursor: pointer; }
+
+/* the ending every receipt shares: Next article (filled) and Back to home (outlined) */
+.receipt__footer--end { margin-top: 4px; }
+.receipt__footer a.is-home { background: transparent; color: #171613; }
+
+/* the three small actions under the receipt sit in one tidy row instead of three stacked lines */
+.receipt__links { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 0 18px; margin: 14px 0 6px; }
+.receipt__links .receipt__back, .receipt__links button.receipt__back { display: inline-flex; align-items: center; width: auto; min-height: 44px; margin: 0; padding: 0 2px; font: 400 12.5px/1.2 var(--sans); }
+.receipt__share-status { text-align: center; }
+/* on a phone the Blot sits over the foot of the page: about 84px below the buttons (this and the receipt's own padding) keeps it clear of them */
+@media (max-width: 899px) { .receipt-page { padding-bottom: 48px; } }

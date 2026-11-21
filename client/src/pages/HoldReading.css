@@ -11,16 +11,15 @@
   position: relative;
   display: inline-grid;
   place-items: center;
-  width: 1.15em;
-  height: 1.15em;
-  margin: 0 0.1em;
+  width: 1.7em;
+  height: 1.7em;
+  margin: 0 0.15em;
   padding: 0;
-  vertical-align: baseline;
-  border: 1.5px solid #8a6414;
+  vertical-align: -0.42em;
+  border: 0;
   border-radius: 50%;
   background: transparent;
   color: #8a6414;
-  font: 700 0.85em/1 var(--sans);
   cursor: pointer;
   -webkit-appearance: none;
   appearance: none;
@@ -28,11 +27,16 @@
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
-  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 .hold__marker::after { content: ''; position: absolute; inset: -12px; }
-.hold__marker.is-down { background: #8a6414; color: #fbfbfa; transform: scale(1.12); touch-action: none; }
-.hold__marker.is-done { background: #8a6414; color: #fbfbfa; cursor: default; }
+.hold__glyph { width: 100%; height: 100%; overflow: visible; display: block; }
+.hold__ring { stroke: #8a6414; fill: transparent; transition: fill 0.2s ease; }
+.hold__pm { stroke: #8a6414; transition: stroke 0.2s ease; }
+.hold__marker.is-down { touch-action: none; }
+.hold__marker.is-done { cursor: default; }
+.hold__marker.is-down .hold__ring, .hold__marker.is-done .hold__ring { fill: #8a6414; }
+.hold__marker.is-down .hold__pm, .hold__marker.is-done .hold__pm { stroke: #fbfbfa; }
 .hold__marker:disabled { opacity: 0.4; cursor: default; }
 .hold__marker:focus-visible { outline: 2px solid #2b2926; outline-offset: 3px; }
 
@@ -50,9 +54,11 @@
 @media (prefers-reduced-motion: reduce) { .hold__line { transition: none; } }
 /* each figure sits in a fixed-width space so the underline never jumps */
 .hold__fig { display: inline-block; font-variant-numeric: tabular-nums; vertical-align: bottom; white-space: nowrap; }
-.hold__fig--month { min-width: 7em; }
-.hold__fig--value { min-width: 3.9em; }
+.hold__fig--month { min-width: 7.6em; }
+.hold__fig--value { min-width: 4.4em; }
 .hold__fig--share { min-width: 1.9em; }
+/* once the hold has stopped nothing moves, so the figures close up to their own width */
+.hold__line.is-done .hold__fig { min-width: 0; }
 
 .game-hint__rules { margin-top: 10px !important; padding-top: 10px; border-top: 1px solid #d9d2c3; }
 .game-hint__rules b { display: block; margin-bottom: 3px; font: 700 10px var(--sans); letter-spacing: 0.14em; text-transform: uppercase; color: #8a6414; }
@@ -62,3 +68,15 @@
 @media (min-width: 600px) {
   .read.read--hold .hero { aspect-ratio: 16 / 9; width: min(100%, 900px); }
 }
+
+/* a tap does nothing but teach: a small bubble over the marker says how it is played */
+.hold__anchor { position: relative; display: inline-block; }
+.hold__hint {
+  position: absolute; left: 50%; bottom: calc(100% + 9px);
+  padding: 6px 11px; border-radius: 10px; background: #2b2926; color: #fbfbfa;
+  font: 600 12px/1.2 var(--text); white-space: nowrap; pointer-events: none; z-index: 3;
+}
+.hold__hint::after { content: ''; position: absolute; left: 50%; top: 100%; width: 8px; height: 8px; background: #2b2926; transform: translate(-50%, -4px) rotate(45deg); }
+
+/* a bigger marker, and a quiet invitation: framer-motion breathes a ring out from it a few times and lifts it near the pointer */
+.hold__pulse { position: absolute; inset: 0; border: 1.5px solid #8a6414; border-radius: 50%; pointer-events: none; }

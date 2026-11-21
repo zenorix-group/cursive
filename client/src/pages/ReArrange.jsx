@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { motion } from 'framer-motion'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { createPortal } from 'react-dom'
+import { MotionConfig, motion } from 'framer-motion'
+import { useLocation, useNavigate } from 'react-router-dom'
 import quixote from '../assets/site/quixote.jpg'
+import authorProfile from '../assets/author-profile.jpg'
 import GameHero from '../components/GameHero.jsx'
 import InkFilter from '../components/InkFilter.jsx'
 import { article5 } from '../data/articles.js'
@@ -9,6 +11,8 @@ import { MOVABLE, loadMoves, saveMoves } from '../data/moveProgress.js'
 import { formatClock, useReadingClock } from '../lib/useReadingClock.js'
 import './Reading.css'
 import './ReArrange.css'
+import BrandLink from '../components/BrandLink.jsx'
+import { useFiling, usePlainNext } from '../lib/companion.js'
 
 const iconProps = { width: 16, height: 16, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.6, strokeLinecap: 'round', strokeLinejoin: 'round' }
 // the game switch for article 5: the pilcrow marker, and the book the moments come from
@@ -42,6 +46,7 @@ function ReArrange({ article = article5 }) {
   const session = useRef(`s${Date.now().toString(36)}`)
   const focusTitle = useRef(null)
   const foldRef = useRef(null)
+  const mainRef = useRef(null)
 
   const moments = article.moments
   const indexOf = (id) => moments.findIndex((m) => m.id === id)
@@ -105,30 +110,65 @@ function ReArrange({ article = article5 }) {
   const dropRef = useRef(drop)
   useEffect(() => { dropRef.current = drop })
 
-  const targetAt = (x, y, from) => {
-    const id = document.elementFromPoint(x, y)?.closest('[data-drop]')?.getAttribute('data-drop')
-    return id && id !== from && MOVABLE.includes(id) ? id : null
+  // the nearest outlined line, so the finger does not have to land exactly on it: within a thumb's width of a line counts
+  const targetAt = (y, from) => {
+    let best = null
+    let bestGap = Infinity
+    for (const el of document.querySelectorAll('[data-drop]')) {
+      const id = el.getAttribute('data-drop')
+      if (id === from || !MOVABLE.includes(id)) continue
+      const box = el.getBoundingClientRect()
+      const gap = y < box.top ? box.top - y : y > box.bottom ? y - box.bottom : 0
+      if (gap < bestGap) { bestGap = gap; best = id }
+    }
+    return bestGap <= 40 ? best : null
   }
 
   // pointer: press a ¶ title for 200 ms without moving to pick it up; a touch that moves first is a scroll
+  // pick a title up to drag it: the article folds under her pointer, so a page element that stays takes over the pointer
+  const pickUp = (id, x, y, pointerId) => {
+    press.current = null
+    const title = stateRef.current.placement[id]
+    const picked = { title, from: id, over: null, x, y, mode: 'pointer' }
+    dragRef.current = picked
+    setDrag(picked)
+    setFolded(true)
+    update({ revealed: true })
+    try { mainRef.current?.setPointerCapture(pointerId) } catch { /* a pointer that is already gone */ }
+    window.scrollTo({ top: Math.max(0, (foldRef.current?.getBoundingClientRect().top ?? 0) + window.scrollY - 90) })
+  }
+  // pointer: a finger presses a ¶ title for 200 ms without moving to pick it up (a touch that moves first is a scroll);
+  // a mouse has no scroll to mistake, so it picks the title up as soon as it moves
   const down = (event, id) => {
     if (state.filed || press.current || dragRef.current) return
     if (event.button !== undefined && event.button !== 0) return
-    const { clientX: x, clientY: y, pointerId } = event
-    press.current = { id, x, y, pointerId, timer: setTimeout(() => {
-      press.current = null
-      const title = stateRef.current.placement[id]
-      const picked = { title, from: id, over: null, x, y, mode: 'pointer' }
-      dragRef.current = picked
-      setDrag(picked)
-      setFolded(true)
-      update({ revealed: true })
-      window.scrollTo({ top: Math.max(0, (foldRef.current?.getBoundingClientRect().top ?? 0) + window.scrollY - 90) })
-    }, PICKUP_MS) }
+    const { clientX: x, clientY: y, pointerId, pointerType } = event
+    // keep receiving the moves even if the pointer slips off the small title before it passes the slop
+    try { event.currentTarget.setPointerCapture?.(pointerId) } catch { /* a pointer that is already gone */ }
+    press.current = { id, x, y, pointerId, pointerType, timer: setTimeout(() => pickUp(id, x, y, pointerId), PICKUP_MS) }
+  }
+  // a quick tap on a ¶ title (no hold) picks it up too: the article folds and she taps the moment it belongs to
+  const releasePress = (id) => {
+    const p = press.current
+    if (!p) return
+    clearTimeout(p.timer)
+    press.current = null
+    if (stateRef.current.filed || dragRef.current) return
+    const title = stateRef.current.placement[id]
+    const picked = { title, from: id, over: null, x: 0, y: 0, mode: 'tap' }
+    dragRef.current = picked
+    setDrag(picked)
+    setFolded(true)
+    update({ revealed: true })
+    setAnnounce(`${title} picked up. Tap the moment it belongs to, or cancel.`)
+    window.scrollTo({ top: Math.max(0, (foldRef.current?.getBoundingClientRect().top ?? 0) + window.scrollY - 90) })
   }
   const moveBeforePickup = (event) => {
     const p = press.current
-    if (p && Math.hypot(event.clientX - p.x, event.clientY - p.y) > MOVE_SLOP) { clearTimeout(p.timer); press.current = null }
+    if (!p || Math.hypot(event.clientX - p.x, event.clientY - p.y) <= MOVE_SLOP) return
+    clearTimeout(p.timer)
+    if (p.pointerType === 'mouse') { pickUp(p.id, event.clientX, event.clientY, p.pointerId); return }
+    press.current = null
   }
   const cancelPress = () => { if (press.current) { clearTimeout(press.current.timer); press.current = null } }
 
@@ -138,7 +178,7 @@ function ReArrange({ article = article5 }) {
     const move = (event) => {
       const current = dragRef.current
       if (!current || current.mode !== 'pointer') return
-      const over = targetAt(event.clientX, event.clientY, current.from)
+      const over = targetAt(event.clientY, current.from)
       const next = { ...current, x: event.clientX, y: event.clientY, over }
       dragRef.current = next
       setDrag(next)
@@ -197,25 +237,33 @@ function ReArrange({ article = article5 }) {
     requestAnimationFrame(() => document.getElementById(`title-${id}`)?.focus({ preventScroll: true }))
   }, [folded, state.placement])
 
-  const file = useCallback(() => {
+  const file = useCallback((from = 'overture') => {
     if (!stateRef.current.filed) {
-      log('file')
+      log('file', { from })
       update({ filed: true })
     }
     navigate('/receipt/5')
   }, [navigate])
+  const plainNext = usePlainNext()
+  useFiling(5, file, setGame)
 
   const markerLabel = (m, n) => `Title of moment ${n}, ${shown(m) ? `shown: ${titleOf(m)}` : 'hidden'}`
 
   // a plain function, not a component: it must not remount on every render, or a held press would be lost
   const renderMarker = (m, n) => (
     <div className="rearr__marker-row" key={`marker-${m.id}`}>
-      <button type="button" className={`rearr__marker${m.movable ? ' is-movable' : ''}`} aria-label={markerLabel(m, n)} onClick={() => openMarker(m.id)}>
+      <motion.button type="button" className={`rearr__marker${m.movable ? ' is-movable' : ''}`} aria-label={markerLabel(m, n)} onClick={() => openMarker(m.id)} whileHover={{ scale: 1.14 }} whileTap={{ scale: 0.88 }} transition={{ type: 'spring', stiffness: 420, damping: 20 }}>
+        {!shown(m) && (
+          <motion.span className="rearr__pulse" aria-hidden="true" initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: [0.6, 1.5], opacity: [0.5, 0] }} transition={{ duration: 2.2, ease: 'easeOut', delay: 1 + n * 0.25, repeat: 3, repeatDelay: 0.9 }} />
+        )}
         <span aria-hidden="true">{m.movable ? '¶' : ''}</span>
-      </button>
+      </motion.button>
       {shown(m) && (m.movable ? (
         <motion.button
           layoutId={`title-${titleOf(m)}`}
+          initial={{ opacity: 0, x: -12 }}
+          animate={{ opacity: 1, x: 0 }}
+          whileTap={drag ? undefined : { scale: 0.96 }}
           type="button"
           id={`title-${m.id}`}
           className={`rearr__title is-movable${state.filed ? ' is-locked' : ''}${drag?.from === m.id && drag.mode === 'key' ? ' is-held' : ''}`}
@@ -223,20 +271,21 @@ function ReArrange({ article = article5 }) {
           disabled={state.filed}
           onPointerDown={(event) => down(event, m.id)}
           onPointerMove={moveBeforePickup}
-          onPointerUp={cancelPress}
+          onPointerUp={() => releasePress(m.id)}
           onPointerCancel={cancelPress}
           onContextMenu={(event) => event.preventDefault()}
           onKeyDown={(event) => { if ((event.key === ' ' || event.key === 'Enter') && !dragRef.current) { event.preventDefault(); keyPick(m.id) } }}
-        >¶ {titleOf(m)}</motion.button>
-      ) : <span className="rearr__title">{titleOf(m)}</span>)}
+        >{state.filed ? '' : '¶ '}{titleOf(m)}</motion.button>
+      ) : <motion.span className="rearr__title" initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ type: 'spring', stiffness: 300, damping: 24 }}>{titleOf(m)}</motion.span>)}
     </div>
   )
 
   return (
-    <main className={`read read--banking read--rearrange${game ? ' read--game' : ''}${folded ? ' is-folded' : ''}`}>
+    <MotionConfig reducedMotion="user">
+    <main ref={mainRef} className={`read read--banking read--rearrange${game ? ' read--game' : ''}${folded ? ' is-folded' : ''}`}>
       <InkFilter />
       <header className="read__bar">
-        <Link to="/" className="read__brand">cursive</Link>
+        <BrandLink className="read__brand" />
         <span className="read__time" role="timer" aria-label={`Time on this article: ${clock}`}>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" /><path d="M12 7v5l3 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
           <span className="read__time-text">{clock}</span>
@@ -244,25 +293,42 @@ function ReArrange({ article = article5 }) {
       </header>
 
       <div className="read__head">
-        <h1 className="read__title">{article.readingTitle.map((line) => <span key={line}>{line}</span>)}</h1>
+        <h1 className="read__title">{article.readingTitle.map((line) => <span key={line}>{line} </span>)}</h1>
         {article.subtitle && <p className="read__subtitle">{article.subtitle}</p>}
       </div>
 
       <GameHero article={article} image={quixote} game={game} setGame={setGame} KnobIcon={PilcrowIcon} EndIcon={BookIcon} />
 
       <article className="read__body">
+        <div className="read__author">
+          <img className="read__avatar" src={authorProfile} alt={`${article.author} profile`} />
+          <span className="read__author-name">{article.author}</span>
+        </div>
         <p className="rearr__standfirst">{article.standfirst}</p>
-        {game && <p className="rearr__instruction">{article.instruction}</p>}
         <span className="visually-hidden" role="status" aria-live="polite">{announce}</span>
 
+        {game && folded && drag?.mode === 'tap' && (
+          <div className="rearr__hint" role="status">
+            <span>Tap the moment <b>{drag.title}</b> belongs to.</span>
+            <button type="button" onClick={() => drop(null)}>Cancel</button>
+          </div>
+        )}
         {game && folded ? (
-          <ol className="rearr__fold" ref={foldRef} aria-label="The six moments, folded">
+          <motion.ol className="rearr__fold" ref={foldRef} aria-label="The six moments, folded" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, ease: 'easeOut' }}>
             {moments.map((m, i) => {
               const target = drag && m.movable && m.id !== drag.from
               const held = drag?.from === m.id
               const visible = m.movable ? true : !!state.opened[m.id]
               return (
-                <li key={m.id} data-drop={target ? m.id : undefined} className={`rearr__line${target ? ' is-drop' : ''}${drag?.over === m.id ? ' is-over' : ''}${held ? ' is-from' : ''}`}>
+                <li
+                  key={m.id}
+                  data-drop={target ? m.id : undefined}
+                  className={`rearr__line${target ? ' is-drop' : ''}${drag?.over === m.id ? ' is-over' : ''}${held ? ' is-from' : ''}`}
+                  role={target && drag?.mode === 'tap' ? 'button' : undefined}
+                  tabIndex={target && drag?.mode === 'tap' ? 0 : undefined}
+                  onClick={target && drag?.mode === 'tap' ? () => drop(m.id) : undefined}
+                  onKeyDown={target && drag?.mode === 'tap' ? (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); drop(m.id) } } : undefined}
+                >
                   <span className={`rearr__marker rearr__marker--static${m.movable ? ' is-movable' : ''}`} aria-hidden="true">{m.movable ? '¶' : ''}</span>
                   {visible && !held && <motion.span layoutId={`title-${titleOf(m)}`} className={`rearr__title${m.movable ? ' is-movable' : ''}`}>{m.movable ? '¶ ' : ''}{titleOf(m)}</motion.span>}
                   <span className="rearr__first">{firstSentence(m.text)}</span>
@@ -270,7 +336,7 @@ function ReArrange({ article = article5 }) {
                 </li>
               )
             })}
-          </ol>
+          </motion.ol>
         ) : (
           moments.map((m, i) => (
             <section key={m.id} id={`moment-${m.id}`} className={`rearr__moment${drag?.mode === 'key' && m.movable && m.id !== drag.from ? ' is-drop' : ''}${drag?.over === m.id && drag.mode === 'key' ? ' is-over' : ''}`} data-drop={drag?.mode === 'key' && m.movable && m.id !== drag.from ? m.id : undefined}>
@@ -280,15 +346,15 @@ function ReArrange({ article = article5 }) {
           ))
         )}
 
-        {drag?.mode === 'pointer' && <div className="rearr__ghost" style={{ left: drag.x, top: drag.y }} aria-hidden="true">¶ {drag.title}</div>}
+        {/* drawn on the body itself: the page's transition wrapper has a filter, which would make 'fixed' follow the page, not the screen */}
+        {drag?.mode === 'pointer' && createPortal(<div className="rearr__ghost" style={{ left: drag.x, top: drag.y }} aria-hidden="true">¶ {drag.title}</div>, document.body)}
 
         <div className="read__actions">
-          <button type="button" className="read__next" onClick={file}>
-            File <span aria-hidden="true">→</span>
-          </button>
+          {!game && <motion.button type="button" className="read__next" onClick={() => navigate(plainNext)} whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }}>Next article</motion.button>}
         </div>
       </article>
     </main>
+    </MotionConfig>
   )
 }
 

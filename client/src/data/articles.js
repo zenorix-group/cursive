@@ -146,7 +146,7 @@ export const article4 = {
   tagline: 'Mark where writing and the earth share a sentence.',
   title: ['Write for', 'the Earth'],
   readingTitle: ['Write for', 'the Earth'],
-  subtitle: 'Literature: the Grand Prix Francophone de Poésie et du Conte officially opens, and the Francophone world is invited to “Write for the Earth”.',
+  subtitle: 'Literature: the Grand Prix Francophone de Poésie et du Conte officially opens — the Francophone world invited to “Write for the Earth”',
   headline: 'Write for the Earth',
   blurb: 'Where the answer lives: in the sentences where writing and the earth arrive together, and in the line you write from them.',
   plate: plate1,
@@ -172,7 +172,7 @@ export const article4 = {
       { id: 'S5', text: 'Through their writing, candidates may explore any number of key subjects: the preservation of nature, waste management, recycling, the protection of water resources, the fight against the pollution of oceans and waterways, and the impact of climate change.' },
     ] },
     { s: [
-      { id: 'S6', text: 'For Bonnie Wiseman, president of READ and of the Grand Prix Francophone organising committee, this competition, open to the whole of the Francophone world, is intended as a channel for expression and a celebration of creativity:' },
+      { id: 'S6', text: 'For Bonnie Wiseman, president of READ and of the Grand Prix Francophone organising committee, this competition — open to the whole of the Francophone world — is intended as a channel for expression and a celebration of creativity:' },
     ] },
     { q: [
       { id: 'S7', text: '“A great many texts are still asleep in notebooks and in drawers.' },
@@ -188,7 +188,7 @@ export const article4 = {
       { id: 'S12', text: 'This 2026 edition will culminate in some twenty prizewinners being honoured internationally, at two award ceremonies: the first in Abidjan, the second in Paris.' },
     ] },
     { s: [
-      { id: 'S13', text: 'The organising committee invites everyone with a passion for writing to begin today, to turn their reflections into poems or short stories, and to take part in this great celebration of Francophone creation.' },
+      { id: 'S13', text: 'The organising committee invites everyone with a passion for writing to begin today — to turn their reflections into poems or short stories, and to take part in this great celebration of Francophone creation.' },
     ] },
   ],
   // the drawer the six words are drawn from: nouns and verbs only, in the order they are preferred. The stop list (competition,

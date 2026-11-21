@@ -1,10 +1,9 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import ReceiptShell from '../components/ReceiptShell.jsx'
 import { article3 } from '../data/articles.js'
 import { HOLD_DATA } from '../data/holdData.js'
-import { RANGE, holdReceipt } from '../data/holdLogic.js'
-import { loadHoldProgress } from '../data/holdProgress.js'
-import { kvSet } from '../data/cursiveStore.js'
+import { RANGE } from '../data/holdLogic.js'
+import { generateHoldReceipt, getCachedHoldReceipt, receiptHolds } from '../data/holdReceiptStorage.js'
 import { markOnboardingDone } from '../lib/onboarding.js'
 import { useReveal } from '../lib/useReveal.js'
 import './HoldReceipt.css'
@@ -42,16 +41,25 @@ function HoldMark({ marks }) {
   )
 }
 
+const LOADING = ['Reading how you held and let go.', 'Setting each year against the range.', 'Writing your receipt.']
+
 function HoldReceipt() {
-  const progress = useMemo(() => loadHoldProgress(), [])
-  const receipt = useMemo(() => holdReceipt(progress.holds), [progress])
-  useReveal(true)
+  const holds = useMemo(() => receiptHolds(), [])
+  const [receipt, setReceipt] = useState(() => getCachedHoldReceipt(holds))
+  const [error, setError] = useState('')
+  const [attempt, setAttempt] = useState(0)
+  useReveal(!!receipt)
+
   useEffect(() => { window.scrollTo(0, 0) }, [])
-  // seeing the receipt completes the article
+  // seeing a real receipt completes the article
+  useEffect(() => { if (receipt) markOnboardingDone() }, [receipt])
   useEffect(() => {
-    markOnboardingDone()
-    kvSet('cursive:article:3:receipt:v1', JSON.stringify({ receipt }))
-  }, [receipt])
+    if (receipt) return undefined
+    let current = true
+    generateHoldReceipt(holds).then((result) => { if (current) { setReceipt(result); setError('') } })
+      .catch((failure) => { if (current) setError(failure.name === 'TimeoutError' ? 'Writing took too long. Your holds are saved. Please retry.' : failure.message) })
+    return () => { current = false }
+  }, [holds, receipt, attempt])
 
   return (
     <ReceiptShell
@@ -61,23 +69,31 @@ function HoldReceipt() {
       readPath="/read/3"
       backLabel="Back to your holds"
       pdfName="cursive-the-hold-receipt.pdf"
-      ready
+      loading={LOADING}
+      ready={!!receipt}
+      error={error}
+      onRetry={() => { setError(''); setAttempt((n) => n + 1) }}
+      retryNote="Your holds are saved on this device."
     >
-      <section className="receipt__section"><h2 className="receipt__section-heading"><span>01 / Your pattern</span><span>[In words]</span></h2><p className="hold-receipt__habit">{receipt.habitText}</p></section>
-      <section className="receipt__section"><h2 className="receipt__section-heading"><span>02 / Year by year</span><span>[The 10 to 15 rule]</span></h2>
-        {receipt.stories.map((story) => (
-          <div className="receipt__card" key={story.id}>
-            <div className="receipt__card-heading"><span>{story.title}</span><span>{story.played ? (story.judged.acted ? 'Let go' : 'Held') : 'Skipped'}</span></div>
-            {story.lines.map((line, i) => <p key={i}>{line}</p>)}
-          </div>
-        ))}
-      </section>
-      <section className="receipt__section"><h2 className="receipt__section-heading"><span>03 / The mark</span><span>[Share abroad]</span></h2><HoldMark marks={receipt.marks} /></section>
-      <section className="receipt__section"><h2 className="receipt__section-heading"><span>04 / Carrying the habit</span><span>[Looking ahead]</span></h2>
-        <aside className="receipt__note"><span>The figure</span><p>{receipt.confidence}</p></aside>
-        <ul className="hold-receipt__questions">{receipt.questions.map((q) => <li key={q}>{q}</li>)}</ul>
-        <p className="hold-receipt__aside">These are questions to think about, not to answer here. Nothing about your finances was collected, and none of this is investment advice.</p>
-      </section>
+      {receipt && (
+        <>
+          <section className="receipt__section"><h2 className="receipt__section-heading"><span>01 / Your pattern</span><span>[In words]</span></h2><p className="hold-receipt__habit">{receipt.habitText}</p></section>
+          <section className="receipt__section"><h2 className="receipt__section-heading"><span>02 / Year by year</span><span>[The 10 to 15 rule]</span></h2>
+            {receipt.stories.map((story) => (
+              <div className="receipt__card" key={story.id}>
+                <div className="receipt__card-heading"><span>{story.title}</span><span>{story.played ? (story.judged.acted ? 'Let go' : 'Held') : 'Skipped'}</span></div>
+                {story.lines.map((line, i) => <p key={i}>{line}</p>)}
+              </div>
+            ))}
+          </section>
+          <section className="receipt__section"><h2 className="receipt__section-heading"><span>03 / The mark</span><span>[Share abroad]</span></h2><HoldMark marks={receipt.marks} /></section>
+          <section className="receipt__section"><h2 className="receipt__section-heading"><span>04 / Carrying the habit</span><span>[Looking ahead]</span></h2>
+            <aside className="receipt__note"><span>The figure</span><p>{receipt.confidence}</p></aside>
+            <ul className="hold-receipt__questions">{receipt.questions.map((q) => <li key={q}>{q}</li>)}</ul>
+            <p className="hold-receipt__aside">These are questions to think about, not to answer here. Nothing about your finances was collected, and none of this is investment advice.</p>
+          </section>
+        </>
+      )}
     </ReceiptShell>
   )
 }

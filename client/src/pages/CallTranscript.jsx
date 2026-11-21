@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { callLines, loadCallProgress, saveCallProgress, toggleCallLine } from '../data/callProgress.js'
 import './CallTranscript.css'
+import BrandLink from '../components/BrandLink.jsx'
 
 function CallTranscript() {
   const navigate = useNavigate()
@@ -19,7 +20,7 @@ function CallTranscript() {
 
   return (
     <main className="call-page">
-      <header className="call__bar"><Link to="/">cursive</Link></header>
+      <header className="call__bar"><BrandLink /></header>
       <div className="call__body">
         <header className="call__intro">
           <p className="call__eyebrow">Article 02 / 05 min</p>

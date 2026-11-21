@@ -9,6 +9,7 @@ import room912 from '../assets/site/room912.jpg'
 import { article1 } from '../data/articles.js'
 import { outsidePath } from '../data/plates.js'
 import './ArticleIntro.css'
+import BrandLink from '../components/BrandLink.jsx'
 
 // the first two articles are the plate's flags; every later article shows its own picture on the card
 const OWN_IMAGE = { 3: equities, 4: earth, 5: quixote, 6: gentleman, 7: room912 }
@@ -42,7 +43,7 @@ function ArticleIntro({ article = article1 }) {
       </svg>
 
       <header className="article__bar">
-        <Link to="/" className="article__brand">cursive</Link>
+        <BrandLink className="article__brand" />
       </header>
 
       <div className="article__body">

@@ -10,6 +10,7 @@ import narrativeExample from '../data/narrativeExample.json'
 import './Receipt.css'
 import './LiftReceipt.css'
 import './NarrativeReceipt.css'
+import BrandLink from '../components/BrandLink.jsx'
 
 const LOADING = ['Reading both of your receipts.', 'Following one reason through both stories.', 'Writing what they say together.']
 
@@ -66,7 +67,7 @@ function NarrativeReceipt({ example = false }) {
 
   return (
     <main className="receipt-page narrative-receipt-page">
-      <header className="receipt__bar"><Link to="/">cursive</Link></header>
+      <header className="receipt__bar"><BrandLink /></header>
       <article className="receipt narrative-receipt">
         <div className="receipt__rail">
           <header className="receipt__intro">

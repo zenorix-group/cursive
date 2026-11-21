@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { AnimatePresence, MotionConfig, motion } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 import room912 from '../assets/site/room912.jpg'
 import GameHero from '../components/GameHero.jsx'
 import InkFilter from '../components/InkFilter.jsx'
@@ -8,6 +9,8 @@ import { MAX_WORDS, countWords, limitWords, loadFiles, saveFiles } from '../data
 import { formatClock, useReadingClock } from '../lib/useReadingClock.js'
 import './Reading.css'
 import './TwoFilesReading.css'
+import BrandLink from '../components/BrandLink.jsx'
+import { useFiling, usePlainNext } from '../lib/companion.js'
 
 const iconProps = { width: 16, height: 16, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.6, strokeLinecap: 'round', strokeLinejoin: 'round' }
 // the game switch for article 7: a file, and a door
@@ -47,9 +50,15 @@ function Note({ file, at, value, onChange, onLeave, announce }) {
           autoCorrect="off"
           autoCapitalize="off"
           onChange={(event) => onChange(file, at, event.target.value)}
+          onFocus={(event) => event.target.scrollIntoView({ block: 'center', behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })}
           onBlur={() => onLeave(file, at)}
         />
-        <span className="files__count" aria-hidden="true">{n} of {MAX_WORDS}</span>
+        <span className="files__count" aria-hidden="true">
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.span key={n} className="files__count-n" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.12 }}>{n} of {MAX_WORDS}</motion.span>
+          </AnimatePresence>
+        </span>
+        <span className="files__rule" aria-hidden="true" />
       </div>
       {announce === id && <span className="visually-hidden" role="status" aria-live="polite">{n} of {MAX_WORDS} words used</span>}
     </div>
@@ -69,6 +78,8 @@ function TwoFilesReading({ article = article7 }) {
   const reached = useRef(-1) // index into REACH of the furthest point that has been on her screen
   const recorded = useRef({ hotel: state.notes.hotel, bureau: state.notes.bureau })
   const timers = useRef({})
+  const bodyRef = useRef(null)
+  const anchor = useRef(null) // keeps her place while the breaks' spaces appear or go
   const { notes, game } = state
 
   useEffect(() => { openedAt.current = performance.now() }, [])
@@ -107,6 +118,8 @@ function TwoFilesReading({ article = article7 }) {
   const setGame = (value) => {
     const on = typeof value === 'function' ? value(stateRef.current.game) : value
     if (on === stateRef.current.game) return
+    const first = [...(bodyRef.current?.children ?? [])].find((el) => el.getBoundingClientRect().bottom > 90)
+    anchor.current = first ? { el: first, top: first.getBoundingClientRect().top } : null
     log('game', { on })
     update({ game: on })
   }
@@ -129,30 +142,41 @@ function TwoFilesReading({ article = article7 }) {
   }
   useEffect(() => () => Object.values(timers.current).forEach(clearTimeout), [])
 
-  const file = () => {
+  useLayoutEffect(() => {
+    const held = anchor.current
+    anchor.current = null
+    if (!held?.el?.isConnected) return
+    const shift = held.el.getBoundingClientRect().top - held.top
+    if (shift) window.scrollBy(0, shift)
+  }, [game])
+
+  const file = (from = 'overture') => {
     flush('hotel', 'b2')
     flush('bureau', 'b2')
     if (!stateRef.current.filed) {
-      log('file', { hotel: stateRef.current.notes.hotel, bureau: stateRef.current.notes.bureau, reached: reachedNow() })
+      log('file', { from, hotel: stateRef.current.notes.hotel, bureau: stateRef.current.notes.bureau, reached: reachedNow() })
       update({ filed: true })
     }
     navigate('/receipt/7')
   }
+  const plainNext = usePlainNext()
+  useFiling(7, file, setGame)
 
   // a break sits in the gap between two paragraphs: its line, the hotel's note and the Bureau's note
   const breakBlock = (id) => (
-    <section className="files__break" key={id} data-reach={id} aria-label={id === 'b1' ? 'First break' : 'Second break'}>
+    <motion.section className="files__break" key={id} data-reach={id} aria-label={id === 'b1' ? 'First break' : 'Second break'} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, ease: 'easeOut' }}>
       <p className="files__line">{article.breaks[id]}</p>
       <Note file="hotel" at={id} value={notes.hotel} onChange={change} onLeave={flush} announce={announce} />
       <Note file="bureau" at={id} value={notes.bureau} onChange={change} onLeave={flush} announce={announce} />
-    </section>
+    </motion.section>
   )
 
   return (
+    <MotionConfig reducedMotion="user">
     <main className={`read read--banking read--files${game ? ' read--game' : ''}`}>
       <InkFilter />
       <header className="read__bar">
-        <Link to="/" className="read__brand">cursive</Link>
+        <BrandLink className="read__brand" />
         <span className="read__time" role="timer" aria-label={`Time on this article: ${clock}`}>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" /><path d="M12 7v5l3 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
           <span className="read__time-text">{clock}</span>
@@ -160,13 +184,17 @@ function TwoFilesReading({ article = article7 }) {
       </header>
 
       <div className="read__head">
-        <h1 className="read__title">{article.readingTitle.map((line) => <span key={line}>{line}</span>)}</h1>
+        <h1 className="read__title">{article.readingTitle.map((line) => <span key={line}>{line} </span>)}</h1>
         {article.subtitle && <p className="read__subtitle">{article.subtitle}</p>}
       </div>
 
       <GameHero article={article} image={room912} game={game} setGame={setGame} KnobIcon={FileIcon} EndIcon={DoorIcon} switchLabel="Play Two Files" />
 
-      <article className="read__body">
+      <article className="read__body" ref={bodyRef}>
+        <div className="read__author files__author">
+          <span className="files__seal" aria-hidden="true"><FileIcon /></span>
+          <span className="read__author-name">{article.author}</span>
+        </div>
 
         {article.body.map((block, i) => {
           if (block.break) return game ? breakBlock(block.break) : null
@@ -178,10 +206,11 @@ function TwoFilesReading({ article = article7 }) {
         })}
 
         <div className="read__actions">
-          <button type="button" className="read__next" onClick={file}>File <span aria-hidden="true">→</span></button>
+          {!game && <motion.button type="button" className="read__next" onClick={() => navigate(plainNext)} whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }}>Next article</motion.button>}
         </div>
       </article>
     </main>
+    </MotionConfig>
   )
 }
 

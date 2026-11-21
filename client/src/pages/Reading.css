@@ -661,3 +661,21 @@
 .read .read__head { padding-bottom: calc(var(--u) * 36); }
 .read__head .read__subtitle { margin: calc(var(--u) * 16) 0 0; text-align: center; font: 400 calc(var(--u) * 17)/1.4 var(--sans); color: #2b2926; }
 @media (min-width: 900px) { .read .read__head { padding-bottom: 44px; } .read__head .read__subtitle { font-size: 20px; } }
+
+/* hover bubble on the game switch ("Turn on the game") */
+.switch-wrap { position: relative; display: flex; }
+
+/* a player has no button under the last paragraph: the Blot swells into the Overture instead, so leave it room in the corner */
+.read--game .read__actions:empty { min-height: calc(var(--u) * 120); }
+
+/* phones: the heading is the main thing. It wraps and is set large (a short title no longer shrinks to fit one line), and the
+   line under it sits a little smaller than before. The one-line fitted headline stays for wide screens. */
+@media (max-width: 899px) {
+  .read .read__head .read__title { white-space: normal; font-size: clamp(26px, 8.4vw, 38px); line-height: 1.08; text-align: center; text-wrap: balance; }
+  .read__head .read__subtitle { font-size: clamp(13.5px, 3.9vw, 15.5px); line-height: 1.45; margin-top: 8px; }
+  /* tighter block around the heading: less white above and below it before the picture */
+  .read .read__head { padding-top: 26px; padding-bottom: 18px; }
+}
+
+/* a player has no button under the last paragraph: say where filing is */
+.read--game .read__actions:empty::before { content: 'When you are ready, tap File now in the corner.'; display: block; font: italic 400 calc(var(--u) * 15)/1.5 var(--text); color: #6d665b; }
