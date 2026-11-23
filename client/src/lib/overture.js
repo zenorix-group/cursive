@@ -1,3 +1,4 @@
+import { articleStatus } from '../data/articleStatus.js'
 import { loadReadingProgress } from '../data/readingProgress.js'
 import { loadCallProgress } from '../data/callProgress.js'
 import { haptic } from './haptics.js'
@@ -70,6 +71,8 @@ export function markReceiptStored(n) {
 // 'stored' once the reader has put it away, 'ready' when there are answers to make one from, otherwise 'empty'
 export function receiptStatus(n) {
   if (isStored(n)) return 'stored'
+  // articles 3 to 7 keep their receipt with the article's own progress: it is ready once that receipt exists
+  if (n >= 3) return articleStatus(n).status === 'done' ? 'ready' : 'empty'
   const hasAnswers = n === 2
     ? Object.keys(loadCallProgress().answers).length > 0
     : Object.values(loadReadingProgress(1).answers).some((text) => typeof text === 'string' && text.trim())

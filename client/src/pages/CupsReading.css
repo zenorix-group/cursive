@@ -13,6 +13,8 @@
 .cup { width: 36px; height: 36px; fill: none; stroke: #8a6414; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
 .cup.is-filled { fill: #8a6414; }
 .cup.is-filled path:nth-child(n + 2) { fill: none; }
+.cup path:nth-child(n + 4) { stroke-width: 0.8; opacity: 0.55; }
+.cup.is-filled path:nth-child(4) { stroke: #fbfbfa; opacity: 0.5; }
 
 /* the seat after a sentence: a space held for it so showing or hiding the seats never moves a word */
 .cups__seat { position: relative; display: inline-flex; align-items: center; vertical-align: middle; min-width: 44px; min-height: 44px; margin-left: 2px; }

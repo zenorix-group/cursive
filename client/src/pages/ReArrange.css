@@ -28,8 +28,13 @@
   -webkit-appearance: none;
   appearance: none;
 }
-.rearr__marker::before { content: ''; width: 12px; height: 12px; border-radius: 50%; background: #8a6414; }
-.rearr__marker.is-movable::before { content: none; }
+/* a dot with a ring round it (⊙); on the tappable markers the ring breathes outward so the dot reads as something to press */
+/* the ring is the dot's own outline, so it is always centred on the dot; on tappable markers it breathes outward */
+.rearr__marker::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #8a6414; outline: 1.5px solid #8a6414; outline-offset: 5px; }
+.rearr__marker:not(.rearr__marker--static)::before { animation: rearr-ring 2.6s ease-in-out infinite; }
+.rearr__marker.is-movable::before { content: none; animation: none; }
+@keyframes rearr-ring { 0%, 100% { outline-color: #8a6414; outline-offset: 4px; } 60% { outline-color: rgba(138, 100, 20, 0.15); outline-offset: 7px; } }
+@media (prefers-reduced-motion: reduce) { .rearr__marker:not(.rearr__marker--static)::before { animation: none; } }
 .rearr__marker > span { font: 700 20px/1 var(--text); }
 .rearr__marker:focus-visible { outline: 2px solid #2b2926; outline-offset: -4px; border-radius: 50%; }
 .rearr__marker--static { width: 28px; height: 28px; cursor: default; }

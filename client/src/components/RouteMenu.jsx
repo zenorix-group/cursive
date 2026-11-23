@@ -5,6 +5,7 @@ import { useAuth } from '../auth/AuthContext.jsx'
 import * as I from './menuIcons.jsx'
 import { useReadProgress } from '../lib/readProgress.js'
 import { receiptStatus } from '../lib/overture.js'
+import { article3, article4, article5, article6, article7 } from '../data/articles.js'
 import { useWaitingSign } from '../lib/signs.js'
 import { useBleed } from '../lib/bleed.js'
 
@@ -12,20 +13,21 @@ const pad = (n) => String(n).padStart(2, '0')
 
 const STATE_LABEL = { stored: 'Stored', ready: 'Ready', empty: 'Not yet' }
 const STATE_NOTE = { stored: 'Stored', ready: 'Ready to read', empty: 'Nothing saved yet' }
-const ARTICLE_NAME = { 1: 'The Questions You Left Open', 2: 'The Lines You Carried' }
+const NUMBERS = [1, 2, 3, 4, 5, 6, 7]
+const ARTICLE_NAME = { 1: 'The Questions You Left Open', 2: 'The Lines You Carried', ...Object.fromEntries([article3, article4, article5, article6, article7].map((a) => [a.number, a.title.join(' ')])) }
 
 // the overture keeps the reader's receipts; this tile opens the list from any page
 export function makeReceiptsItem(navigate) {
-  const count = () => [1, 2].filter((n) => receiptStatus(n) !== 'empty').length
+  const count = () => NUMBERS.filter((n) => receiptStatus(n) !== 'empty').length
   return {
     key: 'receipts',
     label: 'Receipts',
     wide: true,
     icon: <I.Receipt />,
-    note: () => `${count()} of 2`,
-    sub: () => [1, 2].map((n) => {
+    note: () => `${count()} of ${NUMBERS.length}`,
+    sub: () => NUMBERS.map((n) => {
       const state = receiptStatus(n)
-      return { key: `receipt-${n}`, label: ARTICLE_NAME[n], sublabel: `Article ${pad(n)} · ${STATE_NOTE[state]}`, badge: STATE_LABEL[state], state, onClick: () => navigate(n === 2 ? '/receipt/2' : '/receipt') }
+      return { key: `receipt-${n}`, label: ARTICLE_NAME[n], sublabel: `Article ${pad(n)} · ${STATE_NOTE[state]}`, badge: STATE_LABEL[state], state, onClick: () => navigate(n === 1 ? '/receipt' : `/receipt/${n}`) }
     }),
   }
 }

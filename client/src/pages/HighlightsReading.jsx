@@ -5,7 +5,7 @@ import earth from '../assets/site/earth.jpg'
 import GameHero from '../components/GameHero.jsx'
 import InkFilter from '../components/InkFilter.jsx'
 import { SENTENCE_IDS, article4 } from '../data/articles.js'
-import { WORDS_KEPT, drawWords, hasWord, loadHighlights, saveHighlights } from '../data/highlightProgress.js'
+import { WORDS_KEPT, drawWords, loadHighlights, saveHighlights } from '../data/highlightProgress.js'
 import { formatClock, useReadingClock } from '../lib/useReadingClock.js'
 import './Reading.css'
 import './HighlightsReading.css'
@@ -102,7 +102,8 @@ function HighlightsReading({ article = article4 }) {
   }
 
   const changeLine = (text) => update({ line: text })
-  const ready = kept.length === WORDS_KEPT && kept.every((k) => hasWord(line, k.word))
+  // anything she has written can be sent; the receipt itself says whether her two words appear in it
+  const ready = kept.length === WORDS_KEPT && line.trim().length > 0
   const send = () => {
     if (!ready) return
     log('line', { text: stateRef.current.line, wordA: kept[0].word, wordB: kept[1].word })

@@ -403,9 +403,7 @@ export default function Admin() {
           <NavLink to="/admin" end>Overview</NavLink>
           <NavLink to="/admin/readers">Readers</NavLink>
           <NavLink to="/admin/usage">AI &amp; receipts</NavLink>
-          <NavLink to="/admin/system">System</NavLink>
           <NavLink to="/admin/settings">Settings</NavLink>
-          <NavLink to="/admin/activity">Activity log</NavLink>
         </nav>
         <div className="ad-side-foot">
           <Link to="/reading-room">Back to site</Link>
@@ -418,9 +416,7 @@ export default function Admin() {
           <Route path="readers" element={<Readers />} />
           <Route path="readers/:id" element={<Reader />} />
           <Route path="usage" element={<Usage />} />
-          <Route path="system" element={<System />} />
           <Route path="settings" element={<Settings />} />
-          <Route path="activity" element={<Activity />} />
         </Routes>
       </main>
     </div>

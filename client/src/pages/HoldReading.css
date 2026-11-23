@@ -54,9 +54,6 @@
 @media (prefers-reduced-motion: reduce) { .hold__line { transition: none; } }
 /* each figure sits in a fixed-width space so the underline never jumps */
 .hold__fig { display: inline-block; font-variant-numeric: tabular-nums; vertical-align: bottom; white-space: nowrap; }
-.hold__fig--month { min-width: 7.6em; }
-.hold__fig--value { min-width: 4.4em; }
-.hold__fig--share { min-width: 1.9em; }
 /* once the hold has stopped nothing moves, so the figures close up to their own width */
 .hold__line.is-done .hold__fig { min-width: 0; }
 

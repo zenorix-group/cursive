@@ -17,13 +17,16 @@ const iconProps = { width: 16, height: 16, viewBox: '0 0 24 24', fill: 'none', s
 const CupIcon = () => (<svg {...iconProps}><path d="M5 9h11v4a5 5 0 01-5 5h-1a5 5 0 01-5-5z" /><path d="M16 10h1.5a2 2 0 010 4H16M8 4c0 1 1 1 1 2M12 4c0 1 1 1 1 2" /></svg>)
 const TreeIcon = () => (<svg {...iconProps}><path d="M12 20v-6M12 14c-3 0-5-2-5-4.5S9 5 12 4c3 1 5 3 5 5.5S15 14 12 14z" /></svg>)
 
-// a small clay cup: filled when it is one of hers, an empty outline for a seat or a cup she has set elsewhere
+// a small clay cup, drawn by hand: wobbling lines that do not quite meet, a rim and a saucer pencilled twice. Filled when it is one of hers,
+// an empty outline for a seat or a cup she has set elsewhere
 function Cup({ filled }) {
   return (
     <svg className={`cup${filled ? ' is-filled' : ''}`} viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M4.5 8h13v4.5A5.5 5.5 0 0112 18h-2a5.5 5.5 0 01-5.5-5.5z" />
-      <path d="M17.5 9.5h1.2a2.3 2.3 0 010 4.6h-1.2" />
-      <path d="M3.5 20h15" />
+      <path d="M4.3 8.2c3.9-.5 8.6-.4 13.3-.1.2 1.6.1 3.2-.5 4.7-.9 2.5-3 4.3-5.5 4.5-2.6.2-5-1-6-3.4-.8-1.8-1.2-3.8-1.3-5.7z" />
+      <path d="M17.6 9.4c1.6-.5 3.2.4 3.2 2.1 0 1.8-1.7 2.8-3.5 2.5" />
+      <path d="M2.8 20.2c4.8-.6 10.9-.7 17.6-.1" />
+      <path d="M4.9 7.7c4.2-.4 8.2-.2 12.7.2" />
+      <path d="M3.6 20.8c5-.4 10.2-.3 14.9 0" />
     </svg>
   )
 }
