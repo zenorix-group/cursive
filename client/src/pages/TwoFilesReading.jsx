@@ -10,6 +10,7 @@ import { formatClock, useReadingClock } from '../lib/useReadingClock.js'
 import './Reading.css'
 import './TwoFilesReading.css'
 import BrandLink from '../components/BrandLink.jsx'
+import AuthorAvatar from '../components/AuthorAvatar.jsx'
 import { useFiling, usePlainNext } from '../lib/companion.js'
 
 const iconProps = { width: 16, height: 16, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.6, strokeLinecap: 'round', strokeLinejoin: 'round' }
@@ -183,17 +184,16 @@ function TwoFilesReading({ article = article7 }) {
         </span>
       </header>
 
-      <div className="read__head">
-        <h1 className="read__title">{article.readingTitle.map((line) => <span key={line}>{line} </span>)}</h1>
-        {article.subtitle && <p className="read__subtitle">{article.subtitle}</p>}
-      </div>
-
-      <GameHero article={article} image={room912} game={game} setGame={setGame} KnobIcon={FileIcon} EndIcon={DoorIcon} switchLabel="Play Two Files" />
+      <GameHero headline={<div className="read__head">
+          <h1 className="read__title">{article.readingTitle.map((line) => <span key={line}>{line} </span>)}</h1>
+          {article.subtitle && <p className="read__subtitle">{article.subtitle}</p>}
+        </div>} article={article} image={room912} game={game} setGame={setGame} KnobIcon={FileIcon} EndIcon={DoorIcon} switchLabel="Play Two Files" />
 
       <article className="read__body" ref={bodyRef}>
         <div className="read__author files__author">
-          <span className="files__seal" aria-hidden="true"><FileIcon /></span>
+          <AuthorAvatar name={article.author} />
           <span className="read__author-name">{article.author}</span>
+          <span id="game-info-slot" className="game-info-slot" />
         </div>
 
         {article.body.map((block, i) => {

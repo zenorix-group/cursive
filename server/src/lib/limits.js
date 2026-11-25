@@ -10,5 +10,6 @@ module.exports = {
   files: { label: 'Two Files receipt', max: 30, windowMs: WINDOW },
   highlights: { label: 'Hindsight Highlights receipt (AI)', max: 12, windowMs: WINDOW },
   bleed: { label: 'Bleed items (read)', max: 200, windowMs: WINDOW },
+  companion: { label: 'Companion records (write)', max: 60, windowMs: WINDOW },
   combined: { label: 'Combined receipt email', max: 5, windowMs: HOUR },
 };

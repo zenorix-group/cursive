@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { onboardingDone } from './lib/onboarding.js'
+import { useAutoHideBar } from './lib/useAutoHideBar.js'
 import { AnimatePresence, MotionConfig } from 'framer-motion'
 import PageTransition from './components/PageTransition.jsx'
 import RouteMenu from './components/RouteMenu.jsx'
@@ -46,6 +47,8 @@ function AfterOnboarding({ children }) {
 
 function App() {
   const location = useLocation()
+  // on the reading pages the top bar tucks away while she scrolls down
+  useAutoHideBar('.read__bar', /^\/read(\/|$)/.test(location.pathname))
   const { status, error, retry } = useAuth()
   // wait until we know who is signed in and their saved reading is loaded, so no page starts from an empty copy
   const handoff = isHandoff()

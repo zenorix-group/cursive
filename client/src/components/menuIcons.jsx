@@ -10,4 +10,5 @@ export const Up = () => <svg {...base}><path d="M12 19V5M6 11l6-6 6 6" /></svg>
 export const Play = () => <svg {...base}><path d="M8 5.5v13l10.5-6.5L8 5.5z" /></svg>
 export const Phone = () => <svg {...base}><path d="M6.5 4h3l1.2 4-2 1.3a10 10 0 005 5l1.3-2 4 1.2v3c0 .8-.7 1.5-1.5 1.5C10.8 18 6 13.2 6 5.5 6 4.7 5.7 4 6.5 4z" /></svg>
 export const Receipt = () => <svg {...base}><path d="M6 3.5h12v17l-2.5-1.5-2 1.5-1.5-1.5-1.5 1.5-2-1.5L6 20.5v-17z" /><path d="M9 8h6M9 12h6" /></svg>
+export const News = () => <svg {...base}><path d="M5 4.5h11v15H6.5A1.5 1.5 0 015 18V4.5zM16 8.5h3.5V18a1.5 1.5 0 01-1.5 1.5" /><path d="M8 8h5M8 11.5h5M8 15h3" /></svg>
 export const Next = () => <svg {...base}><path d="M5 12h14M13 6l6 6-6 6" /></svg>

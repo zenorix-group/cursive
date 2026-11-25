@@ -5,27 +5,36 @@ import { AnimatePresence, MotionConfig, motion, useAnimationControls } from 'fra
 import { EASE, EASE_IN, SOFT, SPRING, T } from '../lib/motion.js'
 import { haptic } from '../lib/haptics.js'
 import { GLYPH_LEVELS } from './glyphLevels.js'
-import { SIGN_LABEL, TAP_LABEL, doTap, tapRule, useCompanion } from '../lib/companion.js'
+import { SIGN_LABEL, TAP_LABEL, doTap, setCompanion, tapRule, useCompanion } from '../lib/companion.js'
 import BackPage from './BackPage.jsx'
+import ReadingStats from './ReadingStats.jsx'
 import { issueCount } from '../data/issue.js'
 import { markSignShown, openSign } from '../lib/signs.js'
-import { openBleed } from '../lib/bleed.js'
+import { loadBleedItems, openBleed } from '../lib/bleed.js'
+import { usePicksVersion } from '../lib/picks.js'
+import { useAuth } from '../auth/AuthContext.jsx'
+import BleedShelf from './BleedShelf.jsx'
+import FileCard from './FileCard.jsx'
 
 const sizeNow = () => (typeof window !== 'undefined' && window.innerWidth >= 900 ? 62 : 47)
-const MARGIN = 10
+const MARGIN = 20 // in from the edge: the Blot's right edge lines up with the text column and the Game info feather
 
+// The Overture is the Blot itself swelling: the panel begins as the square, at the square's own corner, and grows to full size,
+// while what is inside comes up out of a blur (after the iPad card and the pill in the reference videos). Folding reverses it.
 const panelVariants = {
-  hidden: { opacity: 0, scale: 0.5 },
-  show: { opacity: 1, scale: 1, transition: { type: 'spring', stiffness: 360, damping: 26 } },
-  exit: { opacity: 0, scale: 0.6, transition: { duration: 0.16, ease: [0.4, 0, 1, 1] } },
+  hidden: ({ dim, quiet }) => ({ width: dim, height: dim, borderRadius: 14, paddingTop: 0, paddingBottom: 0, paddingLeft: 0, paddingRight: 0, opacity: quiet ? 0 : 1 }),
+  show: ({ panelW, dim, below, quiet, fullH }) => ({ width: panelW, height: fullH || 'auto', borderRadius: 28, paddingTop: below ? dim + 10 : 12, paddingBottom: below ? 12 : dim + 10, paddingLeft: 12, paddingRight: 12, opacity: 1, transition: quiet ? { duration: 0 } : { type: 'spring', stiffness: 230, damping: 25, mass: 0.9 } }),
+  // the same look with the height handed back to the page (a new view then fits itself), reached with no animation
+  settled: ({ panelW, dim, below }) => ({ width: panelW, height: 'auto', borderRadius: 28, paddingTop: below ? dim + 10 : 12, paddingBottom: below ? 12 : dim + 10, paddingLeft: 12, paddingRight: 12, opacity: 1, transition: { duration: 0 } }),
+  exit: ({ dim, quiet }) => ({ width: dim, height: dim, borderRadius: 14, paddingTop: 0, paddingBottom: 0, paddingLeft: 0, paddingRight: 0, opacity: quiet ? 0 : 1, transition: quiet ? { duration: 0 } : { duration: 0.38, delay: 0.05, ease: [0.45, 0, 0.2, 1] } }),
 }
 const contentVariants = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.04, delayChildren: 0.05 } },
-  exit: { transition: { duration: 0.08 } },
+  hidden: { opacity: 0, filter: 'blur(8px)' },
+  show: { opacity: 1, filter: 'blur(0px)', transition: { duration: 0.3, delay: 0.08, staggerChildren: 0.025, delayChildren: 0.06 } },
+  exit: { opacity: 0, filter: 'blur(6px)', transition: { duration: 0.12 } },
 }
 const itemVariants = {
-  hidden: { opacity: 0, y: 10, scale: 0.88 },
+  hidden: { opacity: 0, y: 14, scale: 0.82 },
   show: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 420, damping: 28 } },
   exit: { opacity: 0, transition: { duration: 0.1 } },
 }
@@ -83,12 +92,26 @@ function Glyph({ progress, pulse = 0, land = 0, hideFirst = false }) {
 // fixed: in an article the Blot is pinned in the bottom right corner and cannot be dragged; playing: the reader has the game on,
 // so the square holds a drop
 function AssistiveTouch({ items, title, tone = 'dark', progress = null, fixed = false }) {
-  const { playing, swelled, sign, bleed } = useCompanion()
+  const { playing, swelled, sign, bleed, bleedItems, shelf } = useCompanion()
+  // the strip turns through its items every few seconds; hovering or focusing it holds the current one
+  const [slide, setSlide] = useState(0)
+  const [holding, setHolding] = useState(false)
+  const shown = bleed ? (bleedItems[slide] ?? bleed) : null
+  const [shelfItems, setShelfItems] = useState([])
+  const { user } = useAuth()
+  const picks = usePicksVersion()
+  const lastTarget = useRef(null)
   const navigate = useNavigate()
   const [ripple, setRipple] = useState(0)
   const [merging, setMerging] = useState(false)
   const [tip, setTip] = useState(false)
   const [backPage, setBackPage] = useState(false)
+  const [stats, setStats] = useState(false) // the reading-room card, shown only after a double-click
+  const lastTap = useRef(0)
+  const [filePhase, setFilePhase] = useState(null) // null | 'saving' | 'stamped': the File now card's own run, kept apart from the page so it plays out even as the page moves on
+  const [fileDate, setFileDate] = useState('')
+  const fileTimers = useRef([])
+  const bleedTimer = useRef(null) // the strip's single tap, waiting to see whether a second one follows
   const [pulse, setPulse] = useState(0)
   const dropControls = useAnimationControls()
   const splashControls = useAnimationControls()
@@ -109,7 +132,7 @@ function AssistiveTouch({ items, title, tone = 'dark', progress = null, fixed = 
   // (while a sign waits a tap opens the sign, so the Blot does not swell into a File now it could not honour)
   const overture = fixed && swelled && !sign
   const still = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-  const dim = overture ? Math.round(size * 1.45) : size
+  const dim = size
   // the wave the drop lands on is the lowest one she has lit, so where it lands shows how far she has read
   const landLevel = progress === null ? 0 : Math.max(0, Math.min(4, Math.ceil(progress * 5 - 0.001) - 1))
   const scale = dim / 47
@@ -125,13 +148,17 @@ function AssistiveTouch({ items, title, tone = 'dark', progress = null, fixed = 
   const dripping = playing && fixed && !calm && !still
   const clampY = (y) => Math.min(Math.max(y, 56 + MARGIN), window.innerHeight - sizeNow() - MARGIN - 8)
   // the Bleed stretches the Blot edge to edge
-  const wide = bleed ? window.innerWidth - MARGIN * 2 : dim
-  const xFor = (side) => (bleed || side === 'left' ? MARGIN : window.innerWidth - (fixed ? dim : sizeNow()) - MARGIN)
+  // on a wide screen the strip is three quarters of the width, pulled out leftward from the square; on a phone it is edge to edge
+  const wide = bleed ? (window.innerWidth >= 900 ? Math.round(window.innerWidth * 0.75) : window.innerWidth - MARGIN * 2) : dim
+  // a strip with a short note is taller, to give the note room under the title; it grows upward so it stays on screen
+  const tall = bleed && bleedItems.some((entry) => entry.summary) ? Math.max(dim, 76) : dim
+  const lift = tall - dim
+  const xFor = (side) => (side === 'left' ? MARGIN : bleed ? window.innerWidth - wide - MARGIN : window.innerWidth - (fixed ? dim : sizeNow()) - MARGIN)
 
   useLayoutEffect(() => {
     const saved = readSaved()
     setSize(sizeNow())
-    const corner = () => window.innerHeight - (fixed ? dim : sizeNow()) - 28
+    const corner = () => window.innerHeight - (fixed ? dim : sizeNow()) - 34
     setPos(fixed ? { side: 'right', y: corner() } : { side: saved?.side ?? 'right', y: clampY(saved?.y ?? corner()) })
     const onResize = () => { setSize(sizeNow()); setPos((p) => (fixed ? { side: 'right', y: corner() } : { ...p, y: clampY(p.y) })) }
     window.addEventListener('resize', onResize)
@@ -147,6 +174,15 @@ function AssistiveTouch({ items, title, tone = 'dark', progress = null, fixed = 
   }, [overture, fixed, bleed])
 
   useEffect(() => { landRef.current = { y: landY } })
+  // turn to the next item every few seconds: a still strip for readers who turn animation off, and held while she hovers or the shelf is open
+  useEffect(() => { setSlide(0) }, [bleed?.id])
+  useEffect(() => {
+    if (!bleed || bleedItems.length < 2 || holding || shelf || still) return undefined
+    const timer = setInterval(() => setSlide((i) => (i + 1) % bleedItems.length), 6000)
+    return () => clearInterval(timer)
+  }, [bleed, bleedItems.length, holding, shelf, still])
+  // the shelf shows every active item, whichever door opened it
+  useEffect(() => { if (shelf) loadBleedItems(Boolean(user)).then(setShelfItems) }, [shelf, picks, user])
 
   // one timeline for the drop and the waves: it forms, swells, falls to the lit wave, and the wave takes it in with a ripple
   useEffect(() => {
@@ -179,7 +215,7 @@ function AssistiveTouch({ items, title, tone = 'dark', progress = null, fixed = 
     return () => { live = false; dropControls.stop(); splashControls.stop() }
   }, [playing, fixed, dripping]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => { if (!open) setView(null) }, [open])
+  useEffect(() => { if (!open) { setView(null); setStats(false) } }, [open])
 
   // the first time a sign appears it explains itself in a short line, which a screen reader announces once
   const signKey = sign ? `${sign.kind}:${sign.id}` : null
@@ -249,12 +285,53 @@ function AssistiveTouch({ items, title, tone = 'dark', progress = null, fixed = 
     if (buttonRef.current) buttonRef.current.style.transform = `translate3d(${x}px, ${y}px, 0)`
   }, [])
 
-  useLayoutEffect(() => { place(xFor(pos.side), pos.y) }, [pos, place, size, dim, bleed])
+  useLayoutEffect(() => { place(xFor(pos.side), pos.y - lift) }, [pos, place, size, dim, bleed, lift])
+
+  useEffect(() => () => { clearTimeout(bleedTimer.current); fileTimers.current.forEach(clearTimeout) }, [])
+
+  // File now: the page starts filing at once; the card shows Saving, then a dated FILED stamp, then folds into the Blot
+  const startFiling = () => {
+    if (filePhase) return
+    haptic(12)
+    setFileDate(new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase())
+    setFilePhase('saving')
+    const quick = still ? 0.3 : 1
+    // the page files once the stamp has had a moment to be seen (filing moves her on to the receipt)
+    fileTimers.current = [
+      setTimeout(() => setFilePhase('stamped'), 1000 * quick),
+      setTimeout(() => doTap(), 1750 * quick),
+      setTimeout(() => setFilePhase(null), 2600 * quick),
+    ]
+  }
 
   // a tap in an article does the next thing the page allows (§3); outside one it opens the menu
   const tap = () => {
     haptic(8)
-    if (bleed) { openBleed(bleed); return }
+    const now = Date.now()
+    const twice = now - lastTap.current < 320
+    lastTap.current = now
+    // in an article a second tap that quick is a slip, not a second command: it must not play, then file
+    if (fixed && twice && !sign && !bleed) return
+    // the strip: a tap on "+N more" opens the shelf; a tap on the strip opens its link, or, with no link, the shelf at that item
+    // A second tap that quick opens the Overture instead: the strip folds and the reading-room card comes up. So the first tap's
+    // action waits a beat (the double-tap window) to see whether a second one follows.
+    if (bleed) {
+      if (twice && bleedTimer.current) {
+        clearTimeout(bleedTimer.current)
+        bleedTimer.current = null
+        setCompanion({ bleed: null, bleedItems: [] })
+        setStats(true); setOpen(true)
+        return
+      }
+      const toShelf = lastTarget.current?.closest?.('.at__more') || !shown?.url
+      const item = shown
+      bleedTimer.current = setTimeout(() => {
+        bleedTimer.current = null
+        if (toShelf) setCompanion({ shelf: true })
+        else openBleed(item)
+      }, 330)
+      return
+    }
     if (sign) {
       // the sign: the second drop runs into the first as it opens (at once, for readers who turn animation off)
       if (merging) return
@@ -265,7 +342,13 @@ function AssistiveTouch({ items, title, tone = 'dark', progress = null, fixed = 
       setTimeout(() => { openSign(sign); setMerging(false); navigate(sign.path) }, reduce ? 0 : 450)
       return
     }
-    if (!fixed) { setOpen((value) => !value); return }
+    // outside an article one tap opens the Overture; a double-click opens it with the reading-room card on top
+    if (!fixed) {
+      if (twice) { setStats(true); setOpen(true); return }
+      setOpen((value) => !value)
+      return
+    }
+    if (overture || filePhase) { startFiling(); return }
     if (open) { setOpen(false); return }
     const did = doTap()
     if (did === 'ripple') setRipple((n) => n + 1)
@@ -300,6 +383,7 @@ function AssistiveTouch({ items, title, tone = 'dark', progress = null, fixed = 
   }
 
   const onPointerUp = (event) => {
+    lastTarget.current = event.target
     const d = drag.current
     if (!d || d.id !== event.pointerId) return
     drag.current = null
@@ -343,11 +427,32 @@ function AssistiveTouch({ items, title, tone = 'dark', progress = null, fixed = 
   const current = view ? items.find((item) => item.key === view) : null
 
   const below = pos.y < window.innerHeight / 2
+  // anchored at the Blot's own corner, so the panel grows out of the square (upward or downward, whichever way has room)
+  const panelW = window.innerWidth >= 900 ? 268 : 252
   const panelStyle = {
     [pos.side === 'left' ? 'left' : 'right']: MARGIN,
-    [below ? 'top' : 'bottom']: below ? pos.y + sizeNow() + 10 : window.innerHeight - pos.y + 10,
-    transformOrigin: `${below ? 'top' : 'bottom'} ${pos.side}`,
+    [below ? 'top' : 'bottom']: below ? pos.y : window.innerHeight - (pos.y + dim),
+    // (padding is animated with the size: room for the Blot's mark, which stays in the corner as the way to fold it)
+    overflow: 'hidden',
+    // never taller than the room on screen: what does not fit scrolls inside the panel
+    maxHeight: below ? window.innerHeight - pos.y - 12 : pos.y + dim - 64 - 12,
   }
+
+  // The panel grows to its full height, measured here once it has mounted: asking the animation library to find "auto" itself
+  // came out short when a row (Receipts) had not been laid out yet, so the panel stopped early and then jumped. We measure it at its
+  // final width and padding, then hand over a number. Once it has grown, the height goes back to auto so a new view fits itself.
+  const panelRef = useRef(null)
+  const [fullH, setFullH] = useState(0)
+  const [settled, setSettled] = useState(false)
+  useLayoutEffect(() => {
+    const el = panelRef.current
+    if (!open || !el) { setFullH(0); setSettled(false); return }
+    const keep = el.style.cssText
+    Object.assign(el.style, { width: `${panelW}px`, height: 'auto', maxHeight: 'none', paddingLeft: '12px', paddingRight: '12px', paddingTop: below ? `${dim + 10}px` : '12px', paddingBottom: below ? '12px' : `${dim + 10}px` })
+    const natural = Math.ceil(el.getBoundingClientRect().height)
+    el.style.cssText = keep
+    setFullH(Math.min(natural, panelStyle.maxHeight))
+  }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return createPortal(
     <div className="at" data-side={pos.side} data-tone={tone}>
@@ -365,16 +470,19 @@ function AssistiveTouch({ items, title, tone = 'dark', progress = null, fixed = 
             />
             <motion.div
               key="panel"
+              ref={panelRef}
               className="at__panel"
               role="menu"
               aria-label={title || 'Main'}
               style={panelStyle}
               variants={panelVariants}
+              custom={{ dim, panelW, below, quiet: still, fullH }}
               initial="hidden"
-              animate="show"
+              animate={fullH ? (settled ? 'settled' : 'show') : 'hidden'}
+              onAnimationComplete={(name) => { if (name === 'show') setSettled(true) }}
               exit="exit"
             >
-              <AnimatePresence mode="wait" initial={false}>
+              <AnimatePresence mode="wait" initial={false} propagate>
                 <motion.div key={view || 'root'} className="at__content" variants={contentVariants} initial="hidden" animate="show" exit="exit">
                   {view ? (
                     <>
@@ -393,7 +501,8 @@ function AssistiveTouch({ items, title, tone = 'dark', progress = null, fixed = 
                     </>
                   ) : (
                     <>
-                      {title && <motion.p className="at__title" variants={itemVariants}>{title}</motion.p>}
+                      {stats && <ReadingStats />}
+                      {title && !stats && <motion.p className="at__title" variants={itemVariants}>{title}</motion.p>}
                       {count > 0 && (
                         <motion.p className="at__count" variants={itemVariants} animate={{ opacity: [0, 1, 0.3, 1, 0.6, 1] }} transition={{ duration: 0.7, delay: 0.2 }}>
                           Issue · {count} of 6
@@ -428,10 +537,14 @@ function AssistiveTouch({ items, title, tone = 'dark', progress = null, fixed = 
       <button
         ref={buttonRef}
         type="button"
-        className={`at__button${bleed ? ' at__button--bleed' : ''}${fixed ? ' at__button--fixed' : ''}${overture ? ' is-swelled' : ''}${snapping ? ' is-snapping' : ''}${open ? ' is-open' : ''}${absorbing ? ` is-absorbing is-absorbing--${absorbing}` : ''}`}
-        style={{ width: wide, height: dim, borderRadius: bleed ? 10 : fixed ? 6 : size * 0.3 }}
-        aria-label={bleed ? `${bleed.kind === 'news' ? 'News' : 'Opportunity'}: ${bleed.title}. Open it` : fixed || sign ? `${(sign && SIGN_LABEL[sign.kind]) || TAP_LABEL[rule] || 'Open your apps'}${progress !== null ? `, ${Math.round(progress * 100)}% read` : ''}` : open ? 'Close menu' : progress !== null ? `Open menu, ${Math.round(progress * 100)}% read` : 'Open menu'}
+        className={`at__button${shelf ? ' is-shelf' : ''}${bleed ? ' at__button--bleed' : ''}${fixed ? ' at__button--fixed' : ''}${snapping ? ' is-snapping' : ''}${open ? ' is-open' : ''}${filePhase ? ' is-filing' : ''}${filePhase === 'stamped' ? ' is-filed' : ''}${absorbing ? ` is-absorbing is-absorbing--${absorbing}` : ''}`}
+        style={{ width: wide, height: tall, borderRadius: bleed ? 10 : fixed ? 6 : size * 0.3 }}
+        aria-label={shown ? `${shown.priority === 'breaking' ? 'Breaking' : shown.kind === 'news' ? 'News' : 'Opportunity'}: ${shown.title}. ${shown.url ? 'Open it' : 'Read more'}` : fixed || sign ? `${(sign && SIGN_LABEL[sign.kind]) || TAP_LABEL[rule] || 'Open your apps'}${progress !== null ? `, ${Math.round(progress * 100)}% read` : ''}` : open ? 'Close menu' : progress !== null ? `Open menu, ${Math.round(progress * 100)}% read` : 'Open menu'}
         aria-expanded={open}
+        onPointerEnter={() => setHolding(true)}
+        onPointerLeave={() => setHolding(false)}
+        onFocus={() => setHolding(true)}
+        onBlur={() => setHolding(false)}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
@@ -439,12 +552,19 @@ function AssistiveTouch({ items, title, tone = 'dark', progress = null, fixed = 
         onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); tap() } }}
       >
         <Glyph progress={progress} pulse={pulse} land={landLevel} hideFirst={playing && fixed} />
-        {bleed && (
-          <motion.span className="at__bleed" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2, duration: 0.3 }}>
-            <small>{bleed.kind === 'news' ? 'News' : bleed.type && bleed.type !== 'other' ? bleed.type : 'Opportunity'}</small>
-            <strong>{bleed.title}</strong>
-          </motion.span>
+        {filePhase === 'stamped' && <span className="at__stamp" aria-hidden="true">FILED</span>}
+        {shown && (
+          <MotionConfig reducedMotion="user">
+            <AnimatePresence mode="wait" initial>
+              <motion.span key={shown.id} className="at__bleed" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: T.state, ease: EASE }}>
+                <small className={shown.priority === 'breaking' ? 'is-breaking' : undefined}>{shown.priority === 'breaking' ? 'Breaking' : shown.kind === 'news' ? 'News' : shown.type && shown.type !== 'other' ? shown.type : 'Opportunity'}</small>
+                <strong>{shown.title}</strong>
+                {shown.summary && <em>{shown.summary}</em>}
+              </motion.span>
+            </AnimatePresence>
+          </MotionConfig>
         )}
+        {bleed?.more > 0 && <span className="at__more">+{bleed.more} more</span>}
         <MotionConfig reducedMotion="user">
           <AnimatePresence>
             {playing && fixed && (
@@ -484,16 +604,18 @@ function AssistiveTouch({ items, title, tone = 'dark', progress = null, fixed = 
                 {!merging && <motion.span className="at__ripple" initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: [0.6, 2.4], opacity: [0.5, 0] }} transition={{ duration: 2, ease: 'easeOut', repeat: Infinity, repeatDelay: 1.4 }} />}
               </motion.span>
             )}
-            {overture && (
-              <motion.span key="file" className="at__file" aria-hidden="true" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ delay: T.feedback + 0.05, duration: T.state, ease: EASE }}>
-                File now
-              </motion.span>
-            )}
+
           </AnimatePresence>
         </MotionConfig>
       </button>
+      <BleedShelf open={shelf} items={shelfItems} bottom={window.innerHeight - (pos.y - lift + tall)} onClose={() => setCompanion({ shelf: false })} />
       <AnimatePresence>
         <BackPage key="backpage" open={backPage} onClose={() => setBackPage(false)} onPick={(lens) => { setBackPage(false); navigate(`/receipt/vault?lens=${lens.id}`) }} />
+      </AnimatePresence>
+      <AnimatePresence>
+        {(overture || filePhase) && (
+          <FileCard key="filecard" phase={filePhase || 'ready'} side={pos.side} margin={MARGIN} bottom={window.innerHeight - pos.y + 10} still={still} date={fileDate} />
+        )}
       </AnimatePresence>
       <AnimatePresence>
         {tip && sign && (
@@ -511,6 +633,10 @@ function AssistiveTouch({ items, title, tone = 'dark', progress = null, fixed = 
           </motion.p>
         )}
       </AnimatePresence>
+      {bleed && (
+        // for keyboards and screen readers: the strip is one button, so the shelf has its own
+        <button type="button" className="at__apps at__apps--news" onClick={() => setCompanion({ shelf: true })}>Show all news and opportunities</button>
+      )}
       {fixed && (
         // for keyboards and screen readers: stands in for dragging the Blot up
         <button type="button" className="at__apps" aria-haspopup="menu" aria-expanded={open} onClick={() => { haptic(8); setOpen((value) => !value) }}>

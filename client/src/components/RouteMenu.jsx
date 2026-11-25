@@ -8,6 +8,7 @@ import { receiptStatus } from '../lib/overture.js'
 import { article3, article4, article5, article6, article7 } from '../data/articles.js'
 import { useWaitingSign } from '../lib/signs.js'
 import { useBleed } from '../lib/bleed.js'
+import { setCompanion } from '../lib/companion.js'
 
 const pad = (n) => String(n).padStart(2, '0')
 
@@ -50,7 +51,7 @@ function RouteMenu() {
   const progress = useReadProgress(inArticle)
 
   useWaitingSign(!!user)
-  useBleed(!!user && pathname === '/reading-room')
+  useBleed(pathname === '/reading-room' || pathname === '/', Boolean(user)) // the same list for everyone, until she signs in and agrees to the picks
   const go = (path) => () => navigate(path)
   const top = () => window.scrollTo({ top: 0, behavior: 'smooth' })
   const item = (key, label, icon, onClick) => ({ key, label, icon, onClick })
@@ -64,9 +65,12 @@ function RouteMenu() {
 
   // the overture belongs to the app proper: guests are still in onboarding, whichever article they picked. But the Blot is how a
   // reader files, so a guest in an article still gets it, with a menu of only Sign in.
-  if (!user) page = inArticle ? { title: `Reading · ${pad(n)}`, items: [account], bare: true } : null
+  // The home page (the reading room) gets the companion for everyone, so a guest sees the Overture, the Bleed and the rest too.
+  // the landing page: the Blot and the Bleed for everyone, with the News tile and a way in
+  if (pathname === '/' && !override) page = { title: 'Cursive', items: user ? [room, account] : [account], newsOnly: true }
+  else if (!user) page = inArticle ? { title: `Reading · ${pad(n)}`, items: [account], bare: true } : pathname === '/reading-room' && override ? override : null
   else if (override) page = override
-  else if (pathname === '/reading-room' || pathname === '/' || pathname === '/enter' || pathname === '/login') page = null
+  else if (pathname === '/reading-room' || pathname === '/enter' || pathname === '/login') page = null
   else if (/^\/article\/\d+$/.test(pathname)) {
     page = {
       title: `Article ${pad(n)}`,
@@ -100,7 +104,10 @@ function RouteMenu() {
   }
 
   if (!page) return null
-  const withReceipts = page.bare || page.items.some((entry) => entry.key === 'receipts') ? page.items : [...page.items, makeReceiptsItem(navigate)]
+  // the Overture's News tile opens the shelf: the companion grows into the list of everything still open
+  const news = { key: 'news', label: 'News', icon: <I.News />, onClick: () => setCompanion({ shelf: true }) }
+  const receipts = page.items.find((entry) => entry.key === 'receipts') || makeReceiptsItem(navigate)
+  const withReceipts = page.bare ? page.items : page.newsOnly ? [...page.items, news] : [...page.items.filter((entry) => entry.key !== 'receipts'), news, receipts]
   return <AssistiveTouch items={withReceipts} title={page.title} tone="light" progress={progress} fixed={inArticle} />
 }
 

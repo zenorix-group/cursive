@@ -9,6 +9,10 @@ const bleedItemSchema = new mongoose.Schema(
     summary: { type: String, default: '', maxlength: 400 },
     url: { type: String, default: '' },
     endsAt: { type: Date, default: null },
+    // a breaking item stretches the companion at once and stays until the reader opens it
+    // what the item is about (a fixed list); used to put the right items first for a reader who agreed to it
+    topics: { type: [String], default: [] },
+    priority: { type: String, enum: ['normal', 'breaking'], default: 'normal' },
   },
   { timestamps: true },
 );

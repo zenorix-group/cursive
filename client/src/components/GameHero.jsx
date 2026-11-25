@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { AnimatePresence, animate, motion, useMotionValue } from 'framer-motion'
 import feather from '../assets/reading/feather.png'
@@ -13,7 +14,7 @@ const spring = { type: 'spring', stiffness: 210, damping: 26, mass: 0.9 }
 
 // props: article ({ number, minutes, gameInfo, rule }), image, game, setGame, KnobIcon (on the knob), EndIcon (idle end of the track),
 // switchLabel (the switch's accessible name)
-function GameHero({ article, image, game, setGame, KnobIcon, EndIcon, switchLabel = 'Game mode' }) {
+function GameHero({ article, image, game, setGame, KnobIcon, EndIcon, switchLabel = 'Game mode', headline }) {
   usePlaying(game)
   const [hintOpen, setHintOpen] = useState(false)
   const [tipShown, setTipShown] = useState(false)
@@ -78,31 +79,10 @@ function GameHero({ article, image, game, setGame, KnobIcon, EndIcon, switchLabe
     setGame((g) => !g)
   }
 
-  return (
-    <figure className="hero">
-      <img className="hero__img" src={image} alt="" draggable="false" />
-      <div className="hero__shade" />
-      <figcaption className="hero__meta">
-        Article {String(article.number).padStart(2, '0')} / {String(article.minutes).padStart(2, '0')} min
-      </figcaption>
-
-      <div className="hero__game">
-        <AnimatePresence>
-          {!switchUsed && !game && (
-            <motion.p
-              key="tip"
-              className="hero__tip"
-              initial={{ opacity: 0, y: 10, scale: 0.85 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 6, scale: 0.9 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-            >
-              Tap to<br />enable the game.
-            </motion.p>
-          )}
-        </AnimatePresence>
-        <div className="hero__row">
-          {game && (
+  // The Game info feather sits in the author row (the page leaves an empty #game-info-slot there); until the slot exists it stays inline
+  const [hintSlot, setHintSlot] = useState(null)
+  useEffect(() => { const el = document.getElementById('game-info-slot'); setHintSlot((prev) => (prev === el ? prev : el)) })
+  const hintNode = game ? (
             <div className="game-hint" ref={hintRef}>
               <AnimatePresence>
                 {tipShown && !hintOpen && (
@@ -140,7 +120,35 @@ function GameHero({ article, image, game, setGame, KnobIcon, EndIcon, switchLabe
                 </aside>
               )}
             </div>
+  ) : null
+
+  return (
+    <>
+      {hintSlot && hintNode && createPortal(hintNode, hintSlot)}
+      <figure className="hero">
+        <img className="hero__img" src={image} alt="" draggable="false" />
+        <div className="hero__shade" />
+        <figcaption className="hero__meta">
+          Article {String(article.number).padStart(2, '0')} / {String(article.minutes).padStart(2, '0')} min
+        </figcaption>
+
+      <div className="hero__game">
+        <AnimatePresence>
+          {!switchUsed && !game && (
+            <motion.p
+              key="tip"
+              className="hero__tip"
+              initial={{ opacity: 0, y: 10, scale: 0.85 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 6, scale: 0.9 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+            >
+              Tap to<br />enable the game.
+            </motion.p>
           )}
+        </AnimatePresence>
+        <div className="hero__row">
+          {!hintSlot && hintNode}
           <div className="switch-wrap" onPointerEnter={(e) => e.pointerType === 'mouse' && setSwitchTip(true)} onPointerLeave={() => setSwitchTip(false)} onFocus={(e) => e.target.matches(':focus-visible') && setSwitchTip(true)} onBlur={() => setSwitchTip(false)}>
             <AnimatePresence>
               {switchTip && (
@@ -173,7 +181,10 @@ function GameHero({ article, image, game, setGame, KnobIcon, EndIcon, switchLabe
           </div>
         </div>
       </div>
-    </figure>
+      </figure>
+
+      {headline}
+    </>
   )
 }
 

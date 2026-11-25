@@ -29,5 +29,36 @@ test('the public list hides items whose date has passed and shows only public fi
   const now = new Date('2026-12-01T00:00:00Z');
   assert.deepEqual(activeFilter(now), { $or: [{ endsAt: null }, { endsAt: { $gt: now } }] });
   const shown = publicItem({ _id: 'abc', kind: 'news', type: '', title: 'T', summary: '', url: '', createdAt: now, endsAt: now, __v: 0, secret: 'x' });
-  assert.deepEqual(Object.keys(shown).sort(), ['createdAt', 'id', 'kind', 'summary', 'title', 'type', 'url']);
+  assert.deepEqual(Object.keys(shown).sort(), ['createdAt', 'endsAt', 'id', 'kind', 'priority', 'summary', 'title', 'topics', 'type', 'url']);
+  assert.equal(shown.priority, 'normal');
+});
+
+test('an item can be marked breaking, and anything else is normal; breaking sorts first', () => {
+  const { listOrder } = require('../src/lib/bleed');
+  assert.equal(validateBleedItem({ kind: 'news', title: 'x', priority: 'breaking' }).value.priority, 'breaking');
+  assert.equal(validateBleedItem({ kind: 'news', title: 'x', priority: 'urgent!!' }).value.priority, 'normal');
+  assert.equal(validateBleedItem({ kind: 'news', title: 'x' }).value.priority, 'normal');
+  const { orderItems } = require('../src/lib/bleed');
+  assert.deepEqual(listOrder, { createdAt: -1 });
+  // breaking first, then the order given (newest first); an old item with no priority counts as normal
+  const sorted = orderItems([{ id: 'a' }, { id: 'b', priority: 'breaking' }, { id: 'c', priority: 'normal' }, { id: 'd', priority: 'breaking' }]);
+  assert.deepEqual(sorted.map((i) => i.id), ['b', 'd', 'a', 'c']);
+});
+
+test('the companion\'s records: only known kinds and short plain values are kept', () => {
+  const { cleanRows } = require('../src/lib/companionEvents');
+  const good = { sessionId: 's1abc', readerId: 's1abc', type: 'bleed', itemId: 'x1', action: 'opened', ms: 120.4, seq: 3 };
+  const rows = cleanRows([good, { ...good, type: 'hack' }, { ...good, seq: -1 }, { ...good, sessionId: '<script>' }, null, { ...good, seq: 4, note: 'a'.repeat(200), 'bad key!': 1 }]);
+  assert.equal(rows.length, 2);
+  assert.deepEqual(rows[0].data, { itemId: 'x1', action: 'opened' });
+  assert.equal(rows[0].ms, 120);
+  assert.deepEqual(rows[1].data, { itemId: 'x1', action: 'opened' }); // the long note and the odd key are dropped
+  assert.deepEqual(cleanRows('nope'), []);
+  assert.equal(cleanRows(Array.from({ length: 500 }, () => good)).length, 200);
+});
+
+test('an item can name topics from the fixed list, once each', () => {
+  assert.deepEqual(validateBleedItem({ kind: 'news', title: 'x', topics: ['law', 'finance', 'law'] }).value.topics, ['law', 'finance']);
+  assert.deepEqual(validateBleedItem({ kind: 'news', title: 'x' }).value.topics, []);
+  assert.equal(validateBleedItem({ kind: 'news', title: 'x', topics: ['gossip'] }).error.field, 'topics');
 });

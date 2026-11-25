@@ -387,6 +387,73 @@ function AdminLogin({ onDone }) {
   )
 }
 
+// The Bleed: news and opportunities that stretch the companion across the home page. Everyone sees the same list.
+const OPPORTUNITY_TYPES = ['competition', 'job', 'grant', 'person', 'community', 'other']
+const TOPICS = ['finance', 'law', 'safety', 'writing', 'history', 'environment', 'fiction']
+function Bleed() {
+  const state = useLoad('/bleed')
+  const blank = { kind: 'news', title: '', summary: '', url: '', type: 'competition', endsAt: '', priority: 'normal', topics: [] }
+  const [form, setForm] = useState(blank)
+  const [message, setMessage] = useState('')
+  const [saved, setSaved] = useState(false)
+  const set = (key) => (event) => setForm((f) => ({ ...f, [key]: event.target.value }))
+  const add = async (event) => {
+    event.preventDefault()
+    setMessage(''); setSaved(false)
+    try {
+      await api('/bleed', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...form, endsAt: form.endsAt || undefined }) })
+      setForm(blank); state.reload(); setSaved(true); setTimeout(() => setSaved(false), 2200)
+    } catch (e) { setMessage(e.message) }
+  }
+  const remove = async (id) => {
+    if (!window.confirm('Remove this item from the Bleed?')) return
+    try { await api(`/bleed/${id}`, { method: 'DELETE' }); state.reload() } catch (e) { setMessage(e.message) }
+  }
+  const items = state.data?.items || []
+  return (
+    <>
+      <div className="ad-title"><h1>The Bleed</h1><span className={`ad-saved${saved ? ' on' : ''}`} role="status">{saved ? 'Added ✓' : ''}</span></div>
+      <p className="ad-muted ad-note">News and opportunities. The newest one the reader has not seen stretches the companion edge to edge on the home page. Everyone sees the same list, except readers who signed in and turned on "Choose news for me": for them the items about what they read come first.</p>
+      <section className="ad-panel">
+        <h2>Add an item</h2>
+        <form onSubmit={add} className="ad-form">
+          <label>Kind<select className="ad-input" value={form.kind} onChange={set('kind')}><option value="news">News</option><option value="opportunity">Opportunity</option></select></label>
+          {form.kind === 'opportunity' && <label>Type<select className="ad-input" value={form.type} onChange={set('type')}>{OPPORTUNITY_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}</select></label>}
+          <label>Title<input className="ad-input" required maxLength={140} value={form.title} onChange={set('title')} placeholder="What the reader sees on the strip" /></label>
+          <label>Short note (optional)<input className="ad-input" maxLength={400} value={form.summary} onChange={set('summary')} /></label>
+          <label>Link (optional, https://)<input className="ad-input" type="url" value={form.url} onChange={set('url')} placeholder="https://" /></label>
+          <label>Hide after (optional)<input className="ad-input" type="date" value={form.endsAt} onChange={set('endsAt')} /></label>
+          <fieldset className="ad-topics"><legend>About (optional): readers who agreed see items on what they read first</legend>
+            {TOPICS.map((t) => <label key={t} className="ad-chip"><input type="checkbox" checked={form.topics.includes(t)} onChange={(e) => setForm((f) => ({ ...f, topics: e.target.checked ? [...f.topics, t] : f.topics.filter((x) => x !== t) }))} /><span>{t}</span></label>)}
+          </fieldset>
+          <label className="ad-check"><input type="checkbox" checked={form.priority === 'breaking'} onChange={(e) => setForm((f) => ({ ...f, priority: e.target.checked ? 'breaking' : 'normal' }))} /><span><b>Breaking</b><small>Stretches the companion at once, comes first on the shelf and stays until the reader opens it.</small></span></label>
+          <button className="ad-btn primary" type="submit" disabled={!form.title.trim()}>Add to the Bleed</button>
+        </form>
+        {message && <p className="ad-error">{message}</p>}
+      </section>
+      <Loading state={state} skeleton={<SkeletonTable rows={3} cols={4} />} />
+      {state.data && (
+        <div className="ad-table-wrap">
+          <table className="ad-table">
+            <thead><tr><th>Kind</th><th>Title</th><th>Hides after</th><th></th></tr></thead>
+            <tbody>
+              {items.map((item) => (
+                <tr key={item._id}>
+                  <td>{item.priority === 'breaking' ? 'BREAKING · ' : ''}{item.kind === 'opportunity' ? item.type || 'opportunity' : 'news'}</td>
+                  <td className="ad-wrap">{item.title}</td>
+                  <td>{item.endsAt ? new Date(item.endsAt).toLocaleDateString() : 'Never'}</td>
+                  <td><button className="ad-btn danger" onClick={() => remove(item._id)}>Remove</button></td>
+                </tr>
+              ))}
+              {!items.length && <tr><td colSpan="4" className="ad-muted">Nothing here yet, so the Bleed does not show on the home page.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </>
+  )
+}
+
 export default function Admin() {
   // undefined = still checking, false = signed out, true = signed in as admin
   const [admin, setAdmin] = useState(undefined)
@@ -403,6 +470,7 @@ export default function Admin() {
           <NavLink to="/admin" end>Overview</NavLink>
           <NavLink to="/admin/readers">Readers</NavLink>
           <NavLink to="/admin/usage">AI &amp; receipts</NavLink>
+          <NavLink to="/admin/bleed">The Bleed</NavLink>
           <NavLink to="/admin/settings">Settings</NavLink>
         </nav>
         <div className="ad-side-foot">
@@ -416,6 +484,7 @@ export default function Admin() {
           <Route path="readers" element={<Readers />} />
           <Route path="readers/:id" element={<Reader />} />
           <Route path="usage" element={<Usage />} />
+          <Route path="bleed" element={<Bleed />} />
           <Route path="settings" element={<Settings />} />
         </Routes>
       </main>

@@ -122,3 +122,16 @@
   .ad-article { grid-template-columns:1fr 1fr; }
   .ad-title { flex-direction:column; align-items:flex-start; }
 }
+
+/* the Bleed form: one field per line */
+.ad-form { display:grid; gap:12px; max-width:520px; }
+.ad-form label { display:grid; gap:4px; font:600 11px var(--sans); letter-spacing:.08em; text-transform:uppercase; color:var(--a-mute); }
+.ad-form .ad-input { max-width:none; text-transform:none; letter-spacing:0; font:400 14px var(--sans); color:var(--a-ink); }
+
+.ad-form .ad-check { display:flex; gap:10px; align-items:flex-start; text-transform:none; letter-spacing:0; font:400 14px var(--sans); color:var(--a-ink); cursor:pointer; }
+.ad-form .ad-check b { font:600 13px var(--sans); }
+.ad-form .ad-check small { display:block; font:400 12px/1.4 var(--sans); color:var(--a-mute); }
+
+.ad-form .ad-topics { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.ad-form .ad-topics legend { font: 500 12px var(--sans); color: var(--a-mute); padding: 0; margin-bottom: 6px; }
+.ad-form .ad-chip { display: inline-flex; gap: 6px; align-items: center; padding: 4px 10px; border: 1px solid var(--a-line, #d8d4cb); border-radius: 999px; text-transform: none; letter-spacing: 0; font: 400 13px var(--sans); cursor: pointer; }

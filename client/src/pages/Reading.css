@@ -679,3 +679,53 @@
 
 /* a player has no button under the last paragraph: say where filing is */
 .read--game .read__actions:empty::before { content: 'When you are ready, tap File now in the corner.'; display: block; font: italic 400 calc(var(--u) * 15)/1.5 var(--text); color: #6d665b; }
+
+/* no photo yet: the author's initials in the same round frame */
+.read__avatar--initials { display: grid; place-items: center; background: #e4d1aa; border: 1px solid #1e1b16; font: 700 calc(var(--u) * 10)/1 var(--text); letter-spacing: 0.04em; color: #1e1b16; }
+
+/* the top bar tucks away as she scrolls down and returns as she scrolls up (useAutoHideBar) */
+.read > .read__bar { transition: filter 0.5s cubic-bezier(0.22, 1, 0.36, 1), transform 0.35s cubic-bezier(0.22, 1, 0.36, 1); }
+.read > .read__bar.is-tucked { transform: translateY(-100%); }
+@media (prefers-reduced-motion: reduce) { .read > .read__bar { transition: none; } }
+
+/* ======================================================================================================================
+   The headline sits after the picture. The switch stays on the picture, bottom right, as translucent glass with no green: the
+   state shows by where the knob sits. The Game info feather moves to the author row, at its right end.
+   ====================================================================================================================== */
+.read .read__head { padding-top: calc(var(--u) * 24); padding-bottom: calc(var(--u) * 14); }
+
+.read .hero__game .toggle,
+.read .hero__game .toggle.is-on {
+  background: rgba(255, 255, 255, 0.16); border: 1px solid rgba(255, 255, 255, 0.65);
+  -webkit-backdrop-filter: blur(10px) saturate(1.3); backdrop-filter: blur(10px) saturate(1.3);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+.read .hero__game .toggle.is-on { background: rgba(255, 255, 255, 0.3); }
+.read .hero__game .toggle__knob,
+.read .hero__game .toggle.is-on .toggle__knob,
+.read .hero__game .toggle__knob:active { background: rgba(255, 255, 255, 0.8); border: 0; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25); }
+.read .hero__game .toggle__icon, .read .hero__game .toggle.is-on .toggle__icon { color: #14161a; }
+.read .hero__game .toggle__idle-feather { color: #fff; opacity: 1; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35)); }
+
+/* the Game info feather, in the author row, on paper */
+.game-info-slot { margin-left: auto; display: inline-flex; align-items: center; }
+.game-info-slot .game-hint { position: relative; top: auto; right: auto; }
+.game-info-slot .game-hint__button,
+.game-info-slot .game-hint__button:hover,
+.game-info-slot .game-hint__button[aria-expanded='true'] {
+  width: calc(var(--u) * 32); height: calc(var(--u) * 32);
+  background: rgba(20, 22, 26, 0.07); border: 1px solid rgba(20, 22, 26, 0.3);
+  -webkit-backdrop-filter: blur(12px) saturate(1.3); backdrop-filter: blur(12px) saturate(1.3);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+.game-info-slot .game-hint__button[aria-expanded='true'] { background: rgba(20, 22, 26, 0.14); }
+.game-info-slot .game-hint__button img { width: 16px; height: 22px; filter: invert(1); }
+.game-info-slot .game-hint__button:focus-visible { outline: 2px solid #14161a; outline-offset: 3px; }
+.game-info-slot .game-hint__ring { border-color: rgba(20, 22, 26, 0.5); }
+.game-info-slot .game-hint__tip { background: #14161a; color: #fbfbfa; }
+.game-info-slot .game-hint__tip::after { background: #14161a; }
+.game-info-slot .game-hint__card { top: calc(100% + 10px); bottom: auto; right: 0; z-index: 20; }
+/* the author row now follows the headline directly: close the gap between them */
+.read > .read__body { padding-top: calc(var(--u) * 4); }
+.read .read__body > .read__author:first-child, .read .read__body .read__author { margin-top: calc(var(--u) * 8); }
+.read .read__head { padding-bottom: calc(var(--u) * 4); }

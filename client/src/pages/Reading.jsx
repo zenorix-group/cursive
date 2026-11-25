@@ -1,9 +1,8 @@
+import { createPortal } from 'react-dom'
 import { Fragment, useEffect, useLayoutEffect, useRef, startTransition, useState } from 'react'
 import { AnimatePresence, animate, motion, useAnimationControls, useMotionValue } from 'framer-motion'
 import { useLocation, useNavigate } from 'react-router-dom'
-import authorProfile from '../assets/author-profile.jpg'
-import monica from '../assets/authors/monica-behura.jpg'
-import sampurna from '../assets/authors/sampurna-majumder.webp'
+import AuthorAvatar from '../components/AuthorAvatar.jsx'
 import gameHero from '../assets/reading/game-hero.png'
 import feather from '../assets/reading/feather.png'
 import { article1 } from '../data/articles.js'
@@ -328,59 +327,10 @@ function Reading({ article = article1 }) {
     }
   }, [hintOpen])
 
-  const plainNext = usePlainNext()
-  // filing is the companion's: the Overture at the last paragraph, or early with a tap on the Blot
-  useFiling(article.number, () => {
-    saveReadingProgress(article.number, { answers, visitedGaps })
-    if (article.number === 2) saveCallProgress(callProgress)
-    navigate(article.number === 2 ? '/receipt/2' : '/receipt')
-  }, setGame)
-
-  return (
-    <main className={`read${game ? ' read--game' : ''}${article.number === 2 ? ' read--banking' : ''}${activeGap !== null ? ' read--question-open' : ''}`}>
-      <svg width="0" height="0" aria-hidden="true" focusable="false">
-        <filter id="wet-ink" x="-2%" y="-5%" width="104%" height="110%">
-          <feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="2" seed="7" result="n" />
-          <feDisplacementMap in="SourceGraphic" in2="n" scale="2.2" />
-        </filter>
-      </svg>
-      <header className="read__bar">
-        <BrandLink className="read__brand" />
-        <span className="read__time" role="timer" aria-label={`Time on this article: ${clock}`}>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" /><path d="M12 7v5l3 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-          <span className="read__time-text">{clock}</span>
-        </span>
-      </header>
-
-      <div className="read__head">
-        <h1 className="read__title">{article.readingTitle ? article.readingTitle.map((line) => <span key={line}>{line} </span>) : article.headline}</h1>
-        {article.subtitle && <p className="read__subtitle">{article.subtitle}</p>}
-      </div>
-
-      <figure className="hero">
-        <img className="hero__img" src={gameHero} alt="" draggable="false" />
-        <div className="hero__shade" />
-        <figcaption className="hero__meta">
-          Article {String(article.number).padStart(2, '0')} / {String(article.minutes).padStart(2, '0')} min
-        </figcaption>
-
-        <div className="hero__game">
-          <AnimatePresence>
-            {tipShown && !touched && (
-              <motion.p
-                key="tip"
-                className="hero__tip"
-                initial={{ opacity: 0, y: 10, scale: 0.85 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 6, scale: 0.9 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-              >
-                Slide to<br />{game ? 'leave' : 'enable'} the game.
-              </motion.p>
-            )}
-          </AnimatePresence>
-          <div className="hero__row">
-          {game && (
+  // The Game info feather sits in the author row (the page leaves an empty #game-info-slot there); until the slot exists it stays inline
+  const [hintSlot, setHintSlot] = useState(null)
+  useEffect(() => { const el = document.getElementById('game-info-slot'); setHintSlot((prev) => (prev === el ? prev : el)) })
+  const hintNode = game ? (
             <div className="game-hint" ref={hintRef}>
               <AnimatePresence>
                 {hintTipHover && !hintOpen && (
@@ -432,7 +382,55 @@ function Reading({ article = article1 }) {
                 </aside>
               )}
             </div>
-          )}
+  ) : null
+  const plainNext = usePlainNext()
+  // filing is the companion's: the Overture at the last paragraph, or early with a tap on the Blot
+  useFiling(article.number, () => {
+    saveReadingProgress(article.number, { answers, visitedGaps })
+    if (article.number === 2) saveCallProgress(callProgress)
+    navigate(article.number === 2 ? '/receipt/2' : '/receipt')
+  }, setGame)
+
+  return (
+    <main className={`read${game ? ' read--game' : ''}${article.number === 2 ? ' read--banking' : ''}${activeGap !== null ? ' read--question-open' : ''}`}>
+      <svg width="0" height="0" aria-hidden="true" focusable="false">
+        <filter id="wet-ink" x="-2%" y="-5%" width="104%" height="110%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="2" seed="7" result="n" />
+          <feDisplacementMap in="SourceGraphic" in2="n" scale="2.2" />
+        </filter>
+      </svg>
+      <header className="read__bar">
+        <BrandLink className="read__brand" />
+        <span className="read__time" role="timer" aria-label={`Time on this article: ${clock}`}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" /><path d="M12 7v5l3 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          <span className="read__time-text">{clock}</span>
+        </span>
+      </header>
+
+      <figure className="hero">
+        <img className="hero__img" src={gameHero} alt="" draggable="false" />
+        <div className="hero__shade" />
+        <figcaption className="hero__meta">
+          Article {String(article.number).padStart(2, '0')} / {String(article.minutes).padStart(2, '0')} min
+        </figcaption>
+
+        <div className="hero__game">
+          <AnimatePresence>
+            {tipShown && !touched && (
+              <motion.p
+                key="tip"
+                className="hero__tip"
+                initial={{ opacity: 0, y: 10, scale: 0.85 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 6, scale: 0.9 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+              >
+                Slide to<br />{game ? 'leave' : 'enable'} the game.
+              </motion.p>
+            )}
+          </AnimatePresence>
+          <div className="hero__row">
+          {!hintSlot && hintNode}
             <div className="switch-wrap" onPointerEnter={(e) => e.pointerType === 'mouse' && setSwitchTip(true)} onPointerLeave={() => setSwitchTip(false)} onFocus={(e) => e.target.matches(':focus-visible') && setSwitchTip(true)} onBlur={() => setSwitchTip(false)}>
               <AnimatePresence>
                 {switchTip && (
@@ -508,10 +506,17 @@ function Reading({ article = article1 }) {
         </div>
       </figure>
 
+      <div className="read__head">
+        <h1 className="read__title">{article.readingTitle ? article.readingTitle.map((line) => <span key={line}>{line} </span>) : article.headline}</h1>
+        {article.subtitle && <p className="read__subtitle">{article.subtitle}</p>}
+      </div>
+
+      {hintSlot && hintNode && createPortal(hintNode, hintSlot)}
       <article className="read__body">
         <div className="read__author">
-          <img className="read__avatar" src={{ 1: monica, 2: sampurna }[article.number] || authorProfile} alt={`${article.author} profile`} />
+          <AuthorAvatar name={article.author} />
           <span className="read__author-name">{article.author}</span>
+          <span id="game-info-slot" className="game-info-slot" />
         </div>
         {article.sectionLabel && game && <button type="button" className={`read__section-label${article.number === 2 && callProgress.selectedIds.length === 0 ? ' is-nudge' : ''}`} onClick={openCall}><span aria-hidden="true"><PhoneIcon /></span> {article.sectionLabel}</button>}
 

@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { MotionConfig, motion } from 'framer-motion'
 import { useLocation, useNavigate } from 'react-router-dom'
 import quixote from '../assets/site/quixote.jpg'
-import authorProfile from '../assets/author-profile.jpg'
+import AuthorAvatar from '../components/AuthorAvatar.jsx'
 import GameHero from '../components/GameHero.jsx'
 import InkFilter from '../components/InkFilter.jsx'
 import { article5 } from '../data/articles.js'
@@ -292,17 +292,16 @@ function ReArrange({ article = article5 }) {
         </span>
       </header>
 
-      <div className="read__head">
-        <h1 className="read__title">{article.readingTitle.map((line) => <span key={line}>{line} </span>)}</h1>
-        {article.subtitle && <p className="read__subtitle">{article.subtitle}</p>}
-      </div>
-
-      <GameHero article={article} image={quixote} game={game} setGame={setGame} KnobIcon={PilcrowIcon} EndIcon={BookIcon} />
+      <GameHero headline={<div className="read__head">
+          <h1 className="read__title">{article.readingTitle.map((line) => <span key={line}>{line} </span>)}</h1>
+          {article.subtitle && <p className="read__subtitle">{article.subtitle}</p>}
+        </div>} article={article} image={quixote} game={game} setGame={setGame} KnobIcon={PilcrowIcon} EndIcon={BookIcon} />
 
       <article className="read__body">
         <div className="read__author">
-          <img className="read__avatar" src={authorProfile} alt={`${article.author} profile`} />
+          <AuthorAvatar name={article.author} />
           <span className="read__author-name">{article.author}</span>
+          <span id="game-info-slot" className="game-info-slot" />
         </div>
         <p className="rearr__standfirst">{article.standfirst}</p>
         <span className="visually-hidden" role="status" aria-live="polite">{announce}</span>

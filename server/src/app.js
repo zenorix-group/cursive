@@ -40,9 +40,33 @@ app.get('/api/settings', async (req, res, next) => {
 app.get('/api/bleed', rateLimit({ max: limits.bleed.max, windowMs: limits.bleed.windowMs, message: 'Too many requests. Please wait a few minutes.' }), async (req, res, next) => {
   try {
     res.set('Cache-Control', 'no-store');
-    const { activeFilter, publicItem } = require('./lib/bleed');
-    const items = await require('./models/BleedItem').find(activeFilter()).sort({ createdAt: -1 }).limit(20).lean();
-    res.json({ items: items.map(publicItem) });
+    const { activeFilter, listOrder, orderItems, publicItem } = require('./lib/bleed');
+    const items = await require('./models/BleedItem').find(activeFilter()).sort(listOrder).limit(20).lean();
+    res.json({ items: orderItems(items).map(publicItem) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// the companion's records: anyone may send them; a signed-in reader's rows (and her earlier sessions' rows) are tied to her account
+app.post('/api/companion/events', rateLimit({ max: limits.companion.max, windowMs: limits.companion.windowMs, message: 'Too many requests. Please wait a few minutes.' }), async (req, res, next) => {
+  try {
+    const mongoose = require('mongoose');
+    if (mongoose.connection.readyState !== 1) return res.status(503).json({ message: 'Records are unavailable right now.' });
+    const { cleanRows } = require('./lib/companionEvents');
+    const { readSession } = require('./middleware/auth');
+    const CompanionEvent = require('./models/CompanionEvent');
+    const rows = cleanRows(req.body?.events);
+    const userId = readSession(req);
+    if (rows.length) {
+      await CompanionEvent.bulkWrite(
+        rows.map((row) => ({ updateOne: { filter: { sessionId: row.sessionId, seq: row.seq }, update: { $setOnInsert: { ...row, userId: userId || null } }, upsert: true } })),
+        { ordered: false },
+      );
+      // she has signed in: every row from the sessions she is sending now becomes hers
+      if (userId) await CompanionEvent.updateMany({ sessionId: { $in: [...new Set(rows.map((r) => r.sessionId))] }, userId: null }, { $set: { userId } });
+    }
+    res.json({ ok: true, kept: rows.length });
   } catch (error) {
     next(error);
   }

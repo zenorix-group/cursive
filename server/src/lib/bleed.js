@@ -4,7 +4,10 @@
 
 const KINDS = ['news', 'opportunity'];
 // opportunities include competitions, jobs, grants, people to meet and communities, from anywhere in the world
+const PRIORITIES = ['normal', 'breaking'];
 const OPPORTUNITY_TYPES = ['competition', 'job', 'grant', 'person', 'community', 'other'];
+// what an item can be about. The reading side keeps the same list (client/src/data/topics.js) and says which articles touch which topic.
+const TOPICS = ['finance', 'law', 'safety', 'writing', 'history', 'environment', 'fiction'];
 const isString = (value) => typeof value === 'string';
 
 function cleanUrl(value) {
@@ -38,13 +41,22 @@ function validateBleedItem(body) {
     endsAt = new Date(body.endsAt);
     if (Number.isNaN(endsAt.getTime())) return { error: { field: 'endsAt', message: 'Use a real date.' } };
   }
-  return { value: { kind, type, title, summary, url, endsAt } };
+  const priority = PRIORITIES.includes(body?.priority) ? body.priority : 'normal';
+  const given = Array.isArray(body?.topics) ? body.topics : [];
+  if (given.some((topic) => !TOPICS.includes(topic))) return { error: { field: 'topics', message: 'Choose topics from the list.' } };
+  const topics = [...new Set(given)];
+  return { value: { kind, type, title, summary, url, endsAt, priority, topics } };
 }
 
 // the items everyone sees: no end date, or an end date still ahead
 const activeFilter = (now = new Date()) => ({ $or: [{ endsAt: null }, { endsAt: { $gt: now } }] });
 
 // what leaves the server: only the public fields
-const publicItem = (item) => ({ id: String(item._id), kind: item.kind, type: item.type, title: item.title, summary: item.summary, url: item.url, createdAt: item.createdAt });
+const publicItem = (item) => ({ id: String(item._id), kind: item.kind, type: item.type, title: item.title, summary: item.summary, url: item.url, priority: item.priority || 'normal', topics: item.topics || [], createdAt: item.createdAt, endsAt: item.endsAt || null });
 
-module.exports = { KINDS, OPPORTUNITY_TYPES, validateBleedItem, activeFilter, publicItem };
+// newest first from the database; breaking items are then moved to the top (items saved before the field existed have none, and
+// a database sort would put those first). Array sort is stable, so the newest-first order holds inside each group.
+const listOrder = { createdAt: -1 };
+const orderItems = (items) => [...items].sort((a, b) => Number(b.priority === 'breaking') - Number(a.priority === 'breaking'));
+
+module.exports = { TOPICS, KINDS, listOrder, orderItems, OPPORTUNITY_TYPES, validateBleedItem, activeFilter, publicItem };

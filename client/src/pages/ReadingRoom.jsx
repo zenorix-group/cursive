@@ -6,6 +6,8 @@ import SortSelect from '../components/SortSelect.jsx'
 import { useMenuOverride } from '../components/menuContext.jsx'
 import { makeReceiptsItem } from '../components/RouteMenu.jsx'
 import { articleStatus } from '../data/articleStatus.js'
+import { authorPhoto } from '../data/authors.js'
+import GameBadge from '../components/GameBadge.jsx'
 import { pendingMate } from '../data/stacks.js'
 import { CATS, CTA, IMG, STATUSES, catalog } from '../data/catalog.js'
 import '../styles/site.css'
@@ -22,10 +24,13 @@ const Arrow = () => (
 )
 
 function Plate({ a, children }) {
+  // hovering the picture (with a mouse) shows what kind of game the article has; the icon does the same for touch and keyboard
+  const [hover, setHover] = useState(false)
   return (
-    <div className={`cs-plate p${((a.id - 1) % 5) + 1}`}>
+    <div className={`cs-plate p${((a.id - 1) % 5) + 1}`} onPointerEnter={(e) => e.pointerType === 'mouse' && setHover(true)} onPointerLeave={() => setHover(false)}>
       {a.img ? <img alt="" src={IMG[a.img]} /> : <i aria-hidden="true" />}
       {children}
+      {a.article && <GameBadge number={a.article} hovering={hover} />}
     </div>
   )
 }
@@ -60,7 +65,7 @@ function Lead({ a }) {
       <p className="dek">{a.dek}</p>
       <div className="lead-actions">
         <div className="author">
-          <span className="avatar" aria-hidden="true">{initials(a.by)}</span>
+          {authorPhoto(a.by) ? <img className="avatar avatar--photo" src={authorPhoto(a.by)} alt="" /> : <span className="avatar" aria-hidden="true">{initials(a.by)}</span>}
           <div><strong>{a.by}</strong><span>{a.role || 'Contributor'}</span></div>
         </div>
         <Action a={a} className="resume">{a.status === 'ip' ? 'Resume reading' : a.status === 'done' ? 'Open receipt' : 'Begin reading'} <Arrow /></Action>
@@ -94,28 +99,6 @@ function Low({ a }) {
   )
 }
 
-// counts up from 00 the first time the page appears
-function Metric({ id, value, delay }) {
-  const [shown, setShown] = useState(() => (reduceMotion() ? value : 0))
-  const first = useRef(true)
-  useEffect(() => {
-    if (!first.current || reduceMotion()) { setShown(value); return undefined }
-    first.current = false
-    if (!value) { setShown(0); return undefined }
-    let raf
-    let t0 = null
-    const step = (t) => {
-      if (t0 === null) t0 = t
-      const k = Math.min(1, Math.max(0, (t - t0 - delay) / 900))
-      setShown(Math.round(value * (1 - (1 - k) ** 3)))
-      if (k < 1) raf = requestAnimationFrame(step)
-    }
-    raf = requestAnimationFrame(step)
-    return () => cancelAnimationFrame(raf)
-  }, [value, delay])
-  return <b id={id}>{pad(shown)}</b>
-}
-
 function ReadingRoom() {
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -142,7 +125,6 @@ function ReadingRoom() {
     }
   }), [hidden])
 
-  const count = (s) => articles.filter((a) => a.status === s).length
   const items = useMemo(() => {
     const { cat, status, q, sort } = filters
     const list = articles.filter((a) => (
@@ -257,21 +239,8 @@ function ReadingRoom() {
 
           <main id="room-main" tabIndex={-1}>
             <div className="wrap">
-              <section className="r-head" aria-labelledby="room-title">
-                <div className="cs-intro">
-                  <div className="r-kicker lbl">
-                    <svg width="12" height="15" viewBox="0 0 12 15" fill="none" aria-hidden="true"><path d="M1.5 1h9v12.5L6 10.5l-4.5 3z" stroke="#A33C33" strokeWidth="1.3" strokeLinejoin="round" /></svg>
-                    <span>The reading room</span>
-                  </div>
-                  <h1 id="room-title">Your reading room.</h1>
-                  <p className="r-sub">Stories to read, question, and return to. Curated across four quarterly editions.</p>
-                </div>
-                <div className="r-metrics" aria-label="Your reading at a glance">
-                  <div><span className="lbl">Registered</span><Metric id="m-all" value={articles.length} delay={350} /></div>
-                  <div><span className="lbl">In progress</span><Metric id="m-ip" value={count('ip')} delay={470} /></div>
-                  <div><span className="lbl">Completed</span><Metric id="m-done" value={count('done')} delay={590} /></div>
-                </div>
-              </section>
+              {/* the introduction and the three counts live in the Overture now: double-click the companion */}
+              <h1 id="room-title" className="visually-hidden">Your reading room.</h1>
             </div>
 
             <div className="r-toolbar">

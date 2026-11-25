@@ -1,49 +1,87 @@
 import { useEffect } from 'react'
-import { logCompanion, setCompanion } from './companion.js'
+import { getCompanion, logCompanion, setCompanion } from './companion.js'
+import { rankItems, usePicksVersion } from './picks.js'
 
-// The Bleed: on the homepage the Blot stretches edge to edge when something new has arrived, and folds back once she opens it or
-// leaves. Everyone sees the same items until she signs in and agrees to the use of her reading data (not built yet).
-const SEEN = 'cursive:bleed:seen:v1'
-const readSeen = () => { try { return JSON.parse(localStorage.getItem(SEEN)) || {} } catch { return {} } }
-const markSeen = (id) => { try { localStorage.setItem(SEEN, JSON.stringify({ ...readSeen(), [id]: true })) } catch { /* optional */ } }
+// The Bleed: news and opportunities. On the home page the Blot stretches edge to edge when something new has arrived, and folds back
+// once she opens it or leaves. A breaking item stretches at once and stays until she opens it. Everyone sees the same list until she
+// signs in and agrees to the use of her reading data (not built yet). The shelf is the same strip grown into a list of every item.
+const SHOWN = 'cursive:bleed:seen:v1' // the strip has shown it (and she left)
+const READ = 'cursive:bleed:read:v1' // she opened it
+const read = (key) => { try { return JSON.parse(localStorage.getItem(key)) || {} } catch { return {} } }
+const mark = (key, id) => { try { localStorage.setItem(key, JSON.stringify({ ...read(key), [id]: true })) } catch { /* optional */ } }
 
-const ARRIVE_MS = 1200 // a beat after the page settles, so the stretch is noticed
+export const readMap = () => read(READ)
 
-export function useBleed(enabled) {
+const ARRIVE_MS = 1200 // a beat after the page settles, so the stretch is noticed; breaking news does not wait
+
+let lastRaw = [] // the list as the server sent it, so turning the picks on or off can put it in order again
+export async function loadBleedItems(signedIn = false) {
+  try {
+    const response = await fetch('/api/bleed', { credentials: 'include' })
+    const { items } = response.ok ? await response.json() : { items: [] }
+    lastRaw = items || []
+    return rankItems(lastRaw, { signedIn })
+  } catch { return [] }
+}
+
+// which item the strip shows: a breaking one she has not opened, else the newest she has not seen
+export function pickForStrip(items) {
+  const shown = read(SHOWN)
+  const opened = read(READ)
+  return items.find((entry) => entry.priority === 'breaking' && !opened[entry.id]) || items.find((entry) => !shown[entry.id] && !opened[entry.id]) || null
+}
+
+export function useBleed(enabled, signedIn = false) {
+  const picks = usePicksVersion()
+  // she turned the picks on or off while the strip is up: put the turning list in order again (the item showing now stays)
+  useEffect(() => {
+    const { bleed } = getCompanion()
+    if (!enabled || !bleed) return
+    setCompanion({ bleedItems: [bleed, ...rankItems(lastRaw, { signedIn }).filter((entry) => entry.id !== bleed.id)] })
+  }, [picks])
   useEffect(() => {
     if (!enabled) return undefined
     let live = true
     let timer = 0
     let item = null
     let stretched = false
-    fetch('/api/bleed', { credentials: 'include' })
-      .then((response) => (response.ok ? response.json() : { items: [] }))
-      .then(({ items }) => {
+    loadBleedItems(signedIn).then((items) => {
+      if (!live) return
+      setCompanion({ bleedCount: items.length })
+      item = pickForStrip(items)
+      if (!item) return
+      timer = setTimeout(() => {
         if (!live) return
-        const seen = readSeen()
-        item = (items || []).find((entry) => !seen[entry.id]) || null
-        if (!item) return
-        timer = setTimeout(() => {
-          if (!live) return
-          stretched = true
-          setCompanion({ bleed: item })
-          logCompanion('bleed', { itemId: item.id, action: 'shown' })
-        }, ARRIVE_MS)
-      })
-      .catch(() => { /* the Bleed is optional: no item, no stretch */ })
+        stretched = true
+        // the strip shows the picked item first, then turns through the rest (see AssistiveTouch)
+        setCompanion({ bleed: { ...item, more: Math.max(0, items.length - 1) }, bleedItems: [item, ...items.filter((entry) => entry.id !== item.id)] })
+        logCompanion('bleed', { itemId: item.id, action: 'shown' })
+      }, item.priority === 'breaking' ? 0 : ARRIVE_MS)
+    })
     return () => {
       live = false
       clearTimeout(timer)
-      // leaving folds it back, and an item she saw does not come round again; one she left before it showed does
-      if (item && stretched) markSeen(item.id)
-      setCompanion({ bleed: null })
+      // leaving folds it back. A normal item she saw does not come round again; a breaking one stays until she opens it,
+      // and one she left before it showed comes round too
+      if (item && stretched && item.priority !== 'breaking') mark(SHOWN, item.id)
+      setCompanion({ bleed: null, bleedItems: [], bleedCount: 0 })
     }
   }, [enabled])
 }
 
+// she opened an item: from the strip, or from a row of the shelf
 export function openBleed(item) {
-  markSeen(item.id)
+  mark(SHOWN, item.id)
+  mark(READ, item.id)
   logCompanion('bleed', { itemId: item.id, action: 'opened' })
-  setCompanion({ bleed: null })
+  setCompanion({ bleed: null, bleedItems: [] })
   if (item.url) window.open(item.url, '_blank', 'noopener,noreferrer')
+}
+
+// an item without a link opens in place on the shelf: that counts as reading it
+export function readBleed(item) {
+  if (read(READ)[item.id]) return
+  mark(SHOWN, item.id)
+  mark(READ, item.id)
+  logCompanion('bleed', { itemId: item.id, action: 'opened' })
 }

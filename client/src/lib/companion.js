@@ -4,7 +4,7 @@ import { useAuth } from '../auth/AuthContext.jsx'
 // What the companion (the Blot in the corner) needs from the page, and what a tap on it does.
 // A reading page reports its game with usePlaying(game) and hands over its filing with useFiling(articleId, file, setGame);
 // the Blot reads the state with useCompanion() and asks tapRule() what a tap means right now (§3 of the companion document).
-let state = { playing: false, swelled: false, first: false, articleId: null, sign: null, signKey: null, bleed: null }
+let state = { playing: false, swelled: false, first: false, articleId: null, sign: null, signKey: null, bleed: null, bleedItems: [], bleedCount: 0, shelf: false }
 let controls = { file: null, setGame: null, settled: false }
 let where = null // who is flipping the game switch: the companion's own tap, or the image's switch (the default)
 const listeners = new Set()
@@ -20,6 +20,7 @@ export function setCompanion(patch) {
   listeners.forEach((listener) => listener())
 }
 
+export const getCompanion = () => state
 export const useCompanion = () => useSyncExternalStore(subscribe, snapshot, snapshot)
 
 // ----- records the companion sends: switch, swell, next. Kept in the browser until there is a server for them; never edited. -----
@@ -27,7 +28,12 @@ const EVENTS_KEY = 'cursive:companion:events:v1'
 const FILED_KEY = 'cursive:companion:filed:v1'
 const sessionId = `s${Date.now().toString(36)}`
 let reader = null // her account id once she signs in; until then her session stands in
-export const setReader = (id) => { reader = id }
+export const setReader = (id) => {
+  const signedIn = Boolean(id) && id !== reader
+  reader = id
+  // she has just signed in: send this session's records again with her account, so the server ties them (and the ones before) to her
+  if (signedIn) flushCompanion(true)
+}
 let openedAt = typeof performance !== 'undefined' ? performance.now() : 0
 let seq = null // continues from the stored records, so it counts every one across visits
 
@@ -37,6 +43,38 @@ export function logCompanion(type, data) {
   if (seq === null) seq = all.reduce((top, entry) => Math.max(top, Number(entry.seq) + 1 || 0), 0)
   const row = { sessionId, readerId: reader || sessionId, type, ...data, ms: Math.round(performance.now() - openedAt), seq: seq++ }
   try { localStorage.setItem(EVENTS_KEY, JSON.stringify([...all, row].slice(-400))) } catch { /* optional */ }
+  clearTimeout(flushTimer)
+  flushTimer = setTimeout(() => flushCompanion(), 4000)
+}
+
+// ----- sending the records to the server. The browser keeps its copy; a record is sent until the server says it has it. -----
+const SENT_KEY = 'cursive:companion:sent:v1'
+let flushTimer = null
+let flushing = false
+const readSent = () => { try { return Number(localStorage.getItem(SENT_KEY)) || 0 } catch { return 0 } }
+
+// join: also send this session's records that went before, so the server can tie them to her account
+export async function flushCompanion(join = false) {
+  if (flushing || typeof fetch !== 'function') return
+  let all = []
+  try { all = JSON.parse(localStorage.getItem(EVENTS_KEY)) || [] } catch { return }
+  const sent = readSent()
+  const events = all.filter((row) => Number(row.seq) >= sent || (join && row.sessionId === sessionId)).slice(-200)
+  if (!events.length) return
+  flushing = true
+  try {
+    const response = await fetch('/api/companion/events', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', keepalive: true,
+      body: JSON.stringify({ events }),
+    })
+    if (response.ok) {
+      const top = events.reduce((max, row) => Math.max(max, Number(row.seq) + 1 || 0), 0)
+      try { localStorage.setItem(SENT_KEY, String(Math.max(sent, top))) } catch { /* optional */ }
+    }
+  } catch { /* offline: the records stay and go with the next one */ } finally { flushing = false }
+}
+if (typeof document !== 'undefined') {
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushCompanion() })
 }
 
 const filedBefore = () => { try { return localStorage.getItem(FILED_KEY) === '1' } catch { return false } }

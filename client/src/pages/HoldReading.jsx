@@ -7,7 +7,7 @@ import HoldMarker from '../components/HoldMarker.jsx'
 import { article3 } from '../data/articles.js'
 import { HOLD_DATA, HOLD_DATA_VERSION } from '../data/holdData.js'
 import { loadHoldProgress, saveHoldProgress } from '../data/holdProgress.js'
-import authorProfile from '../assets/author-profile.jpg'
+import AuthorAvatar from '../components/AuthorAvatar.jsx'
 import { formatClock, useReadingClock } from '../lib/useReadingClock.js'
 import './Reading.css'
 import './HoldReading.css'
@@ -70,18 +70,17 @@ function HoldReading({ article = article3 }) {
         </span>
       </header>
 
-      <div className="read__head">
-        <h1 className="read__title">{article.readingTitle.map((line) => <span key={line}>{line} </span>)}</h1>
-        {article.subtitle && <p className="read__subtitle">{article.subtitle}</p>}
-      </div>
-
-      <GameHero article={article} image={holdHero} game={game} setGame={setGame} KnobIcon={MarkerIcon} EndIcon={GlobeIcon} />
+      <GameHero headline={<div className="read__head">
+          <h1 className="read__title">{article.readingTitle.map((line) => <span key={line}>{line} </span>)}</h1>
+          {article.subtitle && <p className="read__subtitle">{article.subtitle}</p>}
+        </div>} article={article} image={holdHero} game={game} setGame={setGame} KnobIcon={MarkerIcon} EndIcon={GlobeIcon} />
 
       <article className="read__body">
 
         <div className="read__author">
-          <img className="read__avatar" src={authorProfile} alt={`${article.author} profile`} />
+          <AuthorAvatar name={article.author} />
           <span className="read__author-name">{article.author}</span>
+          <span id="game-info-slot" className="game-info-slot" />
         </div>
 
 

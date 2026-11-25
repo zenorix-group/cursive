@@ -10,6 +10,7 @@ import { formatClock, useReadingClock } from '../lib/useReadingClock.js'
 import './Reading.css'
 import './HighlightsReading.css'
 import BrandLink from '../components/BrandLink.jsx'
+import AuthorAvatar from '../components/AuthorAvatar.jsx'
 import { useFiling, usePlainNext } from '../lib/companion.js'
 
 const iconProps = { width: 16, height: 16, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.6, strokeLinecap: 'round', strokeLinejoin: 'round' }
@@ -196,12 +197,10 @@ function HighlightsReading({ article = article4 }) {
         </span>
       </header>
 
-      <div className="read__head">
-        <h1 className="read__title">{article.readingTitle.map((l) => <span key={l}>{l} </span>)}</h1>
-        {article.subtitle && <p className="read__subtitle">{article.subtitle}</p>}
-      </div>
-
-      <GameHero article={article} image={earth} game={game} setGame={setGame} KnobIcon={MarkerIcon} EndIcon={LeafIcon} switchLabel="Play Hindsight Highlights" />
+      <GameHero headline={<div className="read__head">
+          <h1 className="read__title">{article.readingTitle.map((l) => <span key={l}>{l} </span>)}</h1>
+          {article.subtitle && <p className="read__subtitle">{article.subtitle}</p>}
+        </div>} article={article} image={earth} game={game} setGame={setGame} KnobIcon={MarkerIcon} EndIcon={LeafIcon} switchLabel="Play Hindsight Highlights" />
 
       <article className="read__body hh" ref={bodyRef}>
 
@@ -211,9 +210,10 @@ function HighlightsReading({ article = article4 }) {
               const [name, dateline] = block.byline.split(' · ')
               return (
                 <motion.div className="read__author hh__author" key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: 'easeOut' }}>
-                  <span className="hh__initials" aria-hidden="true">{name.split(' ').map((w) => w[0]).join('')}</span>
+                  <AuthorAvatar name={name} />
                   <span className="read__author-name">{name}</span>
                   <span className="hh__dateline">{dateline}</span>
+                  <span id="game-info-slot" className="game-info-slot" />
                 </motion.div>
               )
             }

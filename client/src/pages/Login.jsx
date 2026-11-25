@@ -4,7 +4,7 @@ import { useAuth } from '../auth/AuthContext.jsx'
 import SiteMasthead from '../components/SiteMasthead.jsx'
 import { onboardingDone } from '../lib/onboarding.js'
 import { logCompanion } from '../lib/companion.js'
-import { saveReadingConsent } from '../data/consent.js'
+import { CONSENT_VERSION } from '../data/consent.js'
 import '../styles/site.css'
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -195,7 +195,7 @@ function Login() {
                   <form
                     id="form-create"
                     noValidate
-                    onSubmit={submit('create', ['caName', 'caEmail', 'caPass', 'caConfirm'], async () => { const user = await register(values.caName.trim(), values.caEmail.trim(), values.caPass); saveReadingConsent(consent); return user }, 'Creating your account…', 'Account created. Opening your reading room…')}
+                    onSubmit={submit('create', ['caName', 'caEmail', 'caPass', 'caConfirm'], async () => { return register(values.caName.trim(), values.caEmail.trim(), values.caPass, { agreed: consent, version: CONSENT_VERSION }) }, 'Creating your account…', 'Account created. Opening your reading room…')}
                   >
                     <Field id="ca-name" label="Full name" autoComplete="name" placeholder="e.g. Eleanor Vance"
                       value={values.caName} onChange={set('caName')} onBlur={blur('caName')} error={errors.caName} />

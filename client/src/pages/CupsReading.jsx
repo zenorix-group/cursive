@@ -10,6 +10,7 @@ import { formatClock, useReadingClock } from '../lib/useReadingClock.js'
 import './Reading.css'
 import './CupsReading.css'
 import BrandLink from '../components/BrandLink.jsx'
+import AuthorAvatar from '../components/AuthorAvatar.jsx'
 import { useFiling, usePlainNext } from '../lib/companion.js'
 
 const iconProps = { width: 16, height: 16, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.6, strokeLinecap: 'round', strokeLinejoin: 'round' }
@@ -230,17 +231,16 @@ function CupsReading({ article = article6 }) {
         </span>
       </header>
 
-      <div className="read__head">
-        <h1 className="read__title">{article.readingTitle.map((line) => <span key={line}>{line} </span>)}</h1>
-        {article.subtitle && <p className="read__subtitle">{article.subtitle}</p>}
-      </div>
-
-      <GameHero article={article} image={gentleman} game={game} setGame={setGame} KnobIcon={CupIcon} EndIcon={TreeIcon} switchLabel="Play Four Cups" />
+      <GameHero headline={<div className="read__head">
+          <h1 className="read__title">{article.readingTitle.map((line) => <span key={line}>{line} </span>)}</h1>
+          {article.subtitle && <p className="read__subtitle">{article.subtitle}</p>}
+        </div>} article={article} image={gentleman} game={game} setGame={setGame} KnobIcon={CupIcon} EndIcon={TreeIcon} switchLabel="Play Four Cups" />
 
       <article className="read__body" ref={bodyRef}>
         <div className="read__author cups__author">
-          <span className="cups__initials" aria-hidden="true">{article.author.split(' ').map((w) => w[0]).join('')}</span>
+          <AuthorAvatar name={article.author} />
           <span className="read__author-name">{article.author}</span>
+          <span id="game-info-slot" className="game-info-slot" />
         </div>
 
         <span className="visually-hidden" role="status" aria-live="polite">{announce}</span>

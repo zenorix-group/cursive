@@ -92,7 +92,7 @@ export const article3 = {
   crop: article2.crop,
   readPath: '/read/3',
   minutes: 6,
-  author: 'Cursive Desk',
+  author: 'Sampurna Majumder',
   body: [
     { p: 'The financial equivalent of putting all your nest eggs in one basket is keeping every rupee inside one country. In India, funds that buy foreign shares have long been small next to their domestic peers, but they have been climbing the ladder since they first arrived.' },
     { p: 'Advisers often suggest keeping 10 to 15 per cent of your portfolio abroad. Once you have picked your figure, you act only when the part abroad leaves that range: above 15 per cent, you move the extra home, and below 10, you top it up. Inside the range, you leave it alone.' },
@@ -238,7 +238,7 @@ export const article5 = {
   crop: article2.crop,
   readPath: '/read/5',
   minutes: 8,
-  author: 'Cursive Desk',
+  author: 'Maria Gessy De Sales',
   // movable: the ¶ moments, whose titles swap. Titles listed here are where they start.
   moments: [
     { id: 'm1', title: 'Before the Battle', movable: false, text: 'Cervantes was born in 1547 into a family that moved frequently through Spain. As a young man, he eventually travelled to Italy, where he encountered the culture of the Renaissance. But books, paintings and Roman streets would soon give way to something very different. Europe was preparing for war in the Mediterranean. Cervantes enlisted. The man of letters was about to become a man of arms.' },
@@ -345,7 +345,7 @@ export const article7 = {
   crop: article2.crop,
   readPath: '/read/7',
   minutes: 3,
-  author: 'Bureau of Unfiled Incidents',
+  author: 'Azli Nor',
   breaks: {
     b1: 'Statement received: Attendant Sofia. Update the files.',
     b2: 'Checks received: Reception, Security, Engineering. Update the files.',

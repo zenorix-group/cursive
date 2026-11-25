@@ -31,14 +31,14 @@ export const catalog = [
     id: 1, article: 1, img: 'lead', cat: 'investigations', kick: '§ Law & Accountability', read: 6,
     title: 'The Courts Said Yes. Now Get Nirav Modi Home.',
     dek: 'Winning an extradition case and completing an extradition are two distinct operational realities. An archival inquiry into sovereign jurisdiction, diplomatic leverage, and appellate delay across the United Kingdom and Indian judicial ledgers.',
-    by: 'Siddharth Varadarajan', role: 'Senior Contributing Jurist • London Bureau', plate: 'Plate ref. no. 01 — High Court of Justice',
+    by: 'Monica Behura', plate: 'Plate ref. no. 01 — High Court of Justice',
     paths: { ns: '/article/1', ip: '/read', done: '/receipt' },
   },
   {
     id: 2, article: 3, img: 'equities', cat: 'finance', kick: '¶ Finance & Law', read: 6,
     title: 'Should You Invest In Foreign Or International Equities?',
     dek: 'The financial equivalent of putting all your nest eggs in one basket is keeping every rupee inside one country. Funds that buy foreign shares have been climbing the ladder since they first arrived in India…',
-    by: 'Cursive Desk',
+    by: 'Sampurna Majumder',
     paths: { ns: '/article/3', ip: '/read/3', done: '/receipt/3' },
   },
   {
@@ -52,14 +52,14 @@ export const catalog = [
     id: 4, article: 2, img: 'lead', cat: 'finance', kick: '¶ Finance & Law', read: 8,
     title: 'Common Banking Frauds Everyone Should Know',
     dek: 'An archival examination of deceptive clearinghouse mechanics, synthetic identity generation, and consumer safeguards…',
-    by: 'Arthur Pendelton',
+    by: 'Sampurna Majumder',
     paths: { ns: '/article/2', ip: '/read/2', done: '/receipt/2' },
   },
   {
     id: 5, article: 5, img: 'quixote', cat: 'essays', kick: '§ Essays & Culture', read: 6,
     title: 'Behind Don Quixote',
     dek: 'Before he created one of literature’s most famous adventurers, Miguel de Cervantes had already lived an extraordinary adventure of his own: from Renaissance Italy to the battle of Lepanto…',
-    by: 'Cursive Desk',
+    by: 'Maria Gessy De Sales',
     paths: { ns: '/article/5', ip: '/read/5', done: '/receipt/5' },
   },
   {
@@ -73,7 +73,7 @@ export const catalog = [
     id: 7, article: 7, img: 'room912', cat: 'investigations', kick: '§ Investigations', read: 3,
     title: 'Room 912',
     dek: 'At 23:18, housekeeping received a request for fresh towels from Room 912, a room blocked from guest allocation since the start of the season. Reception confirmed: Room Status: Vacant…',
-    by: 'Bureau of Unfiled Incidents',
+    by: 'Azli Nor',
     paths: { ns: '/article/7', ip: '/read/7', done: '/receipt/7' },
   },
 ]
