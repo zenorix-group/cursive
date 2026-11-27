@@ -253,9 +253,6 @@ function ReArrange({ article = article5 }) {
   const renderMarker = (m, n) => (
     <div className="rearr__marker-row" key={`marker-${m.id}`}>
       <motion.button type="button" className={`rearr__marker${m.movable ? ' is-movable' : ''}`} aria-label={markerLabel(m, n)} onClick={() => openMarker(m.id)} whileHover={{ scale: 1.14 }} whileTap={{ scale: 0.88 }} transition={{ type: 'spring', stiffness: 420, damping: 20 }}>
-        {!shown(m) && (
-          <motion.span className="rearr__pulse" aria-hidden="true" initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: [0.6, 1.5], opacity: [0.5, 0] }} transition={{ duration: 2.2, ease: 'easeOut', delay: 1 + n * 0.25, repeat: 3, repeatDelay: 0.9 }} />
-        )}
         <span aria-hidden="true">{m.movable ? '¶' : ''}</span>
       </motion.button>
       {shown(m) && (m.movable ? (

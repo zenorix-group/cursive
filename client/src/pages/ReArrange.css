@@ -84,8 +84,6 @@
   white-space: nowrap;
 }
 
-/* an invitation on a marker whose title is still hidden: a ring breathes out of it a few times */
-.rearr__pulse { position: absolute; width: 22px; height: 22px; border: 1.5px solid #8a6414; border-radius: 50%; pointer-events: none; }
 
 /* tap to pick up, tap to place: the line that says what to do, and the lines that can take the title */
 .rearr__hint { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 12px; padding: 10px 14px; border-left: 3px solid #8a6414; background: #f1e8d3; font: italic 400 calc(var(--u) * 15)/1.4 var(--text); color: #2b2926; }
