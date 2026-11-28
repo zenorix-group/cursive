@@ -79,3 +79,32 @@ test('handles model failures and refuses incomplete JSON instead of fabricating 
     else process.env.GEMINI_API_KEY = prior;
   }
 });
+
+test('marks blank slots for the model and retries a receipt that fails verification', async () => {
+  const prior = process.env.GEMINI_API_KEY;
+  process.env.GEMINI_API_KEY = 'test-only-key';
+  try {
+    let calls = 0;
+    const receipt = await generateReceipt({ articleNumber: 1, questions }, async (url, options) => {
+      calls += 1;
+      const context = JSON.parse(JSON.parse(options.body).contents[0].parts[0].text);
+      assert.deepEqual(context.readerQuestions.map((q) => q.filed), [true, true, false]);
+      const output = analysis();
+      if (calls === 1) output.inquiries[1].outcome = 'skipped';
+      return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(output) }] } }] }));
+    });
+    assert.equal(calls, 2);
+    assert.equal(receipt.inquiries[1].outcome, 'outside');
+    calls = 0;
+    await assert.rejects(generateReceipt({ articleNumber: 1, questions }, async () => {
+      calls += 1;
+      const output = analysis();
+      output.inquiries[2].outcome = 'match';
+      return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(output) }] } }] }));
+    }), { status: 502 });
+    assert.equal(calls, 3);
+  } finally {
+    if (prior === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = prior;
+  }
+});
