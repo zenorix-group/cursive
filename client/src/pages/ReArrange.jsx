@@ -32,7 +32,7 @@ function ReArrange({ article = article5 }) {
   const navigate = useNavigate()
   const location = useLocation()
   const clock = formatClock(useReadingClock())
-  const [game, setGame] = useState(() => location.state?.game ?? true)
+  const [game, setGame] = useState(() => location.state?.game ?? false)
   const [state, setState] = useState(loadMoves)
   const [drag, setDrag] = useState(null) // { title, from, over, x, y, mode: 'pointer' | 'key' }
   const [folded, setFolded] = useState(false)

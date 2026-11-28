@@ -98,13 +98,12 @@ function Reading({ article = article1 }) {
   const clock = formatClock(useReadingClock())
   const location = useLocation()
   const { knob: KnobIcon, end: EndIcon } = GAME_ICONS[article.number] ?? GAME_ICONS[1]
-  const [game, setGame] = useState(() => location.state?.game ?? true)
+  const [game, setGame] = useState(() => location.state?.game ?? false)
   usePlaying(game)
   const [callProgress, setCallProgress] = useState(loadCallProgress)
   const [activeBlank, setActiveBlank] = useState(null)
   const choiceRef = useRef(null)
   const [hintOpen, setHintOpen] = useState(false)
-  const [switchTip, setSwitchTip] = useState(false)
   const [hintTipHover, setHintTipHover] = useState(false)
   // idle cue for the hint button, like the one on the game switch: until the reader has used it,
   // wiggle the feather, pulse a ring and pop a small tip every few seconds
@@ -121,7 +120,7 @@ function Reading({ article = article1 }) {
   const [travel, setTravel] = useState(36)
   const [touched, setTouchedState] = useState(() => wasUsed('switch'))
   const setTouched = (v) => { setTouchedState(v); if (v) markUsed('switch') }
-  const [tipShown, setTipShown] = useState(false)
+  const [, setTipShown] = useState(false) // the tip itself now stays while the game is off; this still times the knob's nudge
   const dragged = useRef(false)
   const dragSide = useRef(false)
   const [saved, setSaved] = useState(false)
@@ -191,22 +190,6 @@ function Reading({ article = article1 }) {
     return () => controls.stop()
   }, [game, travel])
 
-  // touch screens have no hover, so show the switch bubble by itself once (first visit only)
-  useEffect(() => {
-    if (typeof matchMedia !== 'function' || !matchMedia('(hover: none)').matches || wasUsed('switchTip') || wasUsed('switch')) return undefined
-    const el = trackRef.current
-    if (!el || typeof IntersectionObserver !== 'function') return undefined
-    let hide
-    const io = new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting) return
-      io.disconnect()
-      setSwitchTip(true)
-      markUsed('switchTip')
-      hide = setTimeout(() => setSwitchTip(false), 4500)
-    }, { threshold: 1 })
-    io.observe(el)
-    return () => { io.disconnect(); clearTimeout(hide) }
-  }, [])
 
   // until the reader touches the switch, pop the tip up every few seconds and nudge the knob to show it slides
   useEffect(() => {
@@ -416,7 +399,7 @@ function Reading({ article = article1 }) {
 
         <div className="hero__game">
           <AnimatePresence>
-            {tipShown && !touched && (
+            {!game && (
               <motion.p
                 key="tip"
                 className="hero__tip"
@@ -425,27 +408,13 @@ function Reading({ article = article1 }) {
                 exit={{ opacity: 0, y: 6, scale: 0.9 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 20 }}
               >
-                Slide to<br />{game ? 'leave' : 'enable'} the game.
+                Tap here to<br />turn on the game.
               </motion.p>
             )}
           </AnimatePresence>
           <div className="hero__row">
           {!hintSlot && hintNode}
-            <div className="switch-wrap" onPointerEnter={(e) => e.pointerType === 'mouse' && setSwitchTip(true)} onPointerLeave={() => setSwitchTip(false)} onFocus={(e) => e.target.matches(':focus-visible') && setSwitchTip(true)} onBlur={() => setSwitchTip(false)}>
-              <AnimatePresence>
-                {switchTip && (
-                  <motion.p
-                    key="switch-tip"
-                    className="game-hint__tip"
-                    initial={{ opacity: 0, x: 10, scale: 0.85 }}
-                    animate={{ opacity: 1, x: 0, scale: 1 }}
-                    exit={{ opacity: 0, x: 6, scale: 0.9 }}
-                    transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                  >
-                    {game ? 'Turn off the game' : 'Turn on the game'}
-                  </motion.p>
-                )}
-              </AnimatePresence>
+            <div className="switch-wrap">
               <button
                 type="button"
                 ref={trackRef}

@@ -1,15 +1,17 @@
 import { articleStatus } from './articleStatus.js'
 import { narrativeRequest } from './narrativeStorage.js'
 
-// Editorial pairs the issue's articles into stacks and publishes them together. Until editorial sets the table, the onboarding
-// pair stands as 1 and 2 and the rest pair in order; the seventh article waits alone. Change this one table when editorial decides.
+// The onboarding pair (articles 1 and 2) is the only stack with two articles; every article after it stands alone. If editorial
+// later groups more articles, change this one table.
 // narrative: the route of the stack's narrative receipt and a check that both articles count (filed, with at least one move).
-// Only the onboarding pair has a narrative receipt so far; the other stacks get theirs once editorial writes their rubrics.
+// Only the onboarding pair has a narrative receipt so far.
 export const STACKS = [
   { id: 'onboarding', articles: [1, 2], narrative: { path: '/receipt/narrative', ready: () => !!narrativeRequest() } },
-  { id: 'stack-2', articles: [3, 4] },
-  { id: 'stack-3', articles: [5, 6] },
-  { id: 'stack-4', articles: [7] },
+  { id: 'stack-3', articles: [3] },
+  { id: 'stack-4', articles: [4] },
+  { id: 'stack-5', articles: [5] },
+  { id: 'stack-6', articles: [6] },
+  { id: 'stack-7', articles: [7] },
 ]
 export const ISSUE = [1, 2, 3, 4, 5, 6, 7]
 

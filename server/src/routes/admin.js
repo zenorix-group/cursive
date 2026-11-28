@@ -129,6 +129,16 @@ router.delete('/users/:id/articles/:articleNumber', async (req, res) => {
   res.json({ ok: true, deleted: result.deletedCount });
 });
 
+// start a reader's whole progress over: every article's answers and receipts (the account itself stays)
+router.delete('/users/:id/articles', async (req, res) => {
+  if (!validId(req.params.id)) return res.status(404).json({ message: 'Reader not found.' });
+  const user = await User.findById(req.params.id).select('email');
+  if (!user) return res.status(404).json({ message: 'Reader not found.' });
+  const result = await ArticleRecord.deleteMany({ user: user._id });
+  audit('Reset all progress', `${user.email}: ${result.deletedCount} records`);
+  res.json({ ok: true, deleted: result.deletedCount });
+});
+
 router.delete('/records/:recordId', async (req, res) => {
   if (!validId(req.params.recordId)) return res.status(400).json({ message: 'Unknown record.' });
   await ArticleRecord.deleteOne({ _id: req.params.recordId });

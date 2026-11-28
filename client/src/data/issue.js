@@ -10,6 +10,9 @@ import { loadFiles } from './fileProgress.js'
 // Seven articles make an issue. An article counts toward its stack and the issue once it is filed and she made at least one move in it.
 // Six counted articles bring the show-through; in her first issue the onboarding pair counts as one.
 export const ISSUE_ID = 'issue-1'
+// The vault receipt (the whole issue read through a lens) is switched off for now: no show-through sign, no Back Page, and its page
+// sends a reader to the reading room. Everything is still built; set this to true to bring it back.
+export const VAULT_RECEIPT_ON = false
 export const ISSUE_NEEDED = 6
 
 const moved = (n) => {

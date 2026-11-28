@@ -1078,7 +1078,30 @@
   animation: at-stamp 0.36s cubic-bezier(0.2, 1.5, 0.35, 1) forwards;
 }
 @keyframes at-stamp { 0% { opacity: 0; transform: translate(-50%, -50%) rotate(-8deg) scale(1.8); } 45% { opacity: 1; transform: translate(-50%, -50%) rotate(-8deg) scale(0.94); } 100% { opacity: 1; transform: translate(-50%, -50%) rotate(-8deg) scale(1); } }
+/* Holding the Blot: the ink fills it (from the base; sweeping across when it is the strip) over the hold time, then the Bleed opens or folds.
+   Letting go early drains it back. */
+.at .at__button::after { transition: transform 0.22s ease-out; }
+.at .at__button.is-holding::after { transform: scaleY(1); transition: transform 0.65s linear; }
+.at .at__button.is-unfolding { transition: width 0.5s cubic-bezier(0.32, 0.72, 0, 1), height 0.5s cubic-bezier(0.32, 0.72, 0, 1), transform 0.5s cubic-bezier(0.32, 0.72, 0, 1), background 0.2s ease; }
+.at .at__button--bleed::after { transform: scaleX(1) scaleY(1); transform-origin: 0% 50%; clip-path: inset(0 100% 0 0); transition: clip-path 0.22s ease-out; }
+.at .at__button--bleed.is-holding::after { transform: scaleX(1) scaleY(1); clip-path: inset(0 0 0 0); transition: clip-path 0.65s linear; }
+.at .at__button.is-holding, .at .at__button.is-holding .at__glyph, .at .at__button.is-holding .at__dropwrap, .at .at__button.is-holding svg,
+.at .at__button--bleed.is-holding .at__more, .at .at__button--bleed.is-holding strong, .at .at__button--bleed.is-holding small, .at .at__button--bleed.is-holding em { color: #fbfbfa; transition: color 0.3s 0.2s; }
 @media (prefers-reduced-motion: reduce) {
   .at .at__button.is-filing::after { transition: none; }
+  .at .at__button.is-holding::after, .at .at__button--bleed.is-holding::after { transition: none; }
   .at .at__stamp { animation: none; opacity: 1; transform: translate(-50%, -50%) rotate(-8deg); }
 }
+
+/* ---------- the Receipts list: number, title, status on one row ---------- */
+.at .at__content--list { display: grid; gap: 8px; }
+.at .at__content--list .at__row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; column-gap: 12px; min-height: 58px; padding: 10px 14px 10px 14px; }
+.at .at__content--list .at__row-num { grid-column: 1; }
+.at .at__content--list .at__row-main { grid-column: 2; }
+.at .at__content--list .at__row-state { grid-column: 3; justify-self: end; }
+.at .at__row-num { font: 700 11px/1 Inter, system-ui, sans-serif; letter-spacing: 0.14em; color: rgba(20, 22, 26, 0.45); font-variant-numeric: tabular-nums; }
+.at .at__content--list .at__row-main { min-width: 0; gap: 3px; }
+.at .at__content--list .at__row-main strong { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; font-size: 15px; line-height: 1.22; }
+.at .at__content--list .at__row-state { white-space: nowrap; flex: 0 0 auto; padding: 5px 9px 4px; }
+/* the list scrolls inside the panel: a soft fade at the foot, so a row is never left cut off by a hard edge */
+.at .at__panel > .at__content--list { -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 26px), transparent); mask-image: linear-gradient(to bottom, #000 calc(100% - 26px), transparent); padding-bottom: 14px; }

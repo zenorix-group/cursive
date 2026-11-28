@@ -18,13 +18,11 @@ function GameHero({ article, image, game, setGame, KnobIcon, EndIcon, switchLabe
   usePlaying(game)
   const [hintOpen, setHintOpen] = useState(false)
   const [tipShown, setTipShown] = useState(false)
-  const [switchTip, setSwitchTip] = useState(false)
   const hintRef = useRef(null)
   const trackRef = useRef(null)
   const knobRef = useRef(null)
   const knobX = useMotionValue(0)
   const [travel, setTravel] = useState(36)
-  const [switchUsed, setSwitchUsed] = useState(() => wasUsed('switch'))
   const placed = useRef(false)
 
   useLayoutEffect(() => {
@@ -43,23 +41,6 @@ function GameHero({ article, image, game, setGame, KnobIcon, EndIcon, switchLabe
     return () => controls.stop()
   }, [game, travel])
 
-  // touch screens have no hover, so show the switch bubble by itself once (first visit only)
-  useEffect(() => {
-    if (typeof matchMedia !== 'function' || !matchMedia('(hover: none)').matches || wasUsed('switchTip') || wasUsed('switch')) return undefined
-    const el = trackRef.current
-    if (!el || typeof IntersectionObserver !== 'function') return undefined
-    let hide
-    const io = new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting) return
-      io.disconnect()
-      setSwitchTip(true)
-      markUsed('switchTip')
-      hide = setTimeout(() => setSwitchTip(false), 4500)
-    }, { threshold: 1 })
-    io.observe(el)
-    return () => { io.disconnect(); clearTimeout(hide) }
-  }, [])
-
   useEffect(() => {
     if (!hintOpen) return undefined
     const closeOutside = (event) => { if (!hintRef.current?.contains(event.target)) setHintOpen(false) }
@@ -74,7 +55,7 @@ function GameHero({ article, image, game, setGame, KnobIcon, EndIcon, switchLabe
 
   const toggleGame = () => {
     haptic(10)
-    setSwitchUsed(true); markUsed('switch')
+    markUsed('switch')
     setHintOpen(false)
     setGame((g) => !g)
   }
@@ -134,7 +115,7 @@ function GameHero({ article, image, game, setGame, KnobIcon, EndIcon, switchLabe
 
       <div className="hero__game">
         <AnimatePresence>
-          {!switchUsed && !game && (
+          {!game && (
             <motion.p
               key="tip"
               className="hero__tip"
@@ -143,27 +124,13 @@ function GameHero({ article, image, game, setGame, KnobIcon, EndIcon, switchLabe
               exit={{ opacity: 0, y: 6, scale: 0.9 }}
               transition={{ type: 'spring', stiffness: 300, damping: 20 }}
             >
-              Tap to<br />enable the game.
+              Tap here to<br />turn on the game.
             </motion.p>
           )}
         </AnimatePresence>
         <div className="hero__row">
           {!hintSlot && hintNode}
-          <div className="switch-wrap" onPointerEnter={(e) => e.pointerType === 'mouse' && setSwitchTip(true)} onPointerLeave={() => setSwitchTip(false)} onFocus={(e) => e.target.matches(':focus-visible') && setSwitchTip(true)} onBlur={() => setSwitchTip(false)}>
-            <AnimatePresence>
-              {switchTip && (
-                <motion.p
-                  key="switch-tip"
-                  className="game-hint__tip"
-                  initial={{ opacity: 0, x: 10, scale: 0.85 }}
-                  animate={{ opacity: 1, x: 0, scale: 1 }}
-                  exit={{ opacity: 0, x: 6, scale: 0.9 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                >
-                  {game ? 'Turn off the game' : 'Turn on the game'}
-                </motion.p>
-              )}
-            </AnimatePresence>
+          <div className="switch-wrap">
             <button
               type="button"
               ref={trackRef}

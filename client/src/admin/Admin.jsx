@@ -114,6 +114,11 @@ function Readers() {
     return (typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y))) * sort.dir
   }) : []
   const head = (key, label) => <th aria-sort={sort.key === key ? (sort.dir > 0 ? 'ascending' : 'descending') : 'none'}><button type="button" className="ad-sort" onClick={() => setSort((s) => ({ key, dir: s.key === key ? -s.dir : 1 }))}>{label}{sort.key === key ? (sort.dir > 0 ? ' ↑' : ' ↓') : ''}</button></th>
+  const [listError, setListError] = useState('')
+  const resetAll = async (u) => {
+    if (!window.confirm(`Reset ALL progress for ${u.name}? Every article's answers and receipts will be deleted. Their account stays.`)) return
+    try { await api(`/users/${u.id}/articles`, { method: 'DELETE' }); setListError(''); state.reload() } catch (e) { setListError(e.message) }
+  }
   const exportCsv = () => download('cursive-readers.csv', [['Name', 'Email', 'Completed', 'Last active', 'Joined'], ...users.map((u) => [u.name, u.email, u.completed, u.lastActive || '', u.createdAt || ''])].map((r) => r.map(csvCell).join(',')).join('\n'), 'text/csv')
   return (
     <>
@@ -123,19 +128,21 @@ function Readers() {
         {state.data && <span className="ad-muted ad-count">{users.length} {users.length === 1 ? 'reader' : 'readers'}</span>}
         <button type="button" className="ad-btn" onClick={exportCsv} disabled={!users.length}>Export CSV</button>
       </div>
-      <Loading state={state} skeleton={<SkeletonTable rows={7} cols={5} />} />
+      {listError && <p className="ad-error">{listError}</p>}
+      <Loading state={state} skeleton={<SkeletonTable rows={7} cols={6} />} />
       {state.data && (
         <div className="ad-table-wrap">
           <table className="ad-table">
-            <thead><tr>{head('name', 'Name')}{head('email', 'Email')}{head('completed', 'Completed')}{head('lastActive', 'Last active')}{head('createdAt', 'Joined')}</tr></thead>
+            <thead><tr>{head('name', 'Name')}{head('email', 'Email')}{head('completed', 'Completed')}{head('lastActive', 'Last active')}{head('createdAt', 'Joined')}<th><span className="ad-sort">Progress</span></th></tr></thead>
             <tbody>
               {users.map((u) => (
                 <tr key={u.id}>
                   <td><Link to={`/admin/readers/${u.id}`}>{u.name}</Link></td>
                   <td>{u.email}</td><td>{u.completed}/{TOTAL_ARTICLES}</td><td>{date(u.lastActive)}</td><td>{date(u.createdAt)}</td>
+                  <td><button type="button" className="ad-btn" disabled={!u.lastActive} onClick={() => resetAll(u)}>Reset</button></td>
                 </tr>
               ))}
-              {!users.length && <tr><td colSpan="5" className="ad-muted">No readers found.</td></tr>}
+              {!users.length && <tr><td colSpan="6" className="ad-muted">No readers found.</td></tr>}
             </tbody>
           </table>
         </div>
@@ -168,6 +175,7 @@ function Reader() {
             <div className="ad-actions">
               <button className="ad-btn" onClick={() => navigator.clipboard?.writeText(d.user.email).then(() => setMessage(''))}>Copy email</button>
               <button className="ad-btn" onClick={() => download(`reader-${d.user.name.replace(/\s+/g, '-').toLowerCase()}.json`, JSON.stringify(d, null, 2), 'application/json')}>Export JSON</button>
+              <button className="ad-btn" disabled={!d.records.length} onClick={() => run(`/users/${id}/articles`, `Reset ALL progress for ${d.user.name}? Every article's answers and receipts will be deleted. Their account stays.`, state.reload)}>Reset all progress</button>
               <button className="ad-btn danger" onClick={() => run(`/users/${id}`, `Delete ${d.user.name} and all their saved reading? This cannot be undone.`, () => navigate('/admin/readers'))}>Delete account</button>
             </div>
           </div>

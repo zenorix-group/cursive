@@ -1,22 +1,23 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
+import { createPortal, flushSync } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, MotionConfig, motion, useAnimationControls } from 'framer-motion'
 import { EASE, EASE_IN, SOFT, SPRING, T } from '../lib/motion.js'
 import { haptic } from '../lib/haptics.js'
 import { GLYPH_LEVELS } from './glyphLevels.js'
-import { SIGN_LABEL, TAP_LABEL, doTap, setCompanion, tapRule, useCompanion } from '../lib/companion.js'
+import { SIGN_LABEL, TAP_LABEL, doTap, getCompanion, setCompanion, tapRule, useCompanion } from '../lib/companion.js'
 import BackPage from './BackPage.jsx'
 import ReadingStats from './ReadingStats.jsx'
 import { issueCount } from '../data/issue.js'
 import { markSignShown, openSign } from '../lib/signs.js'
-import { loadBleedItems, openBleed } from '../lib/bleed.js'
+import { loadBleedItems, openBleed, toggleBleed } from '../lib/bleed.js'
 import { usePicksVersion } from '../lib/picks.js'
 import { useAuth } from '../auth/AuthContext.jsx'
 import BleedShelf from './BleedShelf.jsx'
 import FileCard from './FileCard.jsx'
 
 const sizeNow = () => (typeof window !== 'undefined' && window.innerWidth >= 900 ? 62 : 47)
+const HOLD_MS = 650 // how long a press is held to open or fold the Bleed (the CSS fill runs the same time)
 const MARGIN = 20 // in from the edge: the Blot's right edge lines up with the text column and the Game info feather
 
 // The Overture is the Blot itself swelling: the panel begins as the square, at the square's own corner, and grows to full size,
@@ -92,7 +93,7 @@ function Glyph({ progress, pulse = 0, land = 0, hideFirst = false }) {
 // fixed: in an article the Blot is pinned in the bottom right corner and cannot be dragged; playing: the reader has the game on,
 // so the square holds a drop
 function AssistiveTouch({ items, title, tone = 'dark', progress = null, fixed = false }) {
-  const { playing, swelled, sign, bleed, bleedItems, shelf } = useCompanion()
+  const { playing, swelled, sign, bleed, bleedItems, shelf, bleedCount } = useCompanion()
   // the strip turns through its items every few seconds; hovering or focusing it holds the current one
   const [slide, setSlide] = useState(0)
   const [holding, setHolding] = useState(false)
@@ -112,6 +113,12 @@ function AssistiveTouch({ items, title, tone = 'dark', progress = null, fixed = 
   const [fileDate, setFileDate] = useState('')
   const fileTimers = useRef([])
   const bleedTimer = useRef(null) // the strip's single tap, waiting to see whether a second one follows
+  // a hold on the Blot opens the Bleed, and a hold on the open strip folds it back; the ink fills as she holds
+  const [holdFill, setHoldFill] = useState(false)
+  const holdTimer = useRef(null)
+  const held = useRef(false) // the hold completed, so the release that follows is not also a tap
+  const [unfolding, setUnfolding] = useState(false) // the strip folding back to the Blot: it needs the width transition the strip class normally carries
+  const unfoldTimer = useRef(null)
   const [pulse, setPulse] = useState(0)
   const dropControls = useAnimationControls()
   const splashControls = useAnimationControls()
@@ -287,7 +294,7 @@ function AssistiveTouch({ items, title, tone = 'dark', progress = null, fixed = 
 
   useLayoutEffect(() => { place(xFor(pos.side), pos.y - lift) }, [pos, place, size, dim, bleed, lift])
 
-  useEffect(() => () => { clearTimeout(bleedTimer.current); fileTimers.current.forEach(clearTimeout) }, [])
+  useEffect(() => () => { clearTimeout(bleedTimer.current); clearTimeout(holdTimer.current); clearTimeout(unfoldTimer.current); fileTimers.current.forEach(clearTimeout) }, [])
 
   // File now: the page starts filing at once; the card shows Saving, then a dated FILED stamp, then folds into the Blot
   const startFiling = () => {
@@ -361,10 +368,36 @@ function AssistiveTouch({ items, title, tone = 'dark', progress = null, fixed = 
     try { buttonRef.current.setPointerCapture(event.pointerId) } catch { /* pointer already gone */ }
     buttonRef.current.dataset.dragging = '1'
     setSnapping(false)
+    // outside an article, with news to show (or the strip already up), a press that is held opens or folds the Bleed
+    held.current = false
+    clearTimeout(holdTimer.current)
+    if (!fixed && !sign && !open && !merging && !shelf && (bleed || bleedCount > 0)) {
+      setHoldFill(true)
+      holdTimer.current = setTimeout(() => {
+        holdTimer.current = null
+        held.current = true
+        // the strip has to be free to animate when it changes size: the fill's class and the "being dragged" mark (finger still down) both switch
+        // the width transition off, so the strip would jump
+        if (buttonRef.current) delete buttonRef.current.dataset.dragging
+        const folding = Boolean(getCompanion().bleed)
+        flushSync(() => { setHoldFill(false); if (folding) setUnfolding(true) })
+        if (folding) { clearTimeout(unfoldTimer.current); unfoldTimer.current = setTimeout(() => setUnfolding(false), 700) }
+        clearTimeout(bleedTimer.current); bleedTimer.current = null
+        haptic(14)
+        toggleBleed(Boolean(user))
+      }, HOLD_MS)
+    }
+  }
+
+  const cancelHold = () => {
+    clearTimeout(holdTimer.current)
+    holdTimer.current = null
+    setHoldFill(false)
   }
 
   const onPointerMove = (event) => {
     const d = drag.current
+    if (holdTimer.current && d && Math.hypot(event.clientX - d.sx, event.clientY - d.sy) > 8) cancelHold()
     if (!d || d.id !== event.pointerId || bleed) return
     if (fixed) {
       // upward only: the square follows her thumb up the page (this stands in for the Run until the apps are built)
@@ -388,6 +421,9 @@ function AssistiveTouch({ items, title, tone = 'dark', progress = null, fixed = 
     if (!d || d.id !== event.pointerId) return
     drag.current = null
     delete buttonRef.current.dataset.dragging
+    cancelHold()
+    // the hold already did its work: this release is not a tap
+    if (held.current) { held.current = false; return }
     if (fixed) {
       if (d.moved) {
         // past a quarter of the screen it opens; short of that it falls back
@@ -428,7 +464,8 @@ function AssistiveTouch({ items, title, tone = 'dark', progress = null, fixed = 
 
   const below = pos.y < window.innerHeight / 2
   // anchored at the Blot's own corner, so the panel grows out of the square (upward or downward, whichever way has room)
-  const panelW = window.innerWidth >= 900 ? 268 : 252
+  // wide enough for a title, a number and a status on one row; on a phone it takes the width between the two margins (up to 304)
+  const panelW = window.innerWidth >= 900 ? 320 : Math.min(304, window.innerWidth - MARGIN * 2)
   const panelStyle = {
     [pos.side === 'left' ? 'left' : 'right']: MARGIN,
     [below ? 'top' : 'bottom']: below ? pos.y : window.innerHeight - (pos.y + dim),
@@ -483,7 +520,7 @@ function AssistiveTouch({ items, title, tone = 'dark', progress = null, fixed = 
               exit="exit"
             >
               <AnimatePresence mode="wait" initial={false} propagate>
-                <motion.div key={view || 'root'} className="at__content" variants={contentVariants} initial="hidden" animate="show" exit="exit">
+                <motion.div key={view || 'root'} className={`at__content${view ? ' at__content--list' : ''}`} variants={contentVariants} initial="hidden" animate="show" exit="exit">
                   {view ? (
                     <>
                       <motion.div className="at__head" variants={itemVariants}>
@@ -494,7 +531,8 @@ function AssistiveTouch({ items, title, tone = 'dark', progress = null, fixed = 
                       </motion.div>
                       {rows.map((row) => (
                         <motion.button key={row.key} type="button" role="menuitem" className="at__row" data-state={row.state} variants={itemVariants} whileTap={{ scale: 0.97 }} onClick={() => chooseRow(row)}>
-                          <span className="at__row-main"><strong>{row.label}</strong><small>{row.sublabel}</small></span>
+                          {row.num && <span className="at__row-num" aria-hidden="true">{row.num}</span>}
+                          <span className="at__row-main"><strong>{row.label}</strong>{row.sublabel && <small>{row.sublabel}</small>}</span>
                           <span className="at__row-state">{row.badge}</span>
                         </motion.button>
                       ))}
@@ -537,7 +575,7 @@ function AssistiveTouch({ items, title, tone = 'dark', progress = null, fixed = 
       <button
         ref={buttonRef}
         type="button"
-        className={`at__button${shelf ? ' is-shelf' : ''}${bleed ? ' at__button--bleed' : ''}${fixed ? ' at__button--fixed' : ''}${snapping ? ' is-snapping' : ''}${open ? ' is-open' : ''}${filePhase ? ' is-filing' : ''}${filePhase === 'stamped' ? ' is-filed' : ''}${absorbing ? ` is-absorbing is-absorbing--${absorbing}` : ''}`}
+        className={`at__button${shelf ? ' is-shelf' : ''}${bleed ? ' at__button--bleed' : ''}${fixed ? ' at__button--fixed' : ''}${snapping ? ' is-snapping' : ''}${open ? ' is-open' : ''}${filePhase ? ' is-filing' : ''}${filePhase === 'stamped' ? ' is-filed' : ''}${holdFill ? ' is-holding' : ''}${unfolding ? ' is-unfolding' : ''}${absorbing ? ` is-absorbing is-absorbing--${absorbing}` : ''}`}
         style={{ width: wide, height: tall, borderRadius: bleed ? 10 : fixed ? 6 : size * 0.3 }}
         aria-label={shown ? `${shown.priority === 'breaking' ? 'Breaking' : shown.kind === 'news' ? 'News' : 'Opportunity'}: ${shown.title}. ${shown.url ? 'Open it' : 'Read more'}` : fixed || sign ? `${(sign && SIGN_LABEL[sign.kind]) || TAP_LABEL[rule] || 'Open your apps'}${progress !== null ? `, ${Math.round(progress * 100)}% read` : ''}` : open ? 'Close menu' : progress !== null ? `Open menu, ${Math.round(progress * 100)}% read` : 'Open menu'}
         aria-expanded={open}

@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { STACKS } from '../data/stacks.js'
-import { ISSUE_ID, ISSUE_NEEDED, issueCount } from '../data/issue.js'
+import { ISSUE_ID, ISSUE_NEEDED, VAULT_RECEIPT_ON, issueCount } from '../data/issue.js'
 import { logCompanion, setCompanion } from './companion.js'
 
 // The Blot's signs. One waits at a time. Only the second drop (a stack's narrative receipt is ready) is built so far;
@@ -27,7 +27,7 @@ export function waitingSign() {
     if (ready) return { kind: 'narrative', id: stack.id, path: stack.narrative.path, line: LINES.narrative, first: !saved.shown?.narrative }
   }
   // one sign waits at a time: the show-through follows once the narrative has been opened
-  if (!saved.opened?.[`vault:${ISSUE_ID}`]) {
+  if (VAULT_RECEIPT_ON && !saved.opened?.[`vault:${ISSUE_ID}`]) {
     let ready = false
     try { ready = issueCount() >= ISSUE_NEEDED } catch { ready = false }
     if (import.meta.env.DEV && localStorage.getItem('cursive:dev:sign') === 'vault') ready = true
