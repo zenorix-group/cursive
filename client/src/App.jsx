@@ -15,6 +15,7 @@ import CallTranscript from './pages/CallTranscript.jsx'
 import LiftReceipt from './pages/LiftReceipt.jsx'
 import NarrativeReceipt from './pages/NarrativeReceipt.jsx'
 import VaultReceipt from './pages/VaultReceipt.jsx'
+import { VAULT_RECEIPT_ON } from './data/issue.js'
 import HoldReading from './pages/HoldReading.jsx'
 import HoldReceipt from './pages/HoldReceipt.jsx'
 import HighlightsReading from './pages/HighlightsReading.jsx'
@@ -90,7 +91,7 @@ function App() {
       <Route path="/receipt/2" element={<LiftReceipt />} />
       <Route path="/receipt/example" element={<Receipt key="example" example />} />
       <Route path="/receipt/narrative" element={<RequireAuth><NarrativeReceipt /></RequireAuth>} />
-      <Route path="/receipt/vault" element={<RequireAuth><VaultReceipt /></RequireAuth>} />
+      <Route path="/receipt/vault" element={VAULT_RECEIPT_ON ? <RequireAuth><VaultReceipt /></RequireAuth> : <Navigate to="/reading-room" replace />} />
       <Route path="/receipt/narrative/example" element={<NarrativeReceipt key="example" example />} />
     </Routes>
     </PageTransition>

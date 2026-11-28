@@ -13,7 +13,8 @@ import { setCompanion } from '../lib/companion.js'
 const pad = (n) => String(n).padStart(2, '0')
 
 const STATE_LABEL = { stored: 'Stored', ready: 'Ready', empty: 'Not yet' }
-const STATE_NOTE = { stored: 'Stored', ready: 'Ready to read', empty: 'Nothing saved yet' }
+// the row says only what the badge does not: the number leads, the badge carries the state, and "ready" adds a short note
+const STATE_NOTE = { stored: '', ready: 'Ready to read', empty: '' }
 const NUMBERS = [1, 2, 3, 4, 5, 6, 7]
 const ARTICLE_NAME = { 1: 'The Questions You Left Open', 2: 'The Lines You Carried', ...Object.fromEntries([article3, article4, article5, article6, article7].map((a) => [a.number, a.title.join(' ')])) }
 
@@ -28,7 +29,7 @@ export function makeReceiptsItem(navigate) {
     note: () => `${count()} of ${NUMBERS.length}`,
     sub: () => NUMBERS.map((n) => {
       const state = receiptStatus(n)
-      return { key: `receipt-${n}`, label: ARTICLE_NAME[n], sublabel: `Article ${pad(n)} · ${STATE_NOTE[state]}`, badge: STATE_LABEL[state], state, onClick: () => navigate(n === 1 ? '/receipt' : `/receipt/${n}`) }
+      return { key: `receipt-${n}`, label: ARTICLE_NAME[n], num: pad(n), sublabel: STATE_NOTE[state], badge: STATE_LABEL[state], state, onClick: () => navigate(n === 1 ? '/receipt' : `/receipt/${n}`) }
     }),
   }
 }

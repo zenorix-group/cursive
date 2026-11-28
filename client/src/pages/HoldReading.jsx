@@ -23,7 +23,7 @@ function HoldReading({ article = article3 }) {
   const navigate = useNavigate()
   const location = useLocation()
   const clock = formatClock(useReadingClock())
-  const [game, setGame] = useState(() => location.state?.game ?? true)
+  const [game, setGame] = useState(() => location.state?.game ?? false)
   const [saved] = useState(loadHoldProgress)
   const [holds, setHolds] = useState(saved.holds)
   const [activeHold, setActiveHold] = useState(null)

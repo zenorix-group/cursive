@@ -69,6 +69,22 @@ export function useBleed(enabled, signedIn = false) {
   }, [enabled])
 }
 
+// a hold on the Blot: opens the strip when it is folded, folds it when it is open. Returns 'opened', 'closed', or null when there is nothing to show.
+export function toggleBleed(signedIn = false) {
+  const { bleed } = getCompanion()
+  if (bleed) {
+    setCompanion({ bleed: null, bleedItems: [], shelf: false })
+    logCompanion('bleed', { itemId: bleed.id, action: 'held-closed' })
+    return 'closed'
+  }
+  const items = rankItems(lastRaw, { signedIn })
+  const item = pickForStrip(items) || items[0]
+  if (!item) return null
+  setCompanion({ bleed: { ...item, more: Math.max(0, items.length - 1) }, bleedItems: [item, ...items.filter((entry) => entry.id !== item.id)] })
+  logCompanion('bleed', { itemId: item.id, action: 'held-open' })
+  return 'opened'
+}
+
 // she opened an item: from the strip, or from a row of the shelf
 export function openBleed(item) {
   mark(SHOWN, item.id)
