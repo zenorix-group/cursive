@@ -18,6 +18,7 @@ function GameHero({ article, image, game, setGame, KnobIcon, EndIcon, switchLabe
   usePlaying(game)
   const [hintOpen, setHintOpen] = useState(false)
   const [tipShown, setTipShown] = useState(false)
+  const [hintSeen, setHintSeen] = useState(() => wasUsed(`hint:${article.number}`))
   const hintRef = useRef(null)
   const trackRef = useRef(null)
   const knobRef = useRef(null)
@@ -66,7 +67,21 @@ function GameHero({ article, image, game, setGame, KnobIcon, EndIcon, switchLabe
   const hintNode = game ? (
             <div className="game-hint" ref={hintRef}>
               <AnimatePresence>
-                {tipShown && !hintOpen && (
+                {!hintSeen && !hintOpen && (
+                  <motion.p
+                    key="hint-nudge"
+                    className="game-hint__nudge"
+                    initial={{ opacity: 0, y: -10, scale: 0.85 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -6, scale: 0.9 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                  >
+                    Tap here to see<br />how the game works.
+                  </motion.p>
+                )}
+              </AnimatePresence>
+              <AnimatePresence>
+                {hintSeen && tipShown && !hintOpen && (
                   <motion.p
                     key="hint-tip"
                     className="game-hint__tip"
@@ -85,7 +100,7 @@ function GameHero({ article, image, game, setGame, KnobIcon, EndIcon, switchLabe
                 aria-label="Game info"
                 aria-expanded={hintOpen}
                 aria-controls="game-instructions"
-                onClick={() => setHintOpen((open) => !open)}
+                onClick={() => { markUsed(`hint:${article.number}`); setHintSeen(true); setHintOpen((open) => !open) }}
                 onPointerEnter={(e) => e.pointerType === 'mouse' && setTipShown(true)}
                 onPointerLeave={() => setTipShown(false)}
                 onFocus={(e) => e.target.matches(':focus-visible') && setTipShown(true)}

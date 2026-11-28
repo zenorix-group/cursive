@@ -108,8 +108,8 @@ function Reading({ article = article1 }) {
   // idle cue for the hint button, like the one on the game switch: until the reader has used it,
   // wiggle the feather, pulse a ring and pop a small tip every few seconds
   const hintControls = useAnimationControls()
-  const [hintTouched, setHintTouchedState] = useState(() => wasUsed('hint'))
-  const setHintTouched = (v) => { setHintTouchedState(v); if (v) markUsed('hint') }
+  const [hintTouched, setHintTouchedState] = useState(() => wasUsed(`hint:${article.number}`))
+  const setHintTouched = (v) => { setHintTouchedState(v); if (v) markUsed(`hint:${article.number}`) }
   const [hintTip, setHintTip] = useState(false)
   const [hintRing, setHintRing] = useState(0)
 
@@ -316,7 +316,21 @@ function Reading({ article = article1 }) {
   const hintNode = game ? (
             <div className="game-hint" ref={hintRef}>
               <AnimatePresence>
-                {hintTipHover && !hintOpen && (
+                {!hintTouched && !hintOpen && (
+                  <motion.p
+                    key="hint-nudge"
+                    className="game-hint__nudge"
+                    initial={{ opacity: 0, y: -10, scale: 0.85 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -6, scale: 0.9 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                  >
+                    Tap here to see<br />how the game works.
+                  </motion.p>
+                )}
+              </AnimatePresence>
+              <AnimatePresence>
+                {hintTouched && hintTipHover && !hintOpen && (
                   <motion.p
                     key="hint-tip"
                     className="game-hint__tip"

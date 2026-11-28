@@ -729,3 +729,27 @@
 .read > .read__body { padding-top: calc(var(--u) * 4); }
 .read .read__body > .read__author:first-child, .read .read__body .read__author { margin-top: calc(var(--u) * 8); }
 .read .read__head { padding-bottom: calc(var(--u) * 4); }
+
+/* the first-time bubble under the Game info button: same white bubble as the one on the game switch, pointing up at the button */
+.game-hint__nudge {
+  position: absolute; top: calc(100% + 12px); right: -6px; z-index: 3; margin: 0;
+  padding: 7px 12px; border-radius: 12px; background: #fff; border: 1px solid rgba(20, 22, 26, 0.12);
+  box-shadow: 0 4px 14px rgba(20, 22, 26, 0.14);
+  font: 600 12px/1.2 var(--text); text-align: center; white-space: nowrap; color: var(--ink); pointer-events: none;
+  animation: tip-bob 2.4s ease-in-out infinite;
+}
+.game-hint__nudge::after {
+  content: ''; position: absolute; top: -5px; right: 18px; width: 9px; height: 9px;
+  background: #fff; border-left: 1px solid rgba(20, 22, 26, 0.12); border-top: 1px solid rgba(20, 22, 26, 0.12);
+  transform: rotate(45deg);
+}
+@media (prefers-reduced-motion: reduce) { .game-hint__nudge { animation: none; } }
+.read .game-hint__nudge { padding: 7px 12px; font: 600 12px/1.25 var(--text); width: max-content; max-width: none; }
+/* in the picture's control row the bubble sits above the button, like the one on the switch, and the card opens upward too */
+.hero__row .game-hint__nudge { top: auto; bottom: calc(100% + 12px); right: -4px; }
+.hero__row .game-hint__nudge::after { top: auto; bottom: -5px; right: 14px; transform: rotate(225deg); }
+/* in the author row the bubble pops up above the button, exactly like the one over the game switch */
+.game-hint__nudge { top: auto; bottom: calc(100% + 12px); right: -4px; animation: tip-bob 2.4s ease-in-out infinite; }
+.game-hint__nudge::after { top: auto; bottom: -5px; right: 14px; border: 0; transform: rotate(45deg); }
+.read .game-hint__nudge { border: 0; box-shadow: none; margin: 0 !important; }
+@media (prefers-reduced-motion: reduce) { .game-hint__nudge { animation: none; } }
