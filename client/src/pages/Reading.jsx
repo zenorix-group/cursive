@@ -109,6 +109,14 @@ function Reading({ article = article1 }) {
   // wiggle the feather, pulse a ring and pop a small tip every few seconds
   const hintControls = useAnimationControls()
   const [hintTouched, setHintTouchedState] = useState(() => wasUsed(`hint:${article.number}`))
+  // the bubble over the button stays 15 seconds after the game is switched on, then folds back into the button
+  const [nudgeOn, setNudgeOn] = useState(false)
+  useEffect(() => {
+    if (!game || hintTouched) { setNudgeOn(false); return undefined }
+    setNudgeOn(true)
+    const t = setTimeout(() => setNudgeOn(false), 15000)
+    return () => clearTimeout(t)
+  }, [game, hintTouched])
   const setHintTouched = (v) => { setHintTouchedState(v); if (v) markUsed(`hint:${article.number}`) }
   const [hintTip, setHintTip] = useState(false)
   const [hintRing, setHintRing] = useState(0)
@@ -316,7 +324,7 @@ function Reading({ article = article1 }) {
   const hintNode = game ? (
             <div className="game-hint" ref={hintRef}>
               <AnimatePresence>
-                {!hintTouched && !hintOpen && (
+                {nudgeOn && !hintOpen && (
                   <motion.p
                     key="hint-nudge"
                     className="game-hint__nudge"

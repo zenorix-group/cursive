@@ -19,6 +19,14 @@ function GameHero({ article, image, game, setGame, KnobIcon, EndIcon, switchLabe
   const [hintOpen, setHintOpen] = useState(false)
   const [tipShown, setTipShown] = useState(false)
   const [hintSeen, setHintSeen] = useState(() => wasUsed(`hint:${article.number}`))
+  // the "Tap here to see how the game works" bubble stays for 15 seconds after the game is switched on, then folds back into the button
+  const [nudgeOn, setNudgeOn] = useState(false)
+  useEffect(() => {
+    if (!game || hintSeen) { setNudgeOn(false); return undefined }
+    setNudgeOn(true)
+    const t = setTimeout(() => setNudgeOn(false), 15000)
+    return () => clearTimeout(t)
+  }, [game, hintSeen])
   const hintRef = useRef(null)
   const trackRef = useRef(null)
   const knobRef = useRef(null)
@@ -67,7 +75,7 @@ function GameHero({ article, image, game, setGame, KnobIcon, EndIcon, switchLabe
   const hintNode = game ? (
             <div className="game-hint" ref={hintRef}>
               <AnimatePresence>
-                {!hintSeen && !hintOpen && (
+                {nudgeOn && !hintOpen && (
                   <motion.p
                     key="hint-nudge"
                     className="game-hint__nudge"
